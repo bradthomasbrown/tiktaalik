@@ -35,11 +35,13 @@ it is certainly more concise. there's an idea tumbling around, specifically sinc
 	- `templates` we're writing something that will produce typescript modules, and a good way to make that easier is to have typescript template files. these are just typescript files with placeholders in them (we have figured out ways to have placeholders for imports, types, and expressions).
 - "concepts" group a collection of code organized under kinds. a good rule of thumb is that if we see some word or string very frequently in a group of files, those files can probably be grouped into a concept by the same word or string. for instance, `solcOutput`, `solcList`, `solcRelease`, `solcBuild`, etc. should strongly indicate that a `solc` concept directory should exist. then, all of the `kind` files can be split amongst `solc/output`, `solc/list`, and `solc/release`
 in Backus-Naur form, we may write something like
-```
-<???> ::= // some combination of the below
-<concept> ::= <allowedUnixFilenameChars>
-<kind> ::= "lib" | "types" | "schemas" | "tests" | "fixtures" | "templates"
+```ebnf
+<???> 	= // some combination of the below
+<concept> = <allowedUnixFilenameChars>
+<kind>= "lib" | "types" | "schemas" | "tests" | "fixtures" | "templates"
 ```
 - is there a markdown language for Backus-Naur form? when googling, we amusingly get a lot of content about Backus-Naur forms for markdown language.
 
 i'm going to give in and use the existing plugin *for now*, as it seems to have a huge amount of downloads
+alright, it's pretty cool
+EBNF is a supported language
