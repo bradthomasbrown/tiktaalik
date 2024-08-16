@@ -29,7 +29,7 @@ it is certainly more concise. there's an idea tumbling around, specifically sinc
 - folders are "concepts" or "kinds". code goes under it's specific "kind". a "kind" is something like `lib`, `types`, `schemas`. that evolved and we added to it `tests`, `fixtures`, `templates`. (explain these?)
 	- `lib` we're mostly writing libraries (are we?), so "real code" goes in here. classes, functions, etc.
 	- `types` typescript types
-	- `schemas` zod schemas, sometimes we end up with a lot of these
+	- `schemas` Zod schemas, sometimes we end up with a lot of these
 	- `tests` 
 	- `fixtures` if a test requires something that takes a lot of resources to produce can we can "save" it to make testing faster, put those here
 	- `templates` we're writing something that will produce typescript modules, and a good way to make that easier is to have typescript template files. these are just typescript files with placeholders in them (we have figured out ways to have placeholders for imports, types, and expressions).
