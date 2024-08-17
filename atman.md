@@ -36,12 +36,56 @@ it is certainly more concise. there's an idea tumbling around, specifically sinc
 - "concepts" group a collection of code organized under kinds. a good rule of thumb is that if we see some word or string very frequently in a group of files, those files can probably be grouped into a concept by the same word or string. for instance, `solcOutput`, `solcList`, `solcRelease`, `solcBuild`, etc. should strongly indicate that a `solc` concept directory should exist. then, all of the `kind` files can be split amongst `solc/output`, `solc/list`, and `solc/release`
 in Backus-Naur form, we may write something like
 ```ebnf
-<???> 	= // some combination of the below
-<concept> = <allowedUnixFilenameChars>
-<kind>= "lib" | "types" | "schemas" | "tests" | "fixtures" | "templates"
+<filepath> ::= <concept> <delimiter> <kind> <delimiter> <file>
+<concept> ::= <word> | <concept> <delimiter> <concept>
+<delimiter> ::= "/"
+<kind> ::= "lib" | "types" | "schemas" | "tests" | "fixtures" | "templates"
+<file> ::= <word> "." <word>
+<word> ::= <letter> | <letter> <word>
+<letter> ::=   "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h"
+             | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+			 | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x"
+			 | "y" | "z"
 ```
 - is there a markdown language for Backus-Naur form? when googling, we amusingly get a lot of content about Backus-Naur forms for markdown language.
 
 i'm going to give in and use the existing plugin *for now*, as it seems to have a huge amount of downloads
 alright, it's pretty cool
 EBNF is a supported language
+we're going to enable vim for overtyping/replace mode, god have mercy 
+
+if we extend our BNF for ???, then we may be able to solve the squiggle.
+there's issue with the above definition, since it's not particularly possible to group files into a kind or kinds into a concept. there's also going to be an issue where the `<kind>`s under a `<concept>` can't be duplicate, and expanding the definition 
+
+maybe we can use some divider, `lib/foo.x,bar.y,baz.z`
+maybe make it look more like a function? `lib(foo.x,bar.y,bar.z)`
+that looks nice, also accounts for `kind`s possibly having nothing in them, like `fixtures()`
+`[John[, [whose [blue car]] [was [in [the garage]]],]] [walked [to [the [grocery store]]]]` [Context-free_grammar](https://en.wikipedia.org/wiki/Context-free_grammar)
+a parser generator is a regex but context-free instead of regular (probably not completely accurate)
+that above sentence interests me greatly.
+- i wonder what the names are for each group
+
+[denoland/std](https://github.com/denoland/std/tree/main)
+```
+repo(
+	archive(),
+	assert(),
+	async(),
+	bytes(),
+	...
+)
+```
+
+https://docs.deno.com/runtime/manual/basics/workspaces/
+we should use this to solve the squiggle problem, it also has more categories for us to use
+- package
+- workspace (also known as a monorepo)
+
+so far:
+`workspace(package(kind(file,...),...),...)`
+the `denoland/std` repo is has more logical groups however, and the `ethereum/solidity` repo has even more
+`denoland/deno` is rust, from [rust glossary](https://doc.rust-lang.org/cargo/appendix/glossary.html)
+`workspace(package(crate(module,...),...)->artifact, equiv. .ts, like bin or lib,...)`
+
+[Paul Graham](https://en.wikipedia.org/wiki/Paul_Graham_(programmer) "Paul Graham (programmer)") wrote:[[8]](https://en.wikipedia.org/wiki/Design_Patterns#cite_note-Graham2002-8)
+> When I see patterns in my programs, I consider it a sign of trouble. The shape of a program should reflect only the problem it needs to solve. Any other regularity in the code is a sign, to me at least, that I'm using abstractions that aren't powerful enough-- often that I'm generating by hand the expansions of some macro that I need to write.
