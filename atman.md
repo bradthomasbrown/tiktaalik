@@ -275,3 +275,9 @@ that was easy and fun
 when we get to trying to put stuff onto github and JSR, what if, instead of submodules or whatever it may be, we create logical groups "github" and "JSR", under each of those "repositories" and "packages" respectively, then just hardlink things to there? then the requirements of those services shouldn't have any impact on our structure.
 
 lets get all of the uniswap contracts
+lots of organizing. good.
+we need to absorb vertigo and dizzyhavoc and then we can start descending into the worktree and causing all sorts of chaos
+vertigo is a part of dizzyhavoc
+the dizzyhavoc directory consists of some helper ts apps, some helper ts libraries (evm and non-evm), some pipeline scripts for evms and dizzyhavoc contracts, and some "tests". it had contracts, but we ripped those out
+we probably shouldn't do symlinks or hardlinks across units that will be on github or any other collaborative similar thing. if links are respected and a contributor makes a contribution, when we pull that the links would force changes to happen. might be unpleasant to deal with.
+keep links within things that will be a unit on something like github and it _should_ be okay but something says maybe it won't be.
