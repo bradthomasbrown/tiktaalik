@@ -281,3 +281,163 @@ vertigo is a part of dizzyhavoc
 the dizzyhavoc directory consists of some helper ts apps, some helper ts libraries (evm and non-evm), some pipeline scripts for evms and dizzyhavoc contracts, and some "tests". it had contracts, but we ripped those out
 we probably shouldn't do symlinks or hardlinks across units that will be on github or any other collaborative similar thing. if links are respected and a contributor makes a contribution, when we pull that the links would force changes to happen. might be unpleasant to deal with.
 keep links within things that will be a unit on something like github and it _should_ be okay but something says maybe it won't be.
+
+what are we doing today?
+organizing! yay!
+in dizzyhavoc, there's a dir `bin` with apps intended to be run. one of these takes a secret in stdin, then outputs the address for that secret. we can remove that
+one is a very very prototype of what looks like a lexer for my own flavor of ethereum assembly. go figure, we called tokens `tokens`, without knowing that was the standard term or even what a lexer was. good job. we don't need this.
+one of these downloads a geth binary given some version. this is probably useful, but not as a binary. keep. another generates a random private key from /dev/random. why not use crypto.getRandomValues and ditch the bash script?. remove
+`crypto.getRandomValues(new Uint8Array(32)).reduce((p, c) => p + c.toString(16).padStart(2, '0'), '')`
+
+two interesting things so far:
+- aiq is a neat idea, but it was already made by deno in the standard library as an "async multiplexer". not sure if our implementation is more flexible, but we can most likely remove ours and use theirs to reduce code reuse.
+- artifact is actually a very neat idea. like our current Cache, but specifically for cached assets that take significant resources to produce. what makes it special is that it orchestrates in case of "what if many requesters request a resource at the same time?" by only triggering one processing action by the first requester and forcing the rest to wait until that one is complete. that way, 10 things could request compilation results for some contract, if the results don't exist, we only compile it once for the first request encountered, the other 9 wait patiently, after given the signal they can check to make sure what they have is what they want, then they can be satisfied. 
+	- we are extremely interested in making this system remote capable. say we have some microarchitecture application where two modularized services need some asset that takes significant resources to produce from a third modularized service. the two modularized services don't share a filesystem, so using mkdir to make a lock file won't work here. how can they coordinate? what do we do if one requester successfully claims a lock but then dies? ({ method: 'lock' }, no { method: 'unlock' } ever received)
+	- does this have anything to do with database transactions? deno.kv? we think the way those things work is very related to what we want
+	- orchestrator can require receipt of some sort of regular occurring signal to verify liveliness of a requester (socket?). if the signal dies, orchestrator can assume the requester died and can release the lock. doesn't have to be a socket at first ({ method: 'i_am_alive' }), but probably best to use one.
+we should be able to get rid of gethup, since the deno evm node docker dir should contain something functionally equivalent. yep, it does
+
+we're interested in the solc json input having a SolidityAST and EVMAssembly option for the input type. can we verify an assembly contract?
+
+verify.ts should go in deno/evm/lib
+getChainId gets a chainId from a json file, expected to come from a clone of that one repo with all the chain info. remove this for now (but we get why it might be there)
+aiq and artifact should go in deno/stdplus, mark aiq as stale
+deploy should go in deno/evm/lib
+pipelines? those are the real meat of dizzyhavoc we suppose
+we get the idea that dizzyhavoc should be a logical group under code, not within deno. it's a whole project (granted, using deno a **LOT**). one may argue that it shouldn't even be under code, since it should contain non-code things (assets, images, documents, etc.). 
+sure the pipelines are code, but because they use abstractions of functionalities (which can be massively improved upon), the pipelines functionally are dizzyhavoc specific. _code_ implies code that isn't specific to one... ???
+??? is what dizzyhavoc belongs to. it's some more concrete thing. is it a project? a goal?
+time to dig deep. we know there's a very large telegram archive rocking around somewhere.
+we found it. 
+"Warning, this is a very large file (104.1 MB). This is the contents of the TangleCoin group chat up to 2021/09/19 around 12:30 AM EST."
+the orbicular telegram seems to be lost to time, unfortunately. we wanted to see that the most, since that would let us where we started. we can maybe piece things together, however:
+
+- Orbicular. We tried trading shitcoins and failed miserably. The last one we were interested in was XAMP, or "anti-Ampleforth". Their website is dead, but their twitter is still alive and CMC has a page for them with the token address. From their twitter:
+
+>How will the free market behave? How will traders react to a constantly reducing supply? Who knows? What are the limits of our current concept of what a financial system is?
+>While Ampleforth issues more tokens based on supply and demand, we constantly destroy it. Cryptocurrency was born on the concept of deflationary assets. Antiample takes this concept to the extreme.
+>Antiample is an ERC20 token on the Ethereum blockchain. Unlike a regular ERC20 token, Antiample has a constantly reducing supply. Holders of Antiample own a portion of the total supply of the token rather than an amount of Antiample themselves. When the value of 1 Antiample token decreases, the supply is decreased by at least 1%. This causes each Antiample to be worth more.
+
+- bit of a flawed premise abusing the meaning of "value" and "worth", but hey, we didn't know much about economics (and still don't). To summarize, it was an experimental shitcoin that took a pre-existing tokenomic mechanic and did something interesting and new with it. In essence, that's what Orbicular was. We recall looking at Ampleforth to figure out exactly what it was and what it's purpose was, and we recall fixating on a section in the [whitepaper](https://whitepaper.io/document/585/ampleforth-whitepaper) :
+
+> 4.2 Expansion As discussed in Section 3, during expansion there is a window in time where fast actors have an opportunity to sell after the supply increases but before any price correction occurs. As long as there are enough fast actors willing to sell, price will decrease. This could produce price and supply patterns like those below:
+
+(we get the idea we should start archiving these contributors to what we're doing)
+added antiample x posts and ampleforth whitepaper to this vault
+
+- We recall specifically interpreting what they described in 4.2 as an "arbitrage event". `fast actors have an opportunity to sell after the supply increases but before any price correction occurs`. We recall getting an idea from that: 
+## <u>Does altering the supply like this really cause market behavior to happen?</u>
+  
+- Orbicular was then my "experiment" to test this theory. The execution was simple and I'll toot my own horn here and say it was pretty clever: Cyclically alter the supply over time, in steps. We recall now that the goal of the experiment was that it would do one of two things. Either:
+	- Actors do behave according to their expections.
+	- Actors do not behave according to their expectations. In this case, Ampleforth is meaningless.
+- If actors do behave according to their expectations, then a very large question comes to mind:
+	- Where does the opportunity come from? For a "fast actor" to "have an opportunity", they are acquiring some value they did not previously have. 
+- Unfortunately, Orbicular didn't perform how we expected it to, as an experiment. There was a bug in the implementation due to a misunderstanding of how Uniswap liquidity pools worked and, additionally, the value of Orbicular skyrocketed at some point, throwing any ability to measure the effect completely in chaos.
+	- This was our fault. an amusingly significant gap in our implementation was simply "nobody knew Orbicular existed". We knew /biz/ had a lot of shitcoin threads, so we started our own to sort of bait people into the experiment. We unintentionally copied an OP to use as a framework for our own that included some statements about being sponsored by large companies (honest mistake, we were rushing and just changed the token name). This caused a rapid chain reaction where people believed this was some brand new token sponsored by large, real organizations (Oracle I think was one of them).
+- The bug was twofold: If you reduce the supply of your token via a rebase, Uniswap gets confused about its liquidity pools and the token becomes untradeable until someone calls `sync()` on a V2Pair. If you increase the supply of your token via a rebase _and don't call sync()_, <strong><u>anyone can call `skim()` to just take the excess</u></strong>. Someone did indeed start doing this and slowly draining the liquidity pool.
+- We created a special Rebaser contract with functions to perform the rebase and the synchronizations simultaneously. We also got a hunch why the Ampleforth premise was flawed: The "fast actor opportunity" comes from the liquidity pool. Sure the token's price relative to some other asset can be pushed to some arbitrary number, but it's being done at a cost, that cost comes from the liquidity pool.
+- The concept of Tangle started to take root around here.
+- We also got a more intruiging take on the experiment after asking: When the fast actors take their opportunity, what are they really doing? They're exchanging Ampleforth for ??? where ??? is some other asset and they're doing so because they know the rebasing mechanism will make the exchange back into Ampleforth profitable. Ampleforth is creating "arbitrage events", paid for by their own liquidity pool. In a twisted sense, it's a token that incentivized its own wash trading. 
+- The idea was: Why should the fast actors leave the rebasing system at all? What if there was another system running alongside the original whose rebase schedule countered the original's? For actors, this should be doubly enticing and value should never leave our system.
+- Suddenly though, we look at section 3 of their whitepaper:
+  
+	>Fast Actor (Expansion): Let’s imagine Bob is a fast actor. He checks in before expansion at state t0, again while the system is expanding at state t1, and finally after expansion at state t2.
+  >- Bob at t0: 1 coin, worth $1.2/coin
+  >- Bob at t1: 1.2 coins, worth $1.2/coin
+  >- Bob at t2: 1.2 coins, worth $1/coin
+	>At t1 there’s a limited opportunity for Bob to sell more units than he could have at t0 for the same price, before other fast actors restore the price to its equilibrium value.
+  
+- This was something we considered a bug in Orbicular and we fixed that bug (**!!!**) by creating OrbicularV2, which used the dedicated Rebaser contract to ensure the "bug" wouldn't happen again. In our cyclically time-based rebase schedule, someone was indeed taking advantage of every "limited opportunity" to sell more units than they could have, before other fast actors. When we called `sync()` via the Rebaser contract, we removed the "Bob at t1: 1.2 coins, worth $1.2/coin" step completely. This destroyed the "arbitrage event".
+- In other words, Ampleforth's "limited opportunity" for "fast actors" is a flaw that allows anyone to skim from the liquidity pool.
+- OrbicularV2's rebasing schedule, after "fixing the bug", resulted in what we could describe as a "purely cosmetic" effect. Since there was no arbitrage event, the whole system had no value.
+- Despite this, I was still interested in the whole "incentivizing people to wash trade" thing.
+- Tangle was my next project that kept this "thing" and introduced a few similar things:
+>Rewardable Events
+> Tangle incentivizes its own attractiveness by taxing certain contract interactions and then allocating those taxes as rewards for specific and desirable actions. The rewardable actions can be summed up in three different categories: 
+> 	1. Market Making 
+> 	2. Distributing 
+> 	3. Staking
+> When a rewardable action is performed by a user in any of the three categories, they receive a “point” in that category known as a Rewardable Event. These Rewardable Events are one factor used to determine the quantity of rewards received by that user whenever they choose to redeem rewards.
+- On top of that system, Tangle incorporated a novel "reflection" system, where taxable contract interactions distributed value to every Tangle holder instantly via rebases.
+- The taxes could all have different rates, and where the taxes went could all have different distributions.
+- A long-term vision in the whitepaper was that TNGL was going to be a governance token that could be used to alter individual tax rates and distribution policies. When TNGL was spent on governance proposals and votes, it too would be distributed into the incentives system.
+> <u>The flow of tokens through Tangle is then best described by its own name.</u>
+- TangleV1 and TangleV2 seem to have had some unfixable issues, so a V3 was made.
+- A new long-term vision of a decentralized prediction platform spawned, Forutsi.
+- Small idea for an NFT collection made up of ethereum addresses. Image data pulled from trust wallet would mean that anyone could claim then buy, sell, transfer, trade, auction token logos as NFTs (as a part of "owning the address") (facebook stole our name lmao)
+- Cross-chain decentralized exchange concept spawned because we wanted a bridge for Tangle, but without a mint function, 1:1 swaps couldn't be implemented, there needed to be an exchange rate between chains
+- metrics dashboard
+- Tangle seems to the experimental offshoot of the Orbicular experiment with the central theme "what can we do with the ability to incentivize smart contract interactions (of any kind)", although i don't think we ever got that general with it
+ah, it appears the tangle archive i have was to basically cover up the spiciness, split the channel in two, one "secret" channel where people could speak their minds and one "public" channel that's more sanitized. clever
+- XDEX was the centralized cross chain exchange for TNGL. it put a lot of the business logic of uniswap into a plain database. a centralized authority (me) would relay swap info from a chain to a database, get the results, as if the database were the smart contract, then tokens would be transferred in accordance to the results. the tokens were sent to a locker contract that acted as the database's "wallet". anyone could "add to the liquidity pool" via a smart contract function
+- "there will be no V4, but rather a "final version", an upgradeable Tangle contract similar to how Uniswap's routers can be upgraded.
+- a bug in V3 was found, necessitating the "final" tangle (late september). 
+- weird concept, context: (that brings up an issue that still may be valid): if everyone bridged from one chain to the other, the bridge wallet would run out of native coins (right now we figure we'd sell "phantom-minted" tokens if we got close to running out). we'd need to bridge some native coins with a "real bridge" to replenish the system.
+- the solution: the bridge you pay on is chosen pseudo-randomly with a cost that's a multiplier of the gas cost the bridge needs. "To clarify, the XDEX chooses which chain you will be paying on."
+- if i'm not mistaken, our current solution has that capability, we just haven't thought about it explicitly: the "phantom-minted" tokens can be viewed as existing on any chain. so X->Y burns on X, the burned amount is "phantom-minted", if Z is about to run out of funds, we can mint on Z.
+- started using ethers late 21/09
+- catastrophe early 21/10
+- was able to recover more lost TNGL from locked liquidity
+- NFTs for those that were part of the cataclysm?
+- refactoring XDEX with a flowchart (we did this for vertigo)
+- intentionally took a programming course to become better, must have realized I was a bit out of my depth
+- new job (the big one)
+- new philosophy for XDEX: try to incentivize someone to make the exchange, their reward would be the funds on the origin chain. how would the blockchain on the origin chain know who/when to award? we put a blockchain in the origin chain smart contract that the trader locked their assets in. not proof of work? "the simulated block can only become real in the smart contract if a real block is produced. gas fees cover the cost of producing a real block. in some sense, gas fees (native coins) are equivalent to work. to send a block to the simulated blockchain, the gas cost required to send that block can be considered work.
+	- (is that valid?)
+- To make that work, we could make Tangle an NFT (my guess is specifically the kind with a non-1 supply). Tangle (batches?) can be tagged with the block with information that ties that Tangle to which block it came from. eventually, (honesty assumption) the length of the honest chain not including some bad block will exceed a dishonest chain (which does include some bad block). "merchants can wait for a certain number of (simulated) chain confirmations before disbursing a product.
+- we then tried to figure out what consensus protocol we would use for the blockchain, which is odd because it almost sounded like we didn't need one at all. it was thought as "gas fees are you just paying for the work done, gas fees = work, gas is the consensus". PoG? you'd need to incentivize miners, miners would get paid somehow. there's also a major issue: what if it's concretely economically advantageous to lie about oneself being the fulfiller of another chain? say $0.10 in gas to submit a block and there's assets locked up worth $100 for some trade, you'd for sure lie to turn $0.10 into $100. the math (i think) says anyone could lie to turn $100 into $100 in that scenario, so if mining didn't give you $100, you'd have more liars.
+	- metaphor/compare to BTC: say it's very little work to mine a BTC (pretend it's long ago). it's also very little reward. you can mine 10 a day. someone is offering a car worth $5k for 10 BTC. you mine 10 BTC in a day. you acquire or have or can pay up to $5k worth of capital that allows you to revert BTC the number of blocks the car seller will wait in confirmations. it's always profitable or even for you to send BTC to the car seller, get the car, then rewrite chain so the sell never happened (you start a fork where you send BTC to some other wallet controlled by yourself, then pump out blocks to prevent anyone from including your valid purchase in any future honest chain). every extra confirmation the seller requires exponentionally adds to the cost of this kind of attack.
+	- could we not tie the confirmations required to release assets to some roughly estimated value of the assets? so the unlocker won't unlock unless your block is X blocks deep in the current longest chain?
+	- this would mean that it takes longer to transfer larger sums of assets (not to mention someone on the other side is less likely to fulfill, so doubly longer)
+- we seemed set on adding a proof-of-stake-like selection method, where there are 256 "buckets" (you are put into bucket log 2 X where X is what you've staked), we get a pseudorandom value to pick the validator bucket and the actual validator from the bucket
+- not too long after, we hate proof of stake.
+	- jesus christ: "Anyone who has the capability of acquiring money in any dishonest way can easily subvert a proof-of-stake blockchain. An extreme example is a government with a fiat monetary system printing money and using it to stake. They could do that instantly. They cannot produce a massive amount of cryptographically-verified work instantly."
+	- similarly, any blockchain-within-a-blockchain cannot be trusted if the parent blockchain is not a proof-of-work chain
+- a cool idea: traders can specify some "suspicion parameters" that, if met, could cancel, delay, or alter a trade. an idea would be "if the amount of work being done skyrockets, require a lot more work (the suspicion being that someone is attacking a PoW chain. if it's not an attack, then it'll just take a bit longer. if it is, then maybe an attack was just thwarted). 22/03
+- hash list + using nodes as data storage: "you store the hashes of data in the smart contract storage and since the inputs are broadcast on the blockchain, you don't need any external storage for the contents of the hashed data, you just query any EVM node".
+- customizable, generalized, abstract user interface generator for any smart contract.
+	- (that sounds similar to the generalized, abstract, typescript module generator for any smart contract ABI)
+- distracted by a side project
+	- guess what it was? customizable, generalized, abstract EVM chain generator. fucking hell
+	- even complete with "click to boot up a chain. click to add a dex (costs to maintain the web interface if opted into), click to add a bridge, click to add an explorer"
+- did you just make a algorithmic short coin? (take the most liquid USD stable to native coin pair, positive rebases not affecting liquidity pool in proportion the drops in native coin price to usd). AKA, ETH goes down, shitcoin goes up. (AKA Ampleforth but instead of supply changes being arbitrary by some authority, we use on-chain data)
+- open source block explorer blockscout is bad (monetize)
+- starting to get into the BTC-like economic theory we think: "theoretically, the value of the reward token will equal the cost it takes to get the reward token" (at first, then the cost will equal the value). rewards for mining in whatever cross-chain system can be determined by looking at the token : native price and tracking the gas spent in whatever on-chain processes happen.
+- ADISA (22/08) big gap to 22/12, supposedly keep rewriting, this time trying to test
+  
+>The end-game of the Simulator will involve many simulated users, miners, and attackers spread out amongst several development blockchains, all interacting with Tangle in real time
+
+- genetic algo for finding trades to mine
+- 23/02 new token
+- very nice looking ui 23/03
+- and we're caught up!
+	- "what if the trader didn't specify the difficulty needed to move their funds?"
+	- "what if the trader didn't create an "object" representing their funds locked by a puzzle, to be broken by miners and (hopefully) moved according to expectations?"
+	- "what if the trader explicitly burns their funds with the expectation that honest miners will satisfy trade requests, with the burned funds funding a reward pool?"
+	- "what if miners mined that reward pool and not any specific trade?"
+	- "what if the miners just declared who should receive what amount of the mined rewards in order to fulfill trades?"
+	- "what if we had a smart contract that allowed recipients to claim the rewards miners have declared for them given some X number of confirmations and pseudo-chain data?"
+- responses:
+	- what if there's no matching trade? honest miners before could just recreate the trade object to "refresh" it and destroy attacker work. hm. they did that because otherwise there's nothing for them to mine and so would leave trades to be attacked. here though, we eliminate that entirely, because miners mine a pool which never goes away. miners will ALWAYS be mining, they also don't need to switch or prioritize trades, which was a massive problem. Interesting proposal.
+
+
+MASSIVE TL:DR
+
+- orbicular was an experiment to prove an assumption made by ampleforth.
+- (a bridge was wanted)
+- a long-term vision arose from orbicular that saw a real and valuable purpose (on-chain zero-consensus flexible prediction market).
+- tangle was an experimental project to see what could be done by incentivizing on-chain behavior.
+- (we learn it is much easier to take on new ideas with an upgradeable smart contract)
+- (a new web3 library respecting cross-chain activity was wanted)
+- a long-term vision arose from tangle that saw a real and valuable purpose (cross-chain decentralized exchange).
+- dizzyhavoc is a project intended to realize the goal of the cross-chain decentralized exchange.
+- a long-term vision arose from dizzyhavoc that saw a real and valuable purpose (on-chain ERCs and an efficient contract deployer and manager service)
+
+we think it is becoming more clear with organizing.
+why are dizzyhavoc smart contracts in code/smartks/dizzyhavoc?
+dizzyhavoc's smart contracts are something that needs to be abstracted. the contracts should stay there, but references to the `dizzyhavoc` should be removed and addresses as well. (we've unintenionally helped this a lot with the library replacement technique)
+dizzyhavoc graph should contain smart contracts that are only the bare minimum of what's needed from the abstracted and generalized ones.
+a setup pipeline in the dizzyhavoc graph should describe what makes dizzyhavoc what it is. (point to on-chain ERC20, point to on-chain ERC?, use this name, these addresses for these abstracted purposes, etc.)
+
+to summarize: make the new ERCs, then use them as on-chain ERCs

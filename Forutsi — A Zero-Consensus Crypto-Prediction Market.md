@@ -1,0 +1,38 @@
+**_Abstract:_** Prediction markets are massive and successful industries, worth billions of US dollars. A blockchain alternative for prediction markets would stand to vastly increase their accuracy as well as improve efficiency, speed, flexibility, reduce costs and fees, and increase rewards for participants. So far, however, blockchain implementations are very lackluster, disappointing, or even dangerous. The most well-known of which, Augur, sees only a few dozen of users per day and was marred in its early release by “assassination contracts”. Forutsi (the new name for OrbetV2) will vastly improve how blockchain prediction markets work by implementing a number of novel techniques that have not yet been used.
+
+**_Problem:_** All blockchain prediction markets at this point in time make the same, fatal mistake: trying to solve the oracle problem. What do I mean by this? All blockchain prediction markets have some sort or form of consensus mechanism. These consensus mechanisms serve to allow users of the prediction market system to predict against things in real life, such as “who will win the US presidency?”, or “what is the aggregate or oraclized price of X token?”. Using consensus mechanisms inherently introduces a few severe issues to any given system:
+
+1) A consensus mechanism requires multiple steps or stages, each stage requiring at least some user-interaction with a smart-contract. This makes the system “needy”, and does not lend well to widespread use. It also incurs extra transaction costs among participants.  
+2) A consensus mechanism is an inherently complex mechanism, and interactions with such a mechanism will have relatively high transaction costs.  
+3) A consensus mechanism relies on attempting to reduce the effects of people lying in order to achieve optimum honesty or correctness. A consensus mechanism inherently requires that at least some people in a system are honest or that some people must agree on something, which, in a blockchain system, is something to be avoided at all costs.
+
+Is a prediction market without a consensus mechanism even possible? How could a prediction market predict “outside” events without a consensus mechanism?
+
+**_Solution_**: So how do we make a zero-consensus prediction market? In the Ethereum Virtual Machine, we can start with something called STATICCALL. STATICCALL is an opcode that allows a smart-contract to retrieve data from other smart-contracts. We would need to feed our prediction market system with a set of instructions that would make up the “Prediction”. This would require the use of assembly within solidity.
+
+To create this set of instructions, we would first need to determine what it is that we need to predict and find a way to determine how close our prediction is entirely on-chain. Let’s use the price of Ethereum as an example. One way we can determine this entirely on-chain is by using the getReserves function of the [Wrapped Ethereum and Tether USD Uniswap pair](https://etherscan.io/address/0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852). Every Uniswap pair has a getReserves function that allows anyone to read the total amount of tokens in a liquidity pair. Since the WETH-USDT pair is the most liquid dollar-backed stablecoin to Ethereum pairs, as well as one of the most liquid token pairs on Uniswap, this serves as a fairly accurate and entirely on-chain way to determine the price of Ethereum in US dollars.
+
+Our “Prediction” would then have to be given an expiration date as well as either a simple true or false outcome, or possibly even a list of potential outcome values. Prediction makers could make a tiered-prediction, such as the following:  
+Option 1: ETH Price < 2000  
+Option 2: 2000 ≤ ETH Price < 2500  
+Option 3: 2500 ≤ Eth Price
+
+Our “Prediction” would also need a set of instructions that, when fed to the prediction market system, would generate a result that tells us which of these options our prediction falls under. The instructions could be the following:
+
+First, retrieve the reserves of the WETH-USDT pair using STATICCALL. (These values would be stored in memory, and the instruction set given would actually contain the space for these values. Doing this in memory using assembly allows near infinite variables to be obtained from other smart-contracts)  
+Second, divide the total USDT in the pair’s reserves with the total WETH in the pair’s reserves (this will require some manipulation of those numbers due to differences in the amount of decimals).  
+(To manipulate the numbers to get an adequate result, we can multiply the USDT reserve amount by 10¹², since the difference between WETH’s decimal count (18) and USDT’s decimal count (6) is 12.)  
+Finally, we take our result and check if it is less than 2000. If so, we return the value “1” indicating Option 1 was the correct prediction. If the result is greater than or equal to 2000, but less than 2500, we return “2”. We can shortcut checking the last one by knowing that if the first two aren’t true, then the last has to be true (if ETH Price isn’t less than 2000, and isn’t both greater than or equal to 2000 and less than 2500, it must be greater than or equal to 2500) and we return “3”.  
+Whoever puts money down in the correct options will win a proportional amount of the money put down in the incorrect options.
+
+With this set of instructions, we will then have a prediction that can instantly, without any need of consensus, determine the price of Ethereum according to the WETH-USDT Uniswap pair price. No trust needed, no waiting or confirmation period needed, extremely cheap resolution due to the prediction only being one STATICCALL opcode and a few math operations. This sort of a prediction structure already allows the prediction of prices among not only all Uniswap pairs, but all possible chains of pairs as well, which is more than what most blockchain prediction markets allow. Any bit of data in the Ethereum Virtual Machine can then be predicted against, any ERC20 token balance, who holds a particular NFT, Uniswap pair prices by way of getting their reserves, even the results of another prediction created by the same prediction market system. In this way, infinite and recursive binary options against the entire reality within the EVM can be made. And if you were wondering, “well how can we predict things outside the EVM, such as who will be the US president in the year 2024?” or “how can I get a more accurate ETH price”, the answer couldn’t be more simple:
+
+**_You would just use an existing oracle option._**
+
+A Chainlink powered smart-contract, for example, could get that data for you.  
+Chainlink is an already existing and thoroughly-tested oracle solution, and there is absolutely no need for us to reinvent the wheel to get outside data in. All you would need to do is make a Chainlink (or really any other oracle)- powered smart-contract beforehand, then use that smart-contract’s address in a prediction’s instructions. This also allows Forutsi to not be involved in the “assassination contract” business that Augur found itself in. Since anything outside of the EVM would have to be handled through a 3rd-party oracle service, it would be simpler for evildoers to just do their business through said 3rd-party oracle service, without needing to tie their evil deeds with the prediction market system.
+
+Using something like Chainlink as the oracle option along with our instruction-set and STATICCALL-powered prediction market system would allow anyone to make predictions against anything, cheaply, effectively, and securely.
+
+CryptoOrbicular  
+https://orbicular.io
