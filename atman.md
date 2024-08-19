@@ -444,3 +444,38 @@ to summarize: make the new ERCs, then use them as on-chain ERCs
 
 had to rebuild git, thought bin/ was all i needed but it dumped some other things i deleted without really checking.
 setting PREFIX in the Makefile for install to usr/ seems to make a hell of a lot more sense than HOME
+
+new thing to abstract, context
+```typescript
+const smartks = (path: string) => fromFileUrl(import.meta.resolve(`smartks/${}`))
+
+export const params: Params = {
+    targets: { 'ERC20.sol': ['ERC20'] },
+    basePath: smartks('dizzyhavoc/ERC20')
+}
+```
+some function that takes a path and returns `fromFileUrl(import.meta.resolve(path))` would be more concise: `fn(path)`.
+an extra generalization would be some function that takes a prefix and returns `fn(path)` where the path is always given the prefix. so instead of `fn(foo/A), fn(foo/B), fn(foo/C)` we could `fn1 = fn0(foo); fn1(A), fn1(B), fn1(C)`
+check `denoland/std` to see if this exists
+
+`format`?
+import as fmt
+`fn = (base) => format({ dir: foo, base }); fn(A), fn(B), fn(C)`
+nah, needs path, we have fileUrl
+hmm. it seems one cannot wrap import.meta.url with a function, then import that function from another module and use it so that the wrapped import.meta.url sees the module using the wrapped function as the "current" one
+we don't think it's possible, so import.meta will need to be passed to this function
+can use tag function thing for more concisesness:
+`` const g = f(import.meta)`smartks` ``
+`` g`A`, g`B`, g`C` ``
+what is f? describe it
+"a function `f` that takes import.meta and returns a string tag function `g` that expects one string in the first array. `g` returns a string tag function that also expects one string `path` in the first array. `g` will prepend a resolved prefix (relative to where g is created) as the dir of `path`"
+uh
+f = prefixer(ImportMeta)
+g = prefix( \` string)
+prefix might be too general, the prefix is import.meta.resolve'd.
+import.meta.resolve - `A function that returns resolved specifier as if it would be imported using import(specifier)`
+but we don't want a `specifier`, we want a path.
+"A curried function that takes a path and prefixes it with a resolved path given some ImportMeta"
+`(ImportMeta) -> pathToResolve -> somePath -> somePathRelativeToResolvedPathToResolve`
+just rolls right off the tongue
+`relativeFromResolved`
