@@ -479,3 +479,77 @@ but we don't want a `specifier`, we want a path.
 `(ImportMeta) -> pathToResolve -> somePath -> somePathRelativeToResolvedPathToResolve`
 just rolls right off the tongue
 `relativeFromResolved`
+
+mixing currying and imperative functions can get very weird. given some function that ideally takes 3 inputs and returns one output, one could create a ton of functions that return other functions that eventually return the same sort of output, but every other function takes some unique combination of inputs
+
+to figure out what we need, we know we want on output and we should note "for that output, what sets of inputs might i have", then we can create/derive the correct functions.
+let's look at an example
+
+given the top imperative function `iPR_f`, where `i`, `P`, `R` are inputs and `f` is an output.
+we want `R_f`. We can then either create `iP_R_f`, `i_P_R_f`, or `P_i_R_f`. it'd probably make the most sense to choose the simplest imperative function, so we need to derive `iP_R_f`. we also notice that `i` and `P` internally combine such that we could make some new input `s` where `iP_s`. we don't necessarily need to do that, but that creates another set of possible functions. We also note more new inputs from internal transformations, such that `P_p` and `R_r`.
+We also now want `R_R_f`. That's a bit weird and the derivation depends on what we're actually doing. Actually, it seems more accurate to say we want `iP_(R_f|R_(R_f|R_(R_f|R_(...))))`
+imperatively, we want a function `j` that returns a string `f`, where `j.k` is a function that returns a new `j`, it may help then to derive some more inputs and functions.
+
+`_j`, essentially, "a function that returns a `j` given no inputs". we know this is incorrect, but we don't know what the inputs should be yet.
+we're fairly certain the outcome should look similar to below, with reasoning:
+- `iP_R_f` should return some `j` equivalent to `iP_R_f` except `j.k` returns a new `j`
+- `j.k` takes a new `R` `R1`, appends it to the original `R`, `R0` in some way, then returns the new `j`
+  
+```typescript
+function _j() {
+  const j = Object.assign(
+    iP_R_f(i, P),
+    { k: (R1: TemplateStringsArray) => _j(R0 + R1)}
+  )
+  return j
+}
+```
+
+it's not a valid function, but it does return a `j` with `j.k` equaling a new `j` and appending `R1` to `R0`, so it's a good start.
+to make it valid, we'll add `i`, `P` to `_j` and update it to `iPR_j`. the append doesn't exist for `R0` and `R1`, so we'll need to make that
+we should change `R0` and `R1` to some other single char aliases. `A` and `B` we suppose
+now we can make a function `AB_R`
+
+woah, buncha weird realizations and things we were doing not so correctly:
+There is no appending of two `R` types. We're making a new `j` from a new `R` type.
+throw away `A`, `B`, and `AB_R`. `k` should be some `R` => `_j(R)`. this means we need to add `R` as an input to `_j` and more importantly means that `R` is some conditional input, since `_j` will only have an `R` if `j.k` is called
+
+is that right?
+let's back it up a bit, we were almost right but messed up, definitely.
+
+- we want some `_j` that returns `R_f`.
+- `j.k` should return some new `j`.
+- the simplest function that returns `R_f` is `iP_R_f`, so we need at least `iP_j`
+
+the new `j` should be created so that it's `P` is the previous `j`'s `P` with a new `R` appended, although this is a bit weird because `P` is really `[p]` and `R` is really `[r]` and we really want to append `r` to `p`, `P` and `R` are template string arrays, so the append doesn't quite exist.
+also, `k` is now more of a `R_j` , so we'll change that name. abstractly, to append `R` to `P` we need some `(a -> a -> a) -> [a] -> [a] -> [a]` (given some function that appends the same type and two structures of that type, make a new structure of the same type where each element is the elements of the second structure appended to the elements of the first, respectively)
+https://hackage.haskell.org/package/base-4.20.0.1/docs/Prelude.html#v:zipWith
+we'll need to implement that.
+done and tested
+we did need to make an extra function to zip append two TemplateStringsArrays, since that is a special array with a `raw` property, which is another array
+done
+
+one last thing, `iP_j` doesn't particulary make sense since, in order for `P`, a TemplateStringsArray to be used, it must come first in a tag function. so this should be `i_P_j`
+
+excellent, now the only thing is that we can see it being improved a bit more, so that `i_P_j` can also return a string
+not possible, it cannot return something that acts as a string and a function. our guess is that primitives cannot ever be used as functions, even if we assign a function to one.
+after some research, you cannot add, remove, or modify the "callability" of any object
+even if we make a string, assign the string to a function, then set the prototype of the function to that of the string, we can't `a + b` to append, so it's fragile at best.
+better to leave it as is then
+
+what the fuck is it?
+`i_P_j`, given an import.meta, returns `P_j`
+`P_j`, given a path to resolve `P`, returns `j`
+`j` is `iP_R_f(i, P) & { R_j }`
+simplified, `j` is `R_f` with an optional `R_j` function property
+`R_j`, given a relative path `R`, returns a new `j` as if `P_j` was given `resolve(P, R)`
+`R_f`, given a relative path `R`, returns a resolved relative path
+
+try more english:
+`i_P_j` given an import.meta returns a function that can be used to resolve relative paths from base paths from the perspective of the location of import.meta
+`P_j` is the same but the import.meta is "baked in". if exported to some other module, the importing module will be using the exporter's import.meta
+`j` is the function with the "baked in" base path
+`R_f` is `j`'s default function, which takes a relative path, resolves the base path with the import.meta (both are "baked in"), then resolves to the given relative path
+`R_j` produces a new `j` whose "baked in" base path has been resolved to some relative path
+in other words, you can create a `j` with a certain base path, then use that `j` to create new `j`'s with other base paths by relatively pathing using `R_j`
+you can use any `j` to get a fully resolved path relative to that `j`'s base path
