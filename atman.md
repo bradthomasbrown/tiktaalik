@@ -441,3 +441,6 @@ dizzyhavoc graph should contain smart contracts that are only the bare minimum o
 a setup pipeline in the dizzyhavoc graph should describe what makes dizzyhavoc what it is. (point to on-chain ERC20, point to on-chain ERC?, use this name, these addresses for these abstracted purposes, etc.)
 
 to summarize: make the new ERCs, then use them as on-chain ERCs
+
+had to rebuild git, thought bin/ was all i needed but it dumped some other things i deleted without really checking.
+setting PREFIX in the Makefile for install to usr/ seems to make a hell of a lot more sense than HOME
