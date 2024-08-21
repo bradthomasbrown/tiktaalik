@@ -681,5 +681,6 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
   there we go, due to
   !\_expression.annotation().type where Expression::annotation is initAnnotation\<ExpressionAnnotation>. m_annotation is missing from ExpressionAnnotation
   what if instead of returning true we returned false?
+- the problem is: we end up at the type checker for an identifier which needs a reference to a declaration-by-name like a variable or a function. we're there because we said `uint y = f` and `f` is an overloaded function.  IdentifierAnnotation is the type of the referenceDeclaration we need to return. not particularly true. IdentifierAnnotation is \_identifier.annotation which is passed into TypeChecker\<Identifier>.
   
   
