@@ -553,3 +553,101 @@ try more english:
 `R_j` produces a new `j` whose "baked in" base path has been resolved to some relative path
 in other words, you can create a `j` with a certain base path, then use that `j` to create new `j`'s with other base paths by relatively pathing using `R_j`
 you can use any `j` to get a fully resolved path relative to that `j`'s base path
+
+alright, what is this module generating thing?
+code/deno/evm
+yes
+it is generalized deno evm code
+what comes after that which would intuitively describe this?
+right now we have contract/generate
+"generates a deno evm contract"
+does it do that?
+is that what it should be?
+we think so, in solidity you can say `contract.someFunction.selector` to get the selector
+it does appear to not be well defined in the documentation. there are examples of accessing that selector member but no "one place" that says something like `function memebers: selector, etc.` despite that existing for errors and events. even weirder, using that in solidity works, but there is no type hinting for selector or for any other function memebers (are there any others?). if you hover over `selector` in `someFunction.selector` is just vaguely says `MemberAccess`.
+We think contract/generate is right, but we also think we should find in the solidity source where this is. it'd probably be a very good resource for what else exists in a function (and a contract).
+`deno/evm/contract/function`? where `deno/evm/contract/generate` uses something from the former? perhaps `function` contains something that can generate something else representing a contract function?
+
+"https://paulgray.net/typeclasses-in-typescript/"
+off track from finding function members, but we're suddenly curious how other languages handle overloads and overload-ish problems. apparently it's quite the issue.
+we found a solidity issue open for **>6.5 years** and still open about how to get some specific overload. AKA we figure this out and our deno evm contracts will be more powerful than solidity contracts, which is a bit of a mind boggler
+
+in rust, you can "overload the `+` operator with the `Add` trait". a number of operators that can be overloaded and their associated traits are in `std::ops`
+"`traits` define the functionality a particular type has and can share with other types"
+it's like a typeclass (haskell)
+idea:
+
+> what's the bare minimum needed to resolve a problem where the right overload cannot be determined? all one needs is the bare minimum of type assertions that can resolve whatever ambiguity exists. you don't need ALL the types, just the minimum that can resolve ambiguity
+
+https://github.com/ethereum/solidity/blob/90c0fbb2eaafae95fae7785e4de5dfb43d5ddce3/libsolidity/ast/ASTAnnotations.h#L216
+one of "slot", "offset", "length", "address", "selector" or empty
+
+https://github.com/ethereum/solidity/blob/90c0fbb2eaafae95fae7785e4de5dfb43d5ddce3/libsolidity/analysis/TypeChecker.cpp#L850
+variables of type function pointer only support "selector" and "address" suffix
+only variables of type external function pointer support "selector" and "address"
+
+functions are objects with `selector` and `address` properties. that's definitely not what we expected, but we kind of like that.
+
+so, for any contract, if we want to use functions or get their selectors, we need a collection of function objects
+interesting, someone put forward the idea of taking a common function name, `withdraw()`, finding a hash collision, putting that function `randomName` in the contract and changing `withdraw` to `Withdraw` in the contract. if you then distribute a bad ABI with `withdraw`, it'll call `randomName` and not `Withdraw`. if you were looking at the source and the bad ABI, it would be fairly hard to notice.
+either way, it's a compilation error to have a selector collision.
+interesting series of thoughts:
+- ethers does `contract["fullSignature(foo bar baz etc)"](args)` and simplifies by having `contract.fullSignature` be the same as the former _if and only if_ there are no overloads for `fullSignature`. if there are overloads, `contract.fullSignature` doesn't exist at all and one needs to use the former.
+- `contract["fullSignature"]["foo,bar,baz,etc"]` groups all overload signatures into one collection, then groups all functions into one collection (contract.fns or something)
+- what if we have `c['f']['uint256']`, `c['f']['uint256,string']` (or `c.f.uint256_string`), and `c['f']['address']`? we'd want some way to be able to say `c.f(` and type hints would appear for the overloads. as we think of it now, we'd have `bigint;bigint,string;string` as the hints, let's make it harder: `bigint;bigint,string;bigint` where we change `c.f.address` to `c.f.uint8`. right now we're thinking either make the types be actual types `class UInt256` `class UInt8` style, or maybe there's some wildly magical and intuitive way to specify the bare minimum needed to disambiguate `c.f(3)`
+- also remember "implicitly convertable to" and \_Generic.
+- what if. what if
+	- the generator created a \_Generic type switch
+	- we made a list of typescript types and what solidity types they could be implicitly convertable to (`string` (if length and contents are right) implicitly convertable to `address`,  always to `string`, `bytes` (if length and contents are right), `bytesX` (if length and contents are right))
+	- the generator created the full collection of functions as described above in `c.f.type0_type1` format
+	- to populate the switch, we'd need to match the type of the expression with a case type. the type of the expression would be a collection of tuples, where every type has been substituted with the solidity types it can be implicitly converted to (so `c.f('0x...123)` would be a collection of tuples `[address],[bytes],[bytes20]` (one problem might be that `c.f(3)` would be `[uint8],[uint16],[uint24],...` which balloons quite a bit).
+	  the case types would be tuples of the actual functions. say we had one `[address]` type. in that case, it would be trivial to pick the right one. but if our actual function types were `[address],[bytes20]`, then we couldn't resolve, although we would know precisely why. "arg 0 `0x...123` of c.f implicit conversion ambiguity with known c.f arg 0 types `[address],[bytes20]`". this is the minimal knowledge needed and would be true even if we implicitly derived `[address,uint256],[bytes20,uint256],[string,uint256]` and checked against `[address,uint256],[bytes20,uint256]`. it's the absolute bare minimum. "here's your bad arg, here's why it's bad (could be address or bytes20)", then suggest casting it. so `c.f(Address('0x...123'))`. if there's more than one arg? error would become quite large (also we [can't make custom invalid states](https://github.com/microsoft/TypeScript/issues/23689)), which sucks ass. also structs? `args: 0[1][3], 1[0], 2 implicit conversion ambiguity`. what if instead of `c.f('0x...123')` creating a collection of all the implicitly convertable tuples, it filtered the available ones?
+	- what about precedence for implicit conversion? `0x...123` could be implicitly turned into `[address, bytes20, string]`. 
+	- the most ideal system would provide a yellow squiggle warning `assuming arg0 0x...123 is address, could be bytes20,string. cast to remove ambiguity` if precedence could be assumed.
+	- precedence of `uint8` vs `uint256` is a bit odd to think about, much less obvious than the address vs bytes20 vs string
+	- let's think about `f(uint8)` and `f(uint16)`. our switch cases would be `[uint8]` and `[uint16]`. naively, we would say that the switch values could be `[bigint]` and `[bigint]`. \_Generic expects a match though, so we blow up the types to pick a match. this gives us: `[uint8],[uint16],[uint24],...` and `[uint8],[uint16],[uint24],...`
+	- before we blow up the types, it's fairly obvious that we have two of the same thing: `[bigint]`.
+	- hmm. new idea. what if we had class type objects `class UInt256`, started with the functions requiring those as its args, then reduced those to the simplified typescript types via some process, where if it was found that reducing would create ambiguity, then we simply just don't reduce? so `foo(uint,address)` and `foo(uint)` would become `foo(bigint,string)` and `foo(bigint)`, but `foo(uint8)` and foo`(uint)` would become `foo(UInt8)` and `foo(UInt)`?
+	- that's kinda strange now we think about how solidity works. with `f0(uint8 x)` and `f0(uint16 x)` with both `internal`, when you make a new function and in it type `f0` you'll see two type hints. perfect, that's what we want.
+	  
+	-![[Pasted image 20240820190710.png]]
+	
+	- if you try `f0(3)`, you get an error. our solution would be to do `f0(uint16(3))`. this works. HOWEVER, `f0(uint8(3))` does not work. it doesn't work in solidity because it is implicitly convertable. if solidity was changed to make that work, then no `uint8` variable would ever be able to be plugged into a function that takes any `uintX` where X is greater than 8. honestly that doesn't sound so absurd. with our rules though, we reduce the specificity of x until reducing it further would introduce an ambiguity.
+	- this is weird. in solidity, any `uintX` is implicitly convertable to any `uintY` where `Y > X`. what we're doing is very different. variables aren't ever implicitly convertable. however, function arguments are iteratively made "less specific" as long as doing so doesn't produce ambiguity.
+	- imagine in solidity you type `function f0(uint16 x) internal {}` as the only function in a contract (useless, but bear with it). in order for the selector to not change, that type must not change. but somewhere in the background (the evaluator), the arg type allowed should disconnect with the defined function arg type as it iteratively makes it less specific. the selector would still use the defined function arg type, but whatever it puts in there (for arg validation, etc.) should depend on this new, disconnected type. we are poking around in the source code and have a hunch.
+	- https://github.com/ethereum/solidity/blob/90c0fbb2eaafae95fae7785e4de5dfb43d5ddce3/libsolidity/analysis/TypeChecker.cpp#L3568
+	- this is where the "No unique declaration" error text comes from. here, we start with an `_identifier`, we get an `annotation`, a property of the former, we check its `referencedDeclaration` property. if it exists, we get `overloadedDeclarations`, which equals `cleanOverloadedDeclarations`. we wonder what that function does. it errors if the overloads aren't function, event, or magic variable. it errors if !functionType. it errors if any parameter in parameterTypes or returnParameterTypes is false (these last two errors are real weird and seem to have never occurred from searching the text of those errors). `cleanOverloadedDeclarations` seems to only remove a declaration if it's parameters' types point to the exact same as what's already there, where type is a complex class that should be different between uint16 and uint8.
+	- with those, it turns that into "candidates". `for each declaration, if variableDeclaration = dynamic_cast<decltype(variableDeclaration) then push declaration into candidates`. yes that is an = and not an \==, so we need to see what dynamic_cast and decltype do
+	- let's say we have two overloads and only one arg.
+	  to start off, we'd check if
+	  `dynamic_cast<decltype(overload0Arg0)>(overload1Arg0) == nullptr
+	  this has to be true, otherwise the two overloads would violate the "two functions with same parameter types" rule.
+	  this is the "most specific"
+	  next, we check if
+	  `overload0Arg0->isImplicitlyConvertibleTo(overload1Arg0)` and
+	  `overload1Arg0->isImplicitlyConvertibleTo(overload0Arg0)
+	  if either is true, we have to use the more specific function. if both are false, we can now use this "less specific" function.
+	  optionally, if this works, we could make it even less specific with `isExplicitlyConvertibleTo`
+	- if we do this for all args of two overloads, we'll end up with a collection of functions which, if applied to the given args and each overload, will show one or zero overloads which can take the args. if one can take the args, we can add it to candidates.
+	- we're wondering about three overloads. 
+	- https://github.com/ethereum/solidity/blob/develop/libsolidity/ast/Types.cpp#L3390
+	  functions have more member types, possibly
+	- `f(uint8)` and `f(bytes1)` cannot implicitly convert into one another, so the least specific function is implicit conversion. 
+	- so how would this work if we add `f(uint16)` and have 3 functions, and try to pass `0xff`. between `16` and `8`, the least specific is `dynamic`. between `8` and `1`, the least specific is `implicit`. between `16` and `2`, the least specific is `implicit`. it would then make sense to check the args against `16` and `8` with `dynamic`, `8` and `1` with `implicit`, and `16` and `1` with `implicit`. 
+	- https://github.com/ethereum/solidity/blob/develop/libsolidity/ast/Types.h#L634
+	- if we did this with `bytes2` and `0xffff`, we'd throw out `uint8` since we cannot implicitly convert to it. then, we'd use `implicit` against `16` and `2`, both would be candidates. we'd need to throw due to `no unique declaration`. we can cast to stop the throw, but we could do that before.
+	- if we did this with `bytes2` and `0xff`, we'd throw out `2` since we cannot implicitly convert to it. then, we'd use `dynamic` against `8` and `16`. neither would be candidates, we'd need to throw due to `no matching declaration`. we now get the ability to cast like `uint8(0xff)` and it would not throw.
+	- if we did this with `bytes1` and `0xff`, we couldn't throw any out. between `16` and `8` we use `dynamic`, neither are candidates. between `8` and `1` we use `implicit`, both are candidates. between `16` and `1` we use `implicit`, both are candidates. we feel like there are too many possibilities to chose now:
+		  - do we throw `no matching declaration` on the first pair with no candidates?
+		  - do we throw `no unique declaration` on the first pair with both candidates?
+		  - do we discard overloads that aren't candidates if they are not a candidate at least once?
+		  - do we add overloads to some pool if they are a candidate at least once?
+	- it makes sense not to throw on the first pair because here `no matching declaration` is true for one pair and `no unique declaration` is true for another pair. it'd be not completely accurate to throw either of those. `no matching` is more like "no candidates in any pairs" and `no unique` is interesting. 
+	- if we passed `uint8(0xff)`, in `16,8,d` we'd match with `8`. (we would probably return immediately because all `f` are `d`, so a match is a guarantee of the correct `f`). in `8,1,i` we'd match with `8`. in `16,1,i` we'd match with `16` (`8 (i)mplicitly 16`). here, it would make the most sense that we'd need to match with `8` only and preferably with some criteria that takes everything into account (later the immediate return would be introduced as an optimization). we'd discard overloads that were ever not a candidate.
+	- elements A, B, C. pairs AB, BC, CA. maybe we need to look up about boolean algebra or ask GPT.
+	- addresses and fixed bytes cannot be implicitly converted to one another. but if we had two overloads that took each of those `a` and `20`, the least specific function would then be `i`. if we passed `0x...123`, both would be candidates, it'd be an error.
+	- https://en.cppreference.com/w/cpp/language/overload_resolution. go figure "pair-wise comparisons are applied to all viable functions"
+	- "f1 is determined to be better than f2 if implicit conversions for all arguments of f1 are *not worse* than the implicit conversions for all arguments of F2, and there is at least one argument of f1 whose implicit conversion is _better_ than the corresponding implicit conversion for that argument of F2, or, if not that, \[100 other rules]". a _better_ implicit conversion is ranked, where exact matches are better than promotions which are better than conversions.
+	- "If exactly one viable function is better than all others, overload resolution succeeds and this function is called. Otherwise, compilation fails."
+	- https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions#Integer_conversion_rank
+
