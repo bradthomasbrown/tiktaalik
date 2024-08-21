@@ -674,3 +674,12 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
   "a public state variable", which is sort of a function
   - the more we think about, the less that makes sense. the only overloadable identifiers are functions and events. a public state variable should never have overloaded declarations. either it has the same identifier as something else, but in a different scope, or if you try to make it have the same identifier as something else, you'll get an "identifier already declared" error.
   - in fact, if one googles "no unique declaration", they'll see a bunch of stuff about errors. if you then add `-dependent` to the search, ALL of the errors disappear. that error is not possible. that comment is not possible.
+  - No matching declaration found after variable lookup with solc_release
+  - now we get no unique after variable lookup, which is perfect.
+  - TypeChecker.cpp#3586, we don't want an error here (at least not immediately), we think we want to check for selector access.
+  `ast/ASTUtils.cpp:100):Type requested but not present`
+  there we go, due to
+  !\_expression.annotation().type where Expression::annotation is initAnnotation\<ExpressionAnnotation>. m_annotation is missing from ExpressionAnnotation
+  what if instead of returning true we returned false?
+  
+  
