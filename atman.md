@@ -651,3 +651,26 @@ interesting series of thoughts:
 	- "If exactly one viable function is better than all others, overload resolution succeeds and this function is called. Otherwise, compilation fails."
 	- https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions#Integer_conversion_rank
 
+you're cracked, mate.
+just solved general overload resolution without adding any syntax and adding a small amount of code. not sure what eldritch horrors that code creates, but we're fairly sure it's not too bad.
+not only did we do that, but we did that when chriseth said he needed that years ago and he thought some new syntax was necessary.
+we did that without syntax.
+we did that with a fairly small amount of not very harmful (we hope) code that was just a bastardization of c++ overload resolution.
+not only that, but we've never built solidity from source nor ever wrote anything in c++. you've also gone nearly 24 hours without eating, eat some fucking eggs you bozo.
+
+now we have a new and weirder issue. two? one cannot `f.selector(uint, address)` although it would be really nice. why can one not do that?
+- one: `f` : `No matching declaration found`. it makes sense, this is `f` with no args. actually, we hope it can be differentiated from `f` with no args since there's no parantheses. it should be the difference between `f` with no args and `f` whose args size is zero. if we can differentiate that, then we can match `f`.
+- there's two places our error can be coming from. one is where were, and one is just above, and we don't quite understand it.
+	- "if overloadedDeclarations.empty, fatal error"
+	- "if overloadedDeclarations.size is 1, ref = ...begin"
+	- "if !args block"
+	- "if args block"
+- so the question is: are we in the !args block or the args block? what is "annotation.arguments"? what is "annotation?" it's an "IdentifierAnnotation&" reference to IdentifierAnnotation. let's go visit the IdentifierAnnotation definition. it doesn't say anything about arguments, so let's see what it inherits: ExpressionAnnotation. it is optional and it is `Types and - if given - names of arguments if the expr. is a function that is called, used for overload resolution`. well it sorta says right there, "if is a function that is called".
+- specifically: `std::optional<FuncCallArguments> arguments;`. messing around, noticed something probably very important: the message does in fact change with and without parantheses:
+  `No matching declaration found after `<u>**variable**</u>` lookup.\n`. there's only one place that can be, and it's the weird place. it's !args block. our hunch was right. good job. the even have a comment there:
+  `// The identifier should be a public state variable shadowing other functions`
+  we want to add to this: `or a variable without arguments for selector lookup`.
+  it seems the !args block is assuming you have some `uint x` shadowing some `function x`, and it's going through every declaration of overloadedDeclarations (every possible thing the identifier could be referring to) and filtering it to variable declarations only. not a fan of that.
+  "a public state variable", which is sort of a function
+  - the more we think about, the less that makes sense. the only overloadable identifiers are functions and events. a public state variable should never have overloaded declarations. either it has the same identifier as something else, but in a different scope, or if you try to make it have the same identifier as something else, you'll get an "identifier already declared" error.
+  - in fact, if one googles "no unique declaration", they'll see a bunch of stuff about errors. if you then add `-dependent` to the search, ALL of the errors disappear. that error is not possible. that comment is not possible.
