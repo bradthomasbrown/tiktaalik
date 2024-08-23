@@ -682,5 +682,64 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
   !\_expression.annotation().type where Expression::annotation is initAnnotation\<ExpressionAnnotation>. m_annotation is missing from ExpressionAnnotation
   what if instead of returning true we returned false?
 - the problem is: we end up at the type checker for an identifier which needs a reference to a declaration-by-name like a variable or a function. we're there because we said `uint y = f` and `f` is an overloaded function.  IdentifierAnnotation is the type of the referenceDeclaration we need to return. not particularly true. IdentifierAnnotation is \_identifier.annotation which is passed into TypeChecker\<Identifier>.
-  
+- gcc takes a long ass time to compile. why did we compile gcc?
+  we needed evmone to run the solidity compiler tests. why did we need to do that?
+  we need to make sure that our changes don't break something or otherwise have some impact outside of our scope.
+  why did evmone necessitate the compilation of gcc?
+  evmone depends on libevmone.so, which requires the linker to be able to find GLIBCXX_3.4.32
+  we're pretty sure this is g++, but a version that we don't we have
+  not only do we not have it, but it's not something you can get from the package manager of a stable debian build.
+  so, either we need an unstable debian build (which we also made some progress towards when realizing how long compiling gcc takes), or we need to compile a new version of gcc from source.
+  supposedly, we can now set LD_LIBRARY_PATH to the path where the new libstdc++.so.6 is located within the gcc build
+  ldd, given some thing (`libevmone.so`), tells us requirements. before, it told us
+  `` version `GLIBCXX_3.4.32' not found ``
+  now, it after setting LD_LIBRARY_PATH it does not tell us that
+  so let's try test/soltest
+  god damn, didn't work because it expects a lower version
+  we got that lower version, now it says "running 8919 test cases". fun!
+  oddly, it says "no errors detected"
+  - there was no status or anything between running and done, so i'm not sure what it did
+  - now we want to go back and fix our other overload resolution thing, but we may not do that, since we're more interested in the idea of a new "OverloadsType" representing function overloads similar to how we intuitively put similarly named and typed ABI elements into groups.
+  - we want to save or record what we've done so far so we don't have to rewrite the logic from scratch.
+  - we make a new branch with our modifications, go back to the develop branch, rebase hard to before our modifications, then make a new branch for our implementation of the new type.
+  - we think it may be a composite type, like a struct or an array or a mapping
+  - a composite type is just a type but with a fullDecomposition function and a decomposition function. these create lists of non-composite types from the composite type (roughly).
+  - a tuple type looks nice, we may use that as the baseline. honestly we just copied it and changed the names, but that may be correct for now
+  - now we think we should try and see how overloadedDeclarations gets populated. the idea is that we will find the source of this and alter its behavior so that whatever concept led to "annotation.overloadedDeclarations" existing for Identifier simply doesn't exist. (also check the other thing, member access). that comes from candidateDeclarations
+  - `ReferencesResolver::vist(Identifier` 
+    `auto declarations = m_resolver.nameFromCurrentScope(_identifier.name());`
+    it seems that declarations will be the name from the current scope if it exists, or the name(s) from the closest parent scope. so if we try to access an overload, it fails to find name from current scope, checks parent scope, finds 3 names or something similar. if it finds 3 names, it adds all to identifier.annotation().candidateDeclarations
+- it may be best to remove candidateDeclarations from ever being assigned to, then. we want to destroy the concept of identifier.candidateDeclarations. we think the next issue may be that ReferencesResolver is even visiting the Identifier type at all, preferably this should be our Overloads type.
+- `libsolidity/parsing/Parser.cpp`, `parseContractDefinition`, checks token values, then does some `parseX` function. we're interested in `parseVariableDeclaration`. whoa, tried to recreate an error in the Parser so it'd show in Remix so we knew we where we were, but got a different error that led us to some completely other area. `test/libsolidity/` `SolidityParser.cpp` and `StandardCompiler.cpp`. no idea what these are. ah, wrappers to how users interact, this just uses `liblangutil/ParserBase`.
+- we figured out how to recreate the error, but not entirely sure why it does that. error in question is if you put `function () {}` into a contract, you get `Expected a state variable declaration`. ahhh. if token is `function` and next token is not `(` (or if token is `constructor`, `receive`, or `fallback`), then it's a function declaration. otherwise, it's a variable declaration. in `parseVariableDeclaration`, if the type is `FunctionTypeName`, we have a variable declaration (`_options.kind == VarDeclKind::State`), and next token is `{`, then we throw that error.
+  `function (uint) x;` is valid in a contract but i have no idea what that is or how one would use that.
+  this is valid:
+  ```solidity
+  function () returns (uint) x;
+  uint y = x();
+  ```
+  it seems here `x` is an uninitialized function type, so while that's valid, it reverts on deploy. the call `x()` reverts. debugging shows it sloads 0 (tries to get the function that's there), which indicates it tries to use that function (but fails because slot 0 is missing function info where function info would be, packed tightly, an address and a selector). it seems difficult to initialize since it "expects a primary expression" and we're not sure how to make one that returns a function type or if that's even possible.
+ - there's two ways to get to our problem, either as a variable definition `uint x = f.selector;` or as a function definition `function foo() { f.selector; } 
+   in parseVarDecl, if next token is Assign, value = parseExpression
+   in parseFunctionDefinition, block = parseBlock
+   in parseBlock, we continually parseStatement
+   in parseStatement, if token is Identifier, parseSimpleStatement
+   in parseSimpleStatement (for our purposes) it looks like we get parseVariableDeclarationStatement or parseExpressionStatement
+ - at this point, we think `parseExpression` is where we want to be.
+   actually this just returns `expression` (`ASTPointer<Expression>`)
+   so for an `ASTPointer<VariableDeclaration>`, it's value is just `ASTPointer<Expression>`.
+  - back up a bit. `std::tie(statementType, iap) = tryParseIndexAccessedPath();`
+  - `expressionFromIndexAccessStructure
+  - `typeNameFromIndexAccessStructure`
+  - so far we think this all makes sense, but what happens after parsing?
+    `interface/CompilerStack` `source.ast = parser.parse(`
+    `parseAndAnalyze` (`imports`, `scopesetting`, `syntaxCheck`, `referenceResolving`, `typechecking`, `staticAnalysis`).
+   - `CompilerStack::analyze()`
+     resolveImports, assignScopes, checkSyntax, registerDeclarations, performImports, warnHomonymDeclarations, parseDocStrings, resolveNamesAndTypes, analyzeExperimental | analyzeLegacy
+   - `libsolidity/analysis/ReferencesResolver` `visit(Identifier`
+     nameFromCurrentScope
+     `NameAndTypeResolver` `nameFromCurrentScope`
+    
+   
+   
   
