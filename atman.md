@@ -739,6 +739,15 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
    - `libsolidity/analysis/ReferencesResolver` `visit(Identifier`
      nameFromCurrentScope
      `NameAndTypeResolver` `nameFromCurrentScope`
+- we think one of the final pieces of the puzzle is the answer to the question: "why (where in the code) does the type checker visit Identifier when we have `a.b`.
+  we think the answer to this question is shown by looking at the AST for a contract with something like `a.b()`. There is a function call node with an expression value, the expression value is a member access node with an expression which is an identifier node. there is no `IdentifierPath` node, yet IdentifierPath appears a lot. Oh. There are IdentifierPath nodes, but `a.b()` doesn't get involved in one. interesting. perhaps IdentiferPath is only for accessing something not in current or any parent scope. "IdentifierPath is any `a.b` which is not a member access"? not sure of the accuracy of that, but we like the idea
+- `uint256 x = c.f(y);`
+  name: x, nodeType: VariableDeclaration, value: 
+	  nodeType: FunctionCall, arguments: { nodeType: Identifier, name: y }, expression
+		  nodeType: MemberAccess, memberName: f, argumentTypes: \<uint16>, expression:
+			  name: c, nodeType: Identifier, typeDescriptions: contract C
+- `libsolidity/ast/AST.h` `@1339` `Pseudo AST node that is used as a declaration` we like that idea 
+- `libsolidity/ast/AST.h` `@1103` `ASTPointer<Expression> const& value() const { return m_value; }` (inside `VariableDeclaration: Declaration {`) this may be useful, as this is a declaration whose value is an expression, which may be a useful concept.
     
    
    
