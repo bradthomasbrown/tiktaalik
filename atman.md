@@ -748,6 +748,12 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
 			  name: c, nodeType: Identifier, typeDescriptions: contract C
 - `libsolidity/ast/AST.h` `@1339` `Pseudo AST node that is used as a declaration` we like that idea 
 - `libsolidity/ast/AST.h` `@1103` `ASTPointer<Expression> const& value() const { return m_value; }` (inside `VariableDeclaration: Declaration {`) this may be useful, as this is a declaration whose value is an expression, which may be a useful concept.
+- run into a bit of an issue. to make a declaration that wraps around many declarations, we needed to make a new declaration type that could do that, one that's not particularly real. that's alright, we did that. problem now is that if we instantiate that in some scope, it'll be lost as soon as we leave that scope. the thing we need to assign it to only takes a const \*, or rather, a pointer to the thing. we need to instantiate the declaration and then stick the declaration in something that'll manage it. the ContractDefinition stores these in m_subNodes. the SourceUnit also stores nodes in m_nodes. magic variables are stored in some horrible looking global context.
+  there is also a dereference function for the Identifier and Identifier path
+  going to take a wild guess, but if we create some _thing_ that holds pointers, instantiate OverloadDeclarations with pointers owned by the _thing_ then, in the dereference function, could we return the OverloadDeclaration so that the _thing_ either goes out of scope and the pointers are destroyed or we destroy the pointers while being able to return the OverloadDeclaration?
+- we're really thinking about sticking the OverloadDeclarations onto something, but we don't know what the side effects of that may be. GlobalContext is a part of the CompilerStack. unfortunately, solidity made GlobalContext for magic variables and not generic at all, so I either use that and create a bunch of magic variable garbage i'll never use, or i use something else.
+- actually, it won't create a bunch of magic variable garbage, as it should already exist. we've added an OverloadDeclaration vector and a method that lets us create an OverloadDeclaration and get a reference to it, storing it in GlobalContext.m_overloads, a private member
+- we want to know more about the reset methods. reset should clear our overloads vector
     
    
    
