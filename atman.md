@@ -836,3 +836,10 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
 - we sorta did what magic declarations do, but while cannibalizing from the base declaration. magic declarations use a fake id, a blank source location(?) a name related to the magic declaration ("block"), an empty nameLocation, and default Visibility::Default.
 - since we do have a base declaration and the pseudo declaration ASTNode is isolated in the global context it shouldn't be to outlandish to steal the base's id, location. and name. what is nameLocation?
   `the location of the declared name itself or empty location if not available or unknown.` (`libsolidity/ast` `Declaration`)
+- segfault!
+	- commenting out the creation of our new object does not resolve, so the segfault (shouldn't) be related to our new object or type.
+	- we did remove a struct property, let's put that back. did not resolve
+	- put cleanOverloadedDeclarations back. did not resolve
+	- commenting out all but one function overload in the test contract prevents the segfault. that seems odd.
+	- ahhh. if there's more than one candidate declaration, we aren't assigning a referenced declaration. then we immediately try to access. that would definitely cause that. however, we were initially segfaulting with the logic that definitely assigns a referenced declaration (using the super declaration). let's put that definite assign logic back. indication may be that something is trying to access something our declaration doesn't have.
+	- analyzeLegacy: `DeclarationTypeChecker`, `DocStringTagParser`, `ContractLevelChecker`, `TypeChecker`, `DocStringAnalyzer`, `PostTypeChecker`, `FunctionCallGraph`, `PostTypeContractLevelChecker`, `ImmutableValidator`, `ControlFlow+Graph/Builder,RevertPruner,Analyzer`, `StaticAnalyzer`, `ViewPureChecker`, `ModelChecker`
