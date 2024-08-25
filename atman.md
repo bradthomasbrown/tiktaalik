@@ -830,3 +830,5 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
 - we need to implement SuperDeclaration->type(), which means we need a new type
 - we now have a type, but it is useless, as every base class implementation asserts false
 - next we need to know if the identifier annotation isPure. this is true if the referenced declaration is a constant variable declaration or if the referenced declaration is a magic variable declaration and the current annotation is a function type
+- we need to explicitly instantiate our function since it's used outside of where it is defined, which prevents implicit instantiation. the types are cumbersome, so ideally we would use templates to create the types. very generally and ideally, we should be able to explicitly instantiate our function for the different container types by just specifying the container, although the container is a template. it is a class template, which means we can specialize it
+  right?
