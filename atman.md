@@ -843,3 +843,13 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
 	- commenting out all but one function overload in the test contract prevents the segfault. that seems odd.
 	- ahhh. if there's more than one candidate declaration, we aren't assigning a referenced declaration. then we immediately try to access. that would definitely cause that. however, we were initially segfaulting with the logic that definitely assigns a referenced declaration (using the super declaration). let's put that definite assign logic back. indication may be that something is trying to access something our declaration doesn't have.
 	- analyzeLegacy: `DeclarationTypeChecker`, `DocStringTagParser`, `ContractLevelChecker`, `TypeChecker`, `DocStringAnalyzer`, `PostTypeChecker`, `FunctionCallGraph`, `PostTypeContractLevelChecker`, `ImmutableValidator`, `ControlFlow+Graph/Builder,RevertPruner,Analyzer`, `StaticAnalyzer`, `ViewPureChecker`, `ModelChecker`
+	- to do this correctly, we can use `gdb` to debug. we didn't have gdb. we have it now, building it was weird. (couldn't find anything about dependencies but it needed some of the same dependencies gcc used, which we'll term `gcc infrastructure`. searching on GNU site couldn't find much explanation, but there is some file server page that has what's needed. we just copied the (already built?) dependencies from our `gcc` (the new one) folder to the `gdb` folder which somehow made it work.
+	- trying to use that though, gives us a "no debug symbols found". by default, cmake configured the solidity build as a release build. we had to
+	  `cmake -DCMAKE_BUILD_TYPE=Debug ..`
+	  solidity docs said try `cmake .. -LH` to get more info, in there we saw:
+```
+Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel
+CMAKE_BUILD_TYPE:STRING=Release
+```
+- code block there breaks the flow, hope that's not too disorienting.
+
