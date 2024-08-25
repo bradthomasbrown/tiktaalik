@@ -754,7 +754,79 @@ now we have a new and weirder issue. two? one cannot `f.selector(uint, address)`
 - we're really thinking about sticking the OverloadDeclarations onto something, but we don't know what the side effects of that may be. GlobalContext is a part of the CompilerStack. unfortunately, solidity made GlobalContext for magic variables and not generic at all, so I either use that and create a bunch of magic variable garbage i'll never use, or i use something else.
 - actually, it won't create a bunch of magic variable garbage, as it should already exist. we've added an OverloadDeclaration vector and a method that lets us create an OverloadDeclaration and get a reference to it, storing it in GlobalContext.m_overloads, a private member
 - we want to know more about the reset methods. reset should clear our overloads vector
-    
-   
-   
-  
+- the referenced declaration (which is now a wrapper declaration that holds many other declarations) has no type
+- interesting thought: what happens when we shadow a user-defined type? (is that possible)
+  we get the shadow warning. an ethereum member basically said not to do `f(types).selector` because of an example they gave. we get the strong feeling that the example they gave makes no sense at all.
+```
+  contract C {
+    enum Enum { A, B, C }
+
+    function g(Enum e) public {}
+    function g(uint i) public {}
+
+    function f() public {
+        uint Enum = 42;
+        this.g(Enum).selector; // ambiguous
+    }
+}
+```
+- in the example, the ethereum member argues, if we treat `Enum` in `g(Enum)` as the variable, we can't get a pointer to `g(Enum e)`. if we treat `Enum` in `g(Enum)` as the type, we can't call `g(Enum)`. Their argument is "either way of doing it prevents you from doing something".
+  we're looking at this and thinking: "well yeah, no shit retard, if you shadow something when in some scope you will lose access to the shadowed thing." they were called out on that immediately by pointing out that the same poorly written contract would have the same issue with several other existing concepts.
+  the ethereum member agrees that the same problem exists and the argument was retarded, and then shit out
+  "Still, I really don't like how much of a special case that syntax would be. Parameter is just a tuple and cannot be interpreted differently. the meaning of the parenthesis changes based on context."
+  yeah again retard, the meaning of an identifier changes based on the context. for example, in your own "shadowed type" argument.
+  it's not a "special case", the meaning of every single thing changes based on the context, that's how language works.
+  they then offer up "To be honest this is not my preferred syntax. I was just trying to give you a few varied possibilities to choose from. Personally, I'd rather have it as a cast" then they linked to some issue trying to attempt some massive overhaul of the entire language that implements generalizations for all sorts of conversions.
+  even if the issue was "solved" this way, the language to get it to work would become insanely less concise.
+  it looks like the proposed solution would be
+  `as<function (Enum) public>(this.g).selector` or `as<function (uint) public>(this.g).selector`.
+  this solution doesn't even make sense as a specific solution for this particular problem since it would then necessarily create a new problem, same as the original:
+  "`this.g` according to solidity's rules as they are now is an identifier that is ambiguous given the arguments provided (none). how would casting `this.g` work in such a case?"
+  the only way it would work is if some logic was implemented that resolved the referenced declaration of the ambiguous identifier using the type from the cast expression.
+  later, the ethereum member says
+  "Unless you mean that appending `.selector` at the end makes it unambiguous that you're not referring to a call. But I think such context-dependent constructs unnecessarily complicate the language"
+  LMAO. you're going to REQUIRE a context-dependent construct which necessarily complicates the language because overloads exist in the first place.
+  chriseth even joins the issue to say "although over the years I have come to see overloading more and more messy and would like to avoid it", but it's probably a bit too late to do that. may as well do it as best you can, a la c++.
+- basically, the ethereum team seems to be too incompetent or otherwise impotent to do this correctly
+- A type requires a category and a richIdentifier, where a richIdentifier is an "identifier such that two types should compare equal if and only if they have the same identifier. should start with `t_`". we think it'd be incorrect to assume the overloaded declarations are in any specific order and ideally two sets of overloaded declarations should only be considered equal if the underlying types are equal. since we shouldn't assume the overloaded declarations are ordered, the richIdentifier should coerce some order. we're thinking an assertion that no two overloads share the same type, then sort the types lexicographically by their richIdentifiers, then create a new richIdentifier by folding the underlying sorted types into one large type string. basically a lexicographically-ordered tuple where the types are asserted to be unique.
+- we also need toString, which should just return the richIdentifier
+- those are the only things that are required, but there's a few other defaults we may want to override.
+- isImplicitlyConvertible should be always false at first, same with isExplicitlyConvertible. we don't want anything using our type unless we dictate it exactly, best way to do that is to not allow conversions at all and only allow them case by case with plenty of assertions.
+- verify that identifier and escapeIdentifier implementations are generic enough to use, same with commonType.
+- operator== and operator!= should always return false for the known reasons. 
+- override storageSize to assert false, shouldn't try to use that
+  same for storageSizeUpperBound
+  same for storageBytes
+- canBeStored should return false
+- stackItems should assert false
+  same for sizeOnStack
+  same for hasSimpleZeroValueInMemory
+- mobileType should return nullptr
+- verify implementation of members
+- memberType assert false
+- actually, can we make everything assert false or return nullptr? richIdentifier could assert false since it's for seeing if two types are equal, but we don't want anything to be considered equal for an OverloadsType
+- verify fullEncodingType
+- verify clearCache
+- convert the vector for declarations to a set?
+- assert operatorDefinitions false
+- why not just split `Types.h`, then use that to go down the list instead of whatever you're doing here?
+- we wonder if we should do the same for our declaration
+- alright, our type and our declaration now inherit the most base class possible and assert every virtual to be false. now we want to see if we can make the class less base. for example, OverloadsDeclaration could be a Scopable, couldn't it? since the OverloadsDeclaration *should* only ever point to things in the same scope. (right?) (should we assume this?) probably not, since that one comment in that one area specifically implied that overloadedDeclarations may be some "public state variable shadowing other functions", although that is a very confusing comment.
+  one could consider the scope the overloads declaration resides in to be the same scope as the scope the identifier that has the overloads is in.
+  keep it simple, stupid. don't make it scopable
+  actually, the referencedDeclaration of the identifier does need to point to a declaration, so the simplest way to make this ASTNode type without ripping apart Identifier is to make Overloads a Declaration
+- really weird idea. what if the referenced declaration of an identifier with overloads was just itself? since the identifier already contains references to the overloads, it's basically what i'm already doing? well, the whole point of the step that does the referenced declaration thing in the type checker is to get the type. we don't want to mutate the type of the identifier to the overloads type.
+  we get the feeling what we're doing is lifting the ASTNode into a higher order ASTNode
+	- we cannot mutate declarations or ASTNodes
+	- when the type checker visits an identifier, if the identifier's annotation has no referenced declaration, we need to get one. that referenced declaration must have a type
+	- in the above case, if the identifier's annotation has candidate declarations, currently, the type checker tries to pin down (poorly) one specific candidate. it is a fatal error if it cannot do this
+	- we want to change this behavior so that if an identifier is being visited by the type checker and is of the above case, we create a pseudo ASTNode in the global context representing a higher order declaration: "OverloadsDeclaration". this higher order declaration will have a higher order type: "OverloadsType".
+- we get the feeling that annotation.isLValue, type, isPure, isConstant, and requiredLookup will be used in some next compiler step where we will add our logic that will complete the idea.
+- isLValue = !isConstant. `constant declared variables are read-only`. assumption seems to be that LValue must not be read-only. find_if iterates and returns an iterator if a predicate is true, or \_last if none found `an LValue (i.e. something that can be assigned to)`
+- an ASTNode has an annotation. An ASTAnnotation doesn't necessarily have candidate declarations. right now, only identifier annotations have candidate declarations. overloads declaration should then not only take a declaration then derive the candidate declarations.
+  it should take a declaration and underlying declarations. it's up to each concrete ASTNode how to provide that to the OverloadsDeclaration. 
+- so we do need the global context. we've learned that the annotation.referencedDeclaration is a raw pointer to a declaration. it seems to be assumed that the declaration's deletion will be handled outside of the context of the annotation. (annotation class uses default destructor which does not call the destructor of the underlying referencedDeclaration class through the pointer) since that seems to be assumed, global context will be responsible for owning the newly created declarations. these will be destroyed the same time global context is destroyed. since it doesn't explicitly have a destructor, it uses the default one.
+- isLValue is complete, and the things we're making are taking a solid form. commit
+- we need to implement SuperDeclaration->type(), which means we need a new type
+- we now have a type, but it is useless, as every base class implementation asserts false
+- next we need to know if the identifier annotation isPure. this is true if the referenced declaration is a constant variable declaration or if the referenced declaration is a magic variable declaration and the current annotation is a function type
