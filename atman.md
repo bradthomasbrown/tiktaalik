@@ -858,7 +858,7 @@ CMAKE_BUILD_TYPE:STRING=Release
 	- we want to know if the annoation is lvalue
 	- we want to know the annotation's type
 	- we want to know if the annotation is pure
-	- we want to know if teh annotation is constant
+	- we want to know if the annotation is constant
 - idea: selector as a magic variable? think english
   "i want a selector" (is that how people phrased it in the issues?)
   "for some function" (external function type type, expression that resolves to such, identifier that references such)
@@ -882,3 +882,24 @@ CMAKE_BUILD_TYPE:STRING=Release
 
 we also picked up on `libsolidity/ast/AST.h` stating that the tuple `(x,)`'s type "in lvalue context" is `2-tuple (with wildcard)`. we've thought about this idea before: wherever we may want overload resolution, we want to be able to do it as concise as possible. if we have two overloaded functions, each with one argument `f(T)` and `f(U)` (lol), we only need to state one type to resolve the overload. however, if we have `f(T, A, B, C)` and `f(U, A, B, C)` it's intuitive for us to think we should be able to resolve just by stating the first arguments type.
 that's easy enough: `f(T)`. but what about `f(A, B, C, T)` or `f(A, B, C, U`)? how could we concisely say "last argument is T"? or even worse: `f(A, B, C, T, X, Y, Z)` and `f(A, B, C, U, X, Y, Z)`? how could we concisely discern that? do we say "the middle one T", "the third one T", "includes T", "excludes U"? how far do we go? what if we have some arg that contains many types, like a struct or tuple? arrays of certain length? what about `f(A, B, C)` and `f(A, B)`? "arg length 3"? "arg length 2"? " "count of T > x"?
+
+well, we have a good foundation idea of how to resolve that problem in a complete and satisfying way, but it would require the fabrication of a new language, complete with syntax, grammar, lexer, parser, etc. for something that would only be a small subset of a programming lanugage, used in only a small and rare amount of cases.
+
+we think we need to back up to more practical approaches. we know how to generally resolve overloads, simply by implementing a better overload resolution algorithm more similar to c++'s implementation, with rankings and comparisons and whatnot. but how do we get the selector? preferably without needing to invent a new language. preferably in a concise way without requiring massive alterations to the existing codebase.
+
+considerations
+- `Member "f" not unique after argument-dependent lookup in contract C` despite not specifying argument-dependent lookup, `.selector` locked behind this
+- `error: variable 'x' with type 'auto' has incompatible initializer of type '<overloaded function type>
+- `not unique` error due to `possibleMembers.size() > 1` in member access or `candidateDeclarations.size() > 1` in identifier, these containers hold very different types
+- `util::SetOnce<bool> isPure;` referenced declaration has properties that can only be set once. these are not `bool`s, if the property isn't set, accessing it will throw an error
+
+next steps
+- reimplement improved function overload resolution (possibly generic (templates?)). visiteds can use this function. this reduces code duplication, leaves resolution flexible amongst visiteds, and the resolver is simple and serves a single purpose.
+- in the event that no resolution was provided, we can create (possibly generic (templates?) (SFINAE?)) helper functions that visiteds can use to try and determine if a SetOnce annotation property can be set by seeing if the property is consistent amongst the candidates
+- in the event that no resolution was provided, nor could an annotation property be chosen, do not throw. don't try to create a new type or node yet. we need to see what will happen (what blows up) when we let the referenced declaration and/or annotation properties go undetermined
+- we may want or need to create a dummy declaration ASTNode and dummy type (and other dummies) to get far enough to be able to handle a selector member access (where selector may be a native member of the dummy)
+- two ideas right now are that the dummy may be a dummy function call whose arguments are a type type tuple. this dummy will have a selector member that uses the function declaration matched by the type type tuple and not callable (it would look like a call but shouldn't actually call anything), (`foo(uint256).selector`) or
+- a dummy representing \<overloaded function type> with a callable selector native member, (`foo.selector(uint256)`)
+- the former may be easier if we think about "get a function reference first, proceed normally"
+- the latter may be easier if we think about "overloaded function types are first(ish)-class" (could maybe assign or store these like they're a function\[])
+- former seems simpler and easier, latters' syntax looks more formal and less hacky
