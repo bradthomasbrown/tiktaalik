@@ -852,4 +852,33 @@ Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel
 CMAKE_BUILD_TYPE:STRING=Release
 ```
 - code block there breaks the flow, hope that's not too disorienting.
+- https://users.ece.utexas.edu/~adnan/gdb-refcard.pdf, we ascend
+- Identifiers are not declarations. instead of baseDeclaration, it should probably be baseNode. let's think about this. maybe SuperDeclaration doesn't make sense. it's not a declaration. it's a DeclarationReferencer, which is something that has a referencedDeclaration. right now this seems to be memberAccess, identifierPath, and identifier, but we should try to generalize as much as possible
+- what if we keep it as simple as we possibly can? comment out most of the TypeChecker implementation, figure out what it was trying to do, then rewrite it without the previous restrictions on overloads. no new types at all. all of the declarations are in the annotation' candidateDeclarations.
+	- we want to know if the annoation is lvalue
+	- we want to know the annotation's type
+	- we want to know if the annotation is pure
+	- we want to know if teh annotation is constant
+- idea: selector as a magic variable? think english
+  "i want a selector" (is that how people phrased it in the issues?)
+  "for some function" (external function type type, expression that resolves to such, identifier that references such)
+  (optionally) "this specific overload"
+- feel like we need some "grand unified standard". this.f.selector works for some f. it does not work for some overloaded f. when not overloaded, this.f clearly resolves to the function declaration. when overloaded, we get the error 
+  `Member "f" not unique after argument-dependent lookup in contract C`
+  we think this is a really weird error if we strip away context.
+  if we say "this.f", it makes sense that the system looks for `f`. "argument-dependent lookup" makes less sense.
+  it would make the most sense if that error appeared iff we tried to get `f` and specified argument-dependent lookup.
+  if we say "this.f", that's an identifier followed by an expression (specifically a member access, which is `Period` (`identifier` | `Address`))
+  
+  > `docs/grammar/SolidityParser.g4:381`so a 
+  
+  there's no arguments, so don't perform an argument dependent lookup.
+  we found some interesting things in c++:
+  1. declare func `f`, `auto x = &f`. now declare an overload. what happens? `error: variable 'x' with type 'auto' has incompatible initializer of type '<overloaded function type>'` hey! `<overloaded function type` <- this seems like a familiar concept
+  2. `Functions are not objects...we say these functions are "addressable".`
+  3. https://en.cppreference.com/w/cpp/language/overloaded_address
 
+>Besides [function-call expressions](https://en.cppreference.com/w/cpp/language/operator_other "cpp/language/operator other"), where [overload resolution](https://en.cppreference.com/w/cpp/language/overload_resolution "cpp/language/overload resolution") takes place, the name of an overloaded function may appear in the following 7 contexts. In each context, the name of an overloaded function may be preceded by address-of operator `**&**` and may be enclosed in a redundant set of parentheses. In all these contexts, the function selected from the overload set is the function whose type matches the pointer to function, reference to function, or pointer to member function type that is expected by _target_. The parameter types and the return type of the function must match the target exactly. No implicit conversions are considered (e.g. a function returning a pointer to derived won't get selected when initializing a pointer to function returning a pointer to base).
+
+we also picked up on `libsolidity/ast/AST.h` stating that the tuple `(x,)`'s type "in lvalue context" is `2-tuple (with wildcard)`. we've thought about this idea before: wherever we may want overload resolution, we want to be able to do it as concise as possible. if we have two overloaded functions, each with one argument `f(T)` and `f(U)` (lol), we only need to state one type to resolve the overload. however, if we have `f(T, A, B, C)` and `f(U, A, B, C)` it's intuitive for us to think we should be able to resolve just by stating the first arguments type.
+that's easy enough: `f(T)`. but what about `f(A, B, C, T)` or `f(A, B, C, U`)? how could we concisely say "last argument is T"? or even worse: `f(A, B, C, T, X, Y, Z)` and `f(A, B, C, U, X, Y, Z)`? how could we concisely discern that? do we say "the middle one T", "the third one T", "includes T", "excludes U"? how far do we go? what if we have some arg that contains many types, like a struct or tuple? arrays of certain length? what about `f(A, B, C)` and `f(A, B)`? "arg length 3"? "arg length 2"? " "count of T > x"?
