@@ -1016,7 +1016,7 @@ we can make an LLM. if an LLM is capable of producing that level of mental and e
 
 think about that one test that was done on animals where they were rewarded for exhibiting unique behaviors. if we remember correctly, most animals failed to exhibit more than a few unique behaviors and understand the test.
 there was a dolphin who was tested, was rewarded initially, became highly frustrated after not receiving rewards (frustrated over not understanding the test), then figured out what the purpose of the test was. if we recall correctly, the dolphin then exhibited all sorts of unique behaviors.
-`The creative porpoise: training for novel behavior, Karen W. Pryor, Richard Haag, and Joseph O'Reilly (1969)`
+`The creative porpoisei use: training for novel behavior, Karen W. Pryor, Richard Haag, and Joseph O'Reilly (1969)`
 
 have LLMs been tested in such a way?
 is an LLM's loss function functionally equivalent to a human's intentions and beliefs?
