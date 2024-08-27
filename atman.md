@@ -1208,3 +1208,16 @@ funny little ideas:
 typescript to evm assembly?
 
 we have a strong desire to build an llm
+
+copilot thinks we should test if the bytecode deploys, which is an interesting suggestion, but i'm not sure it's in the scope of what we're doing. is it? it would be pretty useless to have a deno evm contract, where the bytecode returned is undeployable.
+
+that's gotta be outside the scope right? this is testing the functionality of the contract module generator, not the functionality of the contracts. if we logically extend what it wants to do, then we'd basically be needing some SMT (we think that's the term) tier shit and fuzz testing contracts. we can do that _later_, but right now we think all we want is just the structure to be correct.
+
+current pattern has odd implications
+descriptor sets are folders under contract where folder name is descriptor set name,
+but beyond that, the descriptor name is never used? that's weird, but could we do that?
+we think, probably?
+- selector
+- encode
+for now wouldn't we only really need the above?
+we'd write descriptors to the dir. there's not really a need for the name. when we get to building the barrels, then we can alias a descriptor set directory with the descriptor name, _at the contract level_, so we shouldn't need a descriptor set's name at the descriptor set level. odd.
