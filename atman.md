@@ -1206,3 +1206,5 @@ funny little ideas:
 - frontline exemptions based on DZHV holdings. users can interact with the bot, sign a message, the bot can get the public key from the signed message, check DZHV amount, then add them to exception sets based on the DZHV amount. generalize. servicize? automated TG bot integrating with the blockchain
 
 typescript to evm assembly?
+
+we have a strong desire to build an llm
