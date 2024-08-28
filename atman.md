@@ -1227,4 +1227,10 @@ value = await kv.get\<some asserted type>(someKey)
 assert(value)
 const { things } = value
 
-given som e
+selectors are hashes of function signatures
+like bytecode, will be a function sometimes (if descriptor set count > 1), a string otherwise
+typescript doesn't know that the descriptor is a function descriptor
+now it does. type predicate function in the if in place of setType == x
+
+when bridge is close to where we have stuff to put on X, upgrade to copilot enterprise and use it to summarize commits made during the periods of lesser activity, in a sort of
+"every day we summarize a part of the history up until now"
