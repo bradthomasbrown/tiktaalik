@@ -1221,3 +1221,10 @@ we think, probably?
 - encode
 for now wouldn't we only really need the above?
 we'd write descriptors to the dir. there's not really a need for the name. when we get to building the barrels, then we can alias a descriptor set directory with the descriptor name, _at the contract level_, so we shouldn't need a descriptor set's name at the descriptor set level. odd.
+
+we have a common pattern that we can reduce
+value = await kv.get\<some asserted type>(someKey)
+assert(value)
+const { things } = value
+
+given som e
