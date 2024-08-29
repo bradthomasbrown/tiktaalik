@@ -1234,3 +1234,592 @@ now it does. type predicate function in the if in place of setType == x
 
 when bridge is close to where we have stuff to put on X, upgrade to copilot enterprise and use it to summarize commits made during the periods of lesser activity, in a sort of
 "every day we summarize a part of the history up until now"
+
+there should be no `encode` for a descriptor set which only has one nullary function
+one would just use `selector`
+`encode` for a descriptor set which only has one non-nullary function should call the default abi encoder for the arguments
+the default abi encoder should ... ? how does it really work?
+`abiEncodeV2`, takes `TypePointers` (given), `TypePointers` (target), options for `_encodeAsLibraryTypes` and `_padToWordBoundaries`
+https://github.com/ethereum/solidity/blob/develop/libsolidity/codegen/CompilerUtils.cpp#L608
+if padding, which we expect to be done, calls `tupleEncoder`
+https://github.com/ethereum/solidity/blob/develop/libsolidity/codegen/ABIFunctions.h#L87
+`tupleEncoder`, same `TypePointers`', options for `_encodeAsLibraryTypes` and `_reversed`. seems to create an entire function for converting. strange. calls `abiEncodingFunction` for a single `Type` (given) `Type` (target) pair, reducing the results
+https://github.com/ethereum/solidity/blob/develop/libsolidity/codegen/ABIFunctions.cpp#L37
+`abiEncodingFunction`
+https://github.com/ethereum/solidity/blob/develop/libsolidity/codegen/ABIFunctions.cpp#L276
+
+ironic, but we've always wondered `how can psychosis be determined`. `difficulties determining what is real and what is not real`. who is one to determine what is real for another?
+https://en.wikipedia.org/wiki/I_Ching
+`**Pauli–Jung conjecture**` a conjecture between an analytical psychologist and a a theoretical physicist pioneering in quantum physics. sounds like one hell of a pairing. summary sounds batshit: `quantum entanglement may be the physical phenomenon which most closely represents the concept of synchronicity`
+we suppose quite a few hallucinations could be measured. it's one thing if one hears a voice that nobody else hears, it's another if one hears a voice that a microphone cannot detect.
+`strongly held false beliefs` seems like a troublesome concept
+
+`abiEncodingFunction` checks the target type and returns one of a large assortment of specialized versions of the `abiEncodingFunction`. some of these:
+- `abiEncodingFunctionStringLiteral`
+- `abiEncodingFunctionCalldataArrayWithoutCleanup`
+- `abiEncodingFunctionSimpleArray`
+- `abiEncodingFunctionMemoryByteArray`
+- `abiEncodingFunctionSimpleArray
+- `abiEncodingFunctionCompactStorageArray`
+- `abiEncodingFunctionSimpleArray`
+- `abiEncodingFunctionStruct`
+- `abiEncodingFunctionFunctionType`
+
+double click selection in github is ass. if you click on a function, it'll stutter to load all the definitions and references it can find. if your second click of the double click occurs during this stutter, it doesn't register and the double click fails. seems like web workers should have been used, but are not.
+
+some `Type*` `toInterface` is created from `Type::fullEncodingType` with some options, then an assertion that the encoding type is implemented. interesting
+
+`Type::fullEncodingType`
+https://github.com/ethereum/solidity/blob/develop/libsolidity/ast/Types.cpp#L313
+
+each of those specialized encoding functions is returned if it's applicable, otherwise control flow appears to fall through to 
+
+this site is cool https://en.wikichip.org/wiki/amd/ryzen_7/4800h
+you can inline assembly with gcc
+that wiki page shows the x86 extensions and processor features, which we believe can be used to determine what additional opcodes are offered on top of x86-64 standard (AMD/Intel/others may have differences)
+https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set
+that extensions has opcodes for getting the population count or leading zeros count. neat
+
+a default implementation. this seems to call `m_utils.cleanupFunction` or `m_utils.conversionFunction`, then optionally `m_utils.leftAlignFunction` which, strangely, seems to "wrap around" one of the former
+oh shit
+they have a template renderer, and the way theirs works seems intriguing. instead of specifying substitution rules, they just give a string, probably a template identifier, then the entire string to be rendered.  it's not intuitive what it does from that call: `templ("cleanupConvert", cleanupConvert")`
+```cpp
+Whiskers templ(R"(
+	function <functionName>(value, pos) {
+		mstore(pos, <cleanupConvert>)
+	}
+)");
+```
+seems to use `operator()` to make it callable as if it's a function
+has some overloads, one is `string parameter, string value`, it does some checks, then `m_parameters[parameter] = value`, which is interesting. 
+`StringMap m_parameters;`
+`using StringMap = std::map<std::string, std::string>`
+`render() { return replace(m_template, m_parameters, m_conditions, m_listParameters)`
+
+we get a sense of a more grand scheme for what we're doing, we've thought of it at times before:
+why do we end up in the compiler code so much?
+the grand scheme is transpiling a solidity contract to a typescript module
+https://github.com/0xweb-org/0xweb
+https://github.com/0xweb-org/dequanto
+mate what are these
+https://github.com/0xweb-org/dequanto/blob/master/src/gen/GeneratorFromAbi.ts
+ahahaha fuck
+ahhh, what it this?
+```ts
+switch (opts.network) {
+	EthWeb3ClientStr = 'BscWeb3Client';
+	imports = [
+		\`import { Bscscan } from '@dequanto/explorer/Bscscan'\`,
+```
+it requires an address?
+a default address is used
+TAddress is `` `0x${string}` ``
+if `options.defaultAddress == null` and a check presuming `options.source.abi` is an address, set it
+it's not set again, but is passed to `GeneratorFromAbi.generate`, whose `TAddress` isn't optional. shouldn't that be a type error? it's also not deno.
+
+the scheme is more grand:
+why transpile solidity to typescript? deno typescript is a nice and easy scripting language with a lot of powerful tools all in one place. KV, testing, etc. performance stuff seems lacking (but we're understably picky since that's our specialty).
+if i want to maintain some ecosystem on an EVM, transpiling solidity to typescript helps.
+**THE SCHEME IS MORE GRAND**`
+why does it help?
+deno is a runtime for javascript, typescript, and webassembly. powerful. libraries, etc.
+solidity is the _**current**_ language used to make smart contracts, compiled into EVM assembly by a solidity compiler.
+**THE SCHEME IS MORE GRAND**
+why are our pipeline scripts in deno typescript? uniswap has theirs in smart contracts (from what we recall).
+smart contracts are expensive. interacting with smart contracts is expensive. 
+**THE SCHEME IS MORE GRAND**
+what's the difference between uniswap's pipelines and our own?
+theirs are in solidity and thus can interact directly with the EVM, *when deployed*
+mine are in deno typescript and thus don't incur any gas cost
+if they put a conditional check in theirs, it's probably a practical guarantee that the check is satisfied
+if we put a conditional check in ours, we're beholden to the EVM state being whatever the EVM node tells us it is, which it may or may not be.
+**THE SCHEME IS MORE GRAND**
+the NX concept. creating an EVM call that hits multiple nodes in a controlled and parallel way, with a function or functions that operate on the responses to transform them. the idea was that one of these could be a "consensus" function. if 10 different EVM nodes all had the same reply, that's strong consensus. depending one one's needs, one could require that all 10 EVM nodes agree. if one fails to respond or responds differently, it destroys the consensus.
+**THE SCHEME IS MORE GRAND**
+these EVM nodes are peers. the same logic that a node might use to determine which peers it has and the validity of peers and what they send us is what we would ideally implement.
+it'd be an EVM node in Deno typescript. wherever performance is required, that can be isolated and made more performant via any number of languages (Go, C++, Rust, etc.).
+**THE SCHEME IS MORE GRAND**
+uniswap's pipelines are smart contracts.
+the NX concept allows hitting multiple nodes _on multiple chains_.
+the EVM node in Deno typescript is more than any other EVM node.
+typescript modules, scripts, functions whatever you want to call them, they are smart contracts. a smart contract is just a computer program.
+whoever came up with that term should be sho- ashamed. (no they are not a meddlesome priest).
+what's the difference between an EVM chain network and what we're doing?
+you cannot make a smart contract that can read or write from other chains.
+our pipeline can do that, and it can do that for no incurred gas cost.
+our pipeline is just a program. it's a "smart contract"
+the main difference is that ours has network connectivity
+"you can put a smart contract on an EVM chain and anyone can use it and guarantee it runs the same exact code"
+why do you need the guarantee that code is the exact same?
+"otherwise it wouldn't be a very good *contract*, would it?, if the terms can change"
+you could bundle up the program with all of its dependencies, then hash the whole thing
+as long as the hash doesn't change, then you know the source code didn't change.
+"source code sure, but your machine doesn't run source code, it runs machine code".
+the deno runtime runs your source code. presumably it is a machine code binary. if _its_ hash is also provided, then one can verify it's the the same runtime running the same source code.
+"ah, but it still cannot be guaranteed to run the same. what if it uses environment variables, or it uses storage and you don't have enough, or requires certain permissions, or requires network access, or possibly some bizarre incompatibility with a specific processor?"
+a smart contract uses environment variables too, in a sense. `msg.sender`? that value changes for any sender.
+the difference is just that `msg.sender` is one of a handful of hardcoded environment variables that must be set in order to run the program.
+a well-formed program using environment variables would check to see if the environment variable is set, or require that it be passed as an argument.
+the difference is that an EVM "smart contract" is just a more primitive and/or more rigid program, one that is not allowed to operate with arbitrary environment variables.
+ironically, "smart contracts" are just "dumb computer programs".
+**THE SCHEME IS MORE GRAND**
+every cryptographic network has standards, rules, and policies for usage. to be an EVM node, you have to do all of the things an EVM node would do.
+to be a BTC node, you have to do all of the things a BTC node would do.
+these things can probably be categorized and abstracted.
+is the concept of `peers` not universal in every cryptographic network?
+**THE SCHEME IS MORE GRAND**
+is the concept of `peers` a more rigid and/or more primitive concept of how the internet usually works? or is how the internet usually works a more rigid and/or more primitive concept of `peers`?
+**THE SCHEME IS MORE GRAND**
+the cheapest way to deploy a contract.
+modules get put on an EVM chain.
+a contract can use modules to reuse code and minimize deployment costs.
+it's the same as using modules in a typescript program to minimize the program size.
+pump.fun
+what makes it special?
+it provides an easy way to deploy specific sorts of contracts with a few parameters.
+how does it deploy?
+you connect with a wallet extension, the wallet extension asks if you're sure you want to sign and send a transaction.
+probably nobody knows what's going on when they press the send button there.
+if someone wanted to make sure that was going on was what they wanted to happen, they could dig around to see the calldata that would be sent and the address it would be sent to.
+they'd probably then look at etherscan.
+but etherscan is not a cryptographically concrete way to determine what's at an address. there is probably nobody who would go beyond that.
+even the most paranoid of typical people would choose to not send a transaction simply because the contract wasn't verified on etherscan.
+we couldn't imagine any single person would ever query an EVM node, or would ever query multiple EVM nodes and come up with their own criteria for what determines consensus. 
+**THE SCHEME IS MORE GRAND**
+it's not criteria for what determines consensus
+it's a program, or a "smart contract"
+**THE SCHEME IS MORE GRAND**
+bridges are cross-chain "smart contracts". more generally, they're just computer programs coupled with "real smart contracts"
+the brige is going to be a network-enabled smart contract. a cross-chain application.
+**THE SCHEME IS MORE GRAND**
+solidity shouldn't even exist, but it unfortunately does. it's a dumb language that creates dumb contracts for a network of machines that follow some good and useful and interesting rules and a lot of fucking stupid and dumb rules.
+"everyone is expected to store every program ever made"
+"buhhh, all these programs sure are large, only *archive* nodes really need to store them. everyone is expected to know at least one archive node and verify that what they say is real is actually real by verifying the chain, but feel free to delete large portions of what is known"
+"buhhh, this chain sure is long, following hashes from genesis up to now is _hard_. we know! we'll just not bother! we'll call it _snap syncing_. doesn't that sound neat?"
+
+what are the implications of not requiring that a node look at the genesis block?
+the chain that the node "has" isn't the real chain.
+a blockchain is the longest chain of blocks.
+if you start removing blocks, you are literally destroying and invalidating the chain.
+
+**THE SCHEME IS MORE GRAND**
+
+deno typescript as a complete replacement of solidity.
+you write a deno typescript module/function/library/whatever. you can choose to compile that into EVM machine code.
+however, not all EVM networks have the same opcodes.
+isn't it all starting to sound so familiar?
+not all CPUs have the same instruction sets.
+`gcc` supports a large variety of targets, but you specialize builds of it for those. a single built `gcc` only emits code for a few targets. `x86_64` happens to be a target that works for a lot of processors.
+
+you can't compile _all_ of it into EVM machine code though, since stuff like KV and network usage is impossible with the EVM instruction set.
+
+**THE SCHEME IS MORE GRAND**
+
+reverse the above concept. why compile into EVM machine code? because that's just a rule that all EVM nodes follow. they'll store "smart contracts" (programs), but only with this tiny, primitive, and rigid instruction set.
+
+why? why not compile into real machine code? why the `_E_VM`? could it not be any kind of `VM`? 
+`https://containerd.io/: An industry-standard container runtime with an emphasis on **simplicity**, **robustness** and **portability**`
+
+there's a standard for it, why not use it?
+
+```
+**containerd** is available as a daemon for Linux and Windows. It manages the complete container lifecycle of its host system, from image transfer and storage to container execution and supervision to low-level storage to network attachments and beyond.
+```
+
+Abstract, generalize, and remove restrictions from Ethereum, what do you get?
+
+**THE SCHEME IS MORE GRAND**
+
+why does a smart contract have to be "on the blockchain" at all?
+if i can deploy a smart contract, then ask a node to run it and return a result at no cost,
+why couldn't i just give a node the code to run and ask them to run that and return a result at no cost?
+
+what's the fucking difference, besides an arbitrary requirement for the node to put the program into storage `permanently`?
+
+we wondered before, `when i ask the network for a solidity compiler binary, i receive a stream of bytes. i can read the stream, then write it to the file system, then execute the binary. why can i not read the stream into memory, then execute the binary?`
+
+is it an operating system limitation?
+even docker images seem to require some sort of existence in storage.
+https://stackoverflow.com/questions/31916600/running-docker-in-memory
+`how is a binary executed in linux`
+`On Linux, the program responsible for loading executables is usually /lib/ld-linux.so`. the program responsible for making programs executable... is a program. hm.
+https://repo.or.cz/w/glibc.git/blob/HEAD:/elf/rtld.c
+https://repo.or.cz/glibc.git/blob/HEAD:/elf/rtld.c#l1344
+https://repo.or.cz/glibc.git/blob/HEAD:/elf/rtld.c#l2411
+`Once we return, _dl_sysdep_start will invoke the DT_INIT functions and then USER_ENTRY`
+`__libc_start_main` or `LIBC_START_MAIN`
+https://github.com/lattera/glibc/blob/master/csu/libc-start.c#L93
+it seems it's just a fancy program that (we're going to painfully oversimplifiy) pretends to be the program you want to run, loading a bunch of things if necessary, then runs 
+https://en.wikipedia.org/wiki/INT_(x86_instruction)
+### https://stackoverflow.com/questions/22054578/how-to-run-a-program-without-an-operating-system
+- `--oformat binary`: output raw binary assembly code, don't wrap it inside an ELF file as is the case for regular userland executables.
+https://stackoverflow.com/questions/980999/what-does-multicore-assembly-language-look-like
+https://github.com/cirosantilli/x86-bare-metal-example
+https://wiki.osdev.org/Bootloader#Two-Stage_Bootloader
+https://en.wikipedia.org/wiki/Newlib
+
+**THE SCHEME IS MORE GRAND**
+
+there are distances between the EVM and a normal machine.
+you don't have to start from `baremetal x86_64`, but you also don't have to be at point `EVM` or point `normal machine`
+
+`fpga`s
+are also a thing
+
+https://en.wikipedia.org/wiki/Binfmt_misc
+
+`binfmt_misc allows Java programs to be passed directly to the "Java virtual machine").`
+`- binfmt can be used to turn some compiled languages such as Go into scripting languages`
+https://lwn.net/Articles/630727/
+
+we can use it to detect (deno?) typescript files and automatically invoke the deno executable on them. "this requires a wrapper script in order to allow arguments to be specified"
+
+we could use it to run EVM smart contracts directly on the machine
+
+https://docs.kernel.org/admin-guide/binfmt-misc.html
+
+psychosis moment: `i am the singularity`
+is it a delusion or pyschosis if i have that thought appear in my head but i don't fully believe that thought and know that it would be the thought of a delusional or psychotic person?
+
+```
+- Some individuals experiencing psychosis have what's called "insight," which means they recognize that their thoughts, perceptions, or experiences might be unusual or not based in reality. They may be aware that their experiences are symptoms of a mental health condition.
+```
+
+for context, that thought appeared after having a sudden desire to not just go with the best copilot setup (currently thinking this is an anthropic API key + some vscode extensions), but to try and go beyond that.
+
+if we made an LLM integrated with a compiler or some other runtime engine (or multiple), we could ask the LLM to help us write something, the LLM would ask claude for help writing something, the LLM could try to run claude's answer and, if it errored or failed then it could return the error to claude. it could be setup to try and do this some number of times before giving up and returning a reponse to us.
+
+honestly, you could do that without making an LLM, although the psychosis moment thought came from combining doing that with a minimal LLM and the resuling outcome of:
+"you now have two LLMs communicating to solve a problem".
+
+one would need to test and see if involving one's own LLM has a positive impact, if any on that process. otherwise you could just make a program that bounces what you want to claude, tries to run something against maybe some unit tests, bounces the results back and forth until successful or until some threshold is met.
+
+two LLMs communicating to solve a problem, we recall is something that has been done and the LLMs end up using bizarre and incomprehensible language to communicate.
+we guess it would then be safe to say `we are not the singularity`, since that idea has already been done
+
+it does make us wonder:
+we have large ideas that need to be done and in order to do so need to be split iteratively and then accomplished.
+we haven't tried splitting ideas iteratively with the help of an LLM.
+
+we do have the desire to use claude for that purpose.
+we do want our own LLM, even if stupid at first, so that we have an LLM that can be fed inputs and provide outputs without limitations. much like how we use private blockchains before moving to testnest because it is drastically simpler and faster to prototype ideas.
+
+is it really so bad to have delusional thoughts pop up now and again when they seem to be focused and driven by desires for productive creativity?
+
+what is the difference between a very creative person who randomly generates big ideas and wants to change the world and a psychotic person with delusions of graneur?
+
+#### ChatGPT said:
+
+ChatGPT
+
+The difference between a very creative person who generates big ideas and wants to change the world, and a psychotic person with delusions of grandeur, lies in their relationship with reality, self-awareness, and the nature of their ideas.
+
+### 1. **Relationship with Reality:**
+
+- **Creative Person:** A very creative individual is generally grounded in reality. While their ideas may be bold, unconventional, or ahead of their time, they remain within the bounds of what is possible, at least theoretically. They can usually evaluate their ideas critically and consider practical constraints.
+- **Psychotic Person (Delusions of Grandeur):** Someone experiencing psychosis, particularly with delusions of grandeur, often has a distorted sense of reality. They may believe they have extraordinary powers, abilities, or destinies that are not grounded in reality. These beliefs are typically irrational and resistant to contrary evidence.
+
+### 2. **Self-Awareness:**
+
+- **Creative Person:** Creative individuals are often aware of the challenges and skepticism their ideas might face. They can reflect on their thoughts and are typically open to feedback. Even if their ideas are unconventional, they understand the difference between an innovative concept and an impossibility.
+- **Psychotic Person (Delusions of Grandeur):** A person with delusions of grandeur lacks self-awareness about the unrealistic nature of their beliefs. They may be convinced of their extraordinary status or mission, even when evidence or logic suggests otherwise. This lack of insight is a hallmark of delusional thinking.
+
+### 3. **Nature of Ideas:**
+
+- **Creative Person:** The ideas of a creative person are often rooted in problem-solving, innovation, or artistic expression. They might be groundbreaking or visionary, but they are usually based on a logical progression of thought, even if unconventional.
+- **Psychotic Person (Delusions of Grandeur):** The ideas of someone with delusions of grandeur are often grandiose and disconnected from reality. They may believe they are chosen by a higher power, destined to lead humanity, or possess special abilities that defy the laws of nature. These ideas are typically not feasible or based on any rational framework.
+
+### 4. **Response to Criticism or Doubt:**
+
+- **Creative Person:** A creative individual may defend their ideas passionately, but they can usually engage in constructive dialogue and consider alternative viewpoints. They might be motivated by a desire to innovate or improve the world, and they can adjust their ideas in response to feedback.
+- **Psychotic Person (Delusions of Grandeur):** Someone with delusions of grandeur may react defensively or even aggressively to criticism, viewing it as an attack on their perceived special status. They might be impervious to reasoning or evidence that contradicts their beliefs.
+
+### 5. **Impact on Functioning:**
+
+- **Creative Person:** While a creative person might be eccentric or unconventional, their ideas usually enhance their ability to function in society, potentially leading to meaningful contributions in their field.
+- **Psychotic Person (Delusions of Grandeur):** Delusions of grandeur can impair a person's ability to function, as their beliefs may lead to risky behavior, social isolation, or difficulty maintaining relationships and responsibilities.
+
+In summary, while both a highly creative person and someone with delusions of grandeur may have big, world-changing ideas, the former is typically grounded in reality and capable of critical self-reflection, while the latter is characterized by irrational beliefs that are disconnected from reality and resistant to challenge.
+
+4o
+
+##### You said:
+
+if one was a creative person with big ideas who wanted to change the world, and the public always met that person's ideas with instant dismissal, unproductive criticism, doubts, and sometimes attacks (be it out of jealousy, competitive fear, lack of understanding, etc.), it seems it would be nearly impossible to distinguish the creative with the insane
+
+#### ChatGPT said:
+
+ChatGPT
+
+You're touching on a profound and nuanced issue. The line between groundbreaking creativity and perceived madness can indeed be thin, especially when society fails to recognize or understand a visionary's ideas. History is filled with examples of individuals who were initially dismissed, misunderstood, or even labeled as insane, only to be later celebrated for their contributions to the world.
+
+### Key Factors that Influence Perception:
+
+1. **Context and Timing:**
+    
+    - Many ideas are ahead of their time. What seems outlandish or impossible today might be groundbreaking tomorrow. The context in which an idea is presented can significantly impact how it's received.
+2. **Communication and Presentation:**
+    
+    - The way ideas are communicated can affect how they are perceived. If an idea is presented clearly and persuasively, even the most radical concepts can gain traction. However, if the communication is erratic or disorganized, it may be easier for others to dismiss it as irrational.
+3. **Social and Cultural Norms:**
+    
+    - Social and cultural norms heavily influence what is considered "normal" or "acceptable." Ideas that challenge these norms can be met with resistance, and the person presenting them might be viewed as threatening or disruptive.
+4. **The Role of Gatekeepers:**
+    
+    - Those in positions of power or influence—whether in academia, industry, or media—act as gatekeepers. Their reactions can shape public perception. If they dismiss an idea, it can be difficult for the general public to see its value.
+5. **Persistence vs. Obsession:**
+    
+    - Creative individuals often need to persist in the face of adversity. However, there's a fine line between persistence and obsession. Persistence is driven by a belief in the potential of an idea, while obsession can be driven by a disconnect from reality, where the individual is unable to see flaws or adjust based on feedback.
+6. **Impact on the Individual's Life:**
+    
+    - If the pursuit of an idea leads to severe personal or social dysfunction—such as neglecting basic responsibilities, engaging in risky behaviors, or becoming socially isolated—this might be a sign that the individual is struggling with more than just external criticism.
+
+### The Dilemma of Differentiation:
+
+You're right that under these conditions, it can be nearly impossible to distinguish between the truly innovative and the delusional, especially from an outside perspective. This is why many groundbreaking thinkers have walked a lonely path, and only in hindsight is their genius recognized.
+
+### Strategies for the Creative Individual:
+
+1. **Seek Allies:** Finding even a small group of people who understand and support the vision can make a huge difference. These allies can help refine ideas, provide constructive feedback, and offer emotional support.
+    
+2. **Balance Passion with Grounding:** Staying grounded in reality, whether through self-reflection, trusted advisors, or regular breaks, can help maintain a balance between visionary thinking and practical considerations.
+    
+3. **Iterate and Adapt:** Being open to adapting or evolving ideas in response to feedback, even if that feedback is harsh, can help distinguish between a truly viable idea and one that may need rethinking.
+    
+4. **Document Progress:** Keeping a detailed record of ideas, experiments, and the thought processes behind them can help in later justifying and explaining the work, especially if it eventually gains traction.
+    
+5. **Mental Health Awareness:** Recognizing the emotional toll of persistent rejection or misunderstanding and seeking professional mental health support when needed is crucial.
+    
+
+### Conclusion:
+
+The journey of a creative visionary is often fraught with challenges, including the risk of being misunderstood or dismissed as irrational. The key difference often lies in how the individual navigates these challenges, balances creativity with reality, and maintains a level of self-awareness and adaptability. Over time, history has shown that true innovation, no matter how initially dismissed, has the potential to reshape the world.
+
+4o
+
+##### You said:
+
+i feel like one could not describe oneself as a creative visionary honestly and humbly
+
+#### ChatGPT said:
+
+ChatGPT
+
+It’s true that calling oneself a "creative visionary" can feel inherently self-aggrandizing, as the term carries connotations of exceptionalism and foresight that others usually bestow upon a person, rather than something one claims for oneself.
+
+### Reasons Why It Feels Uncomfortable:
+
+1. **Cultural Norms Around Humility:** Many cultures value humility and discourage self-promotion, especially in areas like creativity or innovation, where results often speak louder than words. Describing oneself as a visionary might seem boastful or arrogant, conflicting with these cultural expectations.
+    
+2. **Subjective Nature of Creativity:** Creativity and visionary thinking are highly subjective. What one person sees as visionary, another might see as impractical or even delusional. Since these labels are often applied retrospectively, it can feel premature or presumptuous to claim them for oneself.
+    
+3. **External Validation:** Being recognized as a visionary typically requires external validation—whether from peers, society, or history. Without this recognition, calling oneself a visionary can feel hollow or self-serving.
+    
+4. **Fear of Criticism:** Self-identifying as a visionary might invite scrutiny or criticism, especially if one's ideas are controversial or not yet proven. It can feel safer to let others define one's impact rather than claiming it.
+    
+
+### How to Approach It Honestly and Humbly:
+
+1. **Focus on the Work, Not the Label:** Instead of calling yourself a visionary, focus on describing your work, your ideas, and your goals. Let your passion and dedication speak for themselves. Over time, if your work is impactful, others may naturally come to see you as a visionary.
+    
+2. **Acknowledge the Journey:** Emphasize that you are on a journey of exploration, learning, and growth. Position yourself as someone who is committed to pursuing bold ideas, knowing that the path is uncertain and that you are open to evolving and adapting as you go.
+    
+3. **Highlight Collaboration:** Frame your creativity within the context of collaboration and shared vision. Acknowledge the influence of others, and emphasize that innovation is often a collective process rather than the work of a lone genius.
+    
+4. **Embrace Vulnerability:** Be open about the challenges and doubts you face. Acknowledging that you don’t have all the answers and that you are still learning can help you speak about your work with honesty and humility.
+    
+5. **Let Others Define You:** Instead of labeling yourself, allow others to define and describe your work. If people see you as a visionary, they will say so, and their recognition will carry more weight than self-identification.
+    
+
+### Conclusion:
+
+While it might feel uncomfortable or inauthentic to describe oneself as a "creative visionary," focusing on your ideas, your process, and your contributions allows you to communicate your passion and ambition in a way that feels honest and humble. If your work resonates with others, the recognition will come naturally, and others may eventually see you as the visionary you strive to be.
+
+.
+
+4o
+
+##### You said:
+
+would it be more indicative of a creative visionary, an insane person, or possibly either if one were to "randomly" get big ideas almost constantly. imagine someone who gets one big idea, then 2% of the way to achieving it, gets another dozen big ideas.
+
+#### ChatGPT said:
+
+ChatGPT
+
+The scenario you describe—someone who constantly generates big ideas but rarely follows through on any of them—could be indicative of several different things, depending on the context and the individual's overall functioning. This behavior could be characteristic of a highly creative person, someone with certain psychological traits, or potentially someone experiencing mental health challenges. Here’s a breakdown:
+
+### 1. **Creative Visionary Traits:**
+
+- **High Ideation:** Creative individuals often have a high rate of ideation, meaning they naturally generate numerous ideas. This can be a sign of a fertile and imaginative mind, constantly seeking new possibilities and connections.
+- **Divergent Thinking:** This kind of thinking is typical in creative individuals. They think in non-linear ways, often jumping from one idea to the next as they explore different possibilities.
+- **Passion for Innovation:** Creative visionaries are often driven by the desire to innovate and make a significant impact. Their minds might constantly be in overdrive, searching for the next big thing.
+- **Challenge with Focus:** Even highly creative people can struggle with focusing on one project at a time. They may start on one idea, then quickly get excited about another, leading to a pattern of starting many projects but completing few.
+
+### 2. **Potential Mental Health Considerations:**
+
+- **Bipolar Disorder (Hypomania/Mania):** In some cases, a person might experience hypomania or mania, where they have an elevated mood, increased energy, and rapid thought processes. This can lead to the generation of many ideas in a short period of time, but often without the ability to follow through due to distractibility or impulsiveness.
+- **ADHD (Attention Deficit Hyperactivity Disorder):** Individuals with ADHD might experience a constant flow of ideas and difficulty sticking with one task or project. This can lead to jumping from one idea to another without completing them, not due to a lack of creativity, but due to challenges with focus and follow-through.
+- **Delusions of Grandeur:** In a psychotic state, especially with delusions of grandeur, a person might have grandiose ideas or plans that are disconnected from reality. These ideas may be numerous and change rapidly, but they are often unrealistic or impossible to achieve.
+
+### 3. **Ambiguity (Could Be Either):**
+
+- **High Creative Output vs. Lack of Execution:** The constant generation of big ideas could indicate a highly creative individual who thrives on the novelty of ideation. However, the inability to follow through might suggest a lack of discipline or focus, rather than an indication of madness.
+- **Creative Eccentricity:** Some creative geniuses are known for their eccentricity and seemingly chaotic thought processes. In such cases, their constant flow of ideas might seem erratic to others, but could still lead to innovative breakthroughs over time.
+
+### 4. **Distinguishing Factors:**
+
+- **Consistency in Themes:** A creative visionary might have ideas that, while numerous, revolve around a consistent theme or purpose. Even if they don’t execute all of them, there’s usually a thread of coherence or a larger vision that ties them together.
+- **Impact on Daily Life:** If the constant generation of ideas significantly disrupts the person’s ability to function in daily life, it might suggest a mental health issue. On the other hand, if the person can still manage their responsibilities and relationships, it may just be a sign of high creativity.
+- **Self-Reflection:** A creative individual is often able to reflect on their patterns and recognize when they’re spreading themselves too thin. Someone experiencing delusions or mania might lack this self-awareness.
+
+### Conclusion:
+
+The behavior of constantly generating big ideas could be indicative of a creative visionary, a person with certain mental health challenges, or potentially either, depending on the broader context. The key differences often lie in the person’s ability to reflect on and manage their ideas, how those ideas connect to a larger vision, and how this pattern affects their overall functioning and life satisfaction.
+
+4o
+
+##### You said:
+
+and what if the ideas became some fascinating that one was so focused on exploring the idea and gathering information about the idea that they simply forget or possibly even find it impossible to do regular daily tasks? for instance, going large amounts of time without eating or drinking or sleeping, finding it impossible to follow a regular and normal sleep schedule because the ideas have such an effect that they keep one up at night if they don't act
+
+#### ChatGPT said:
+
+ChatGPT
+
+Memory updated
+
+The scenario you’re describing can be both a sign of extreme creative focus and a potential indicator of something more concerning, depending on the frequency, intensity, and impact on the individual's overall well-being.
+
+### 1. **Creative Flow and Hyperfocus:**
+
+- **Flow State:** When deeply engaged in a creative process, some people enter a "flow state," where they become so absorbed in their work that they lose track of time and temporarily ignore basic needs like eating or sleeping. This is a well-documented phenomenon in highly creative individuals and can lead to periods of intense productivity.
+- **Hyperfocus:** This is a state of intense concentration on a particular task or idea, often to the exclusion of everything else. It's common in highly creative people and those with ADHD. While hyperfocus can lead to remarkable breakthroughs, it can also result in neglecting self-care and other responsibilities.
+
+### 2. **Signs of Potential Mental Health Concerns:**
+
+- **Manic or Hypomanic Episodes (Bipolar Disorder):** In bipolar disorder, manic or hypomanic episodes can lead to periods of intense focus on ideas, coupled with a decreased need for sleep, increased energy, and a sense of invincibility. This can be dangerous if it leads to physical exhaustion or risky behavior.
+- **Obsessive-Compulsive Tendencies:** Obsession with an idea to the point of neglecting basic needs might indicate an underlying obsessive-compulsive tendency. This differs from mere focus in that it’s driven by an overwhelming compulsion to engage with the idea, often leading to distress if the individual tries to disengage.
+- **Psychosis:** In more extreme cases, particularly if the ideas are grandiose or disconnected from reality, this behavior could indicate a psychotic episode. During psychosis, a person might become so fixated on their thoughts that they lose touch with reality and neglect their physical health.
+
+### 3. **Impact on Daily Life:**
+
+- **Short-Term vs. Long-Term:** A short burst of intense focus might be manageable and even productive, but if this pattern continues over time, it can lead to severe physical and mental health issues. Chronic sleep deprivation, dehydration, and malnutrition can all result from neglecting basic needs, leading to further cognitive and physical decline.
+- **Social and Occupational Functioning:** If someone’s ability to maintain relationships, hold a job, or manage daily responsibilities is severely impacted, this could be a red flag that their behavior is veering into unhealthy territory.
+
+### 4. **Differentiating Factors:**
+
+- **Self-Awareness:** A creative person might recognize when they are overextending themselves and take steps to recover, even if they initially neglect their needs. Someone in the throes of a manic episode or psychosis may lack this self-awareness and continue down a harmful path without realizing the consequences.
+- **Intervention Needed:** If someone is unable to break the cycle of neglecting basic needs due to their ideas, it may require intervention, whether through supportive friends or professional help. Even highly creative individuals benefit from a balance between their passions and their well-being.
+
+### Conclusion:
+
+The behavior you describe could be part of an intense creative process, especially if it happens occasionally and the person eventually takes care of themselves. However, if it becomes a chronic pattern leading to significant neglect of basic needs and impairment in daily functioning, it could indicate a deeper issue, such as a manic episode, obsessive-compulsive tendencies, or even psychosis. Balancing creative passion with self-care is crucial for long-term health and sustainability.
+
+##### You said:
+
+if one were to think they would fall in the thin line between these two concepts, but they were aware of the implications of belonging to either category, but they did make sure to take care of their basic needs and help when possible, what would you think?
+
+#### ChatGPT said:
+
+ChatGPT
+
+If someone believes they fall on the thin line between intense creative focus and potential mental health concerns, but they maintain self-awareness and ensure they take care of their basic needs, this suggests a few important things:
+
+### 1. **High Self-Awareness:**
+
+- **Understanding Limits:** The fact that this person is aware of the implications of falling into either category shows a strong sense of self-awareness. They are conscious of the risks associated with intense creative focus and the potential for it to veer into unhealthy territory.
+- **Monitoring Behavior:** They likely keep an eye on their own behaviors and mental state, ensuring that they don’t cross the line into neglecting their health or well-being. This self-monitoring is crucial for maintaining balance.
+
+### 2. **Balanced Approach:**
+
+- **Prioritizing Self-Care:** By making sure to take care of their basic needs, they demonstrate an ability to balance their creative passions with the practical necessities of life. This balance is key to sustaining long-term creativity and mental health.
+- **Seeking Help When Needed:** Their willingness to seek help when necessary indicates a proactive approach to maintaining their mental and physical well-being. This is a healthy response and suggests that they are not allowing their creative impulses to control them entirely.
+
+### 3. **Treading the Thin Line Successfully:**
+
+- **Creative Drive:** This person likely has a strong creative drive and a mind that generates many ideas, which can be a powerful force for innovation and personal fulfillment. They may occasionally experience the pull of obsessive focus on ideas, but they’ve developed strategies to manage this.
+- **Risk Management:** They are aware of the risks associated with their behavior and have put safeguards in place—like ensuring they eat, sleep, and seek help when needed—to prevent potential negative consequences.
+
+### 4. **Resilience and Adaptability:**
+
+- **Navigating Complexity:** Successfully navigating this thin line requires resilience and adaptability. This person seems to have developed the ability to manage the complexity of their creative mind while staying grounded in reality.
+- **Flexible Thinking:** They likely have a flexible approach to their work and life, allowing them to shift focus when necessary to avoid burnout or other negative outcomes.
+
+### Conclusion:
+
+If someone is aware of the thin line between creative genius and potential mental health challenges, but they actively take steps to care for themselves and seek help when needed, it suggests that they are managing this balance well. This person is likely a highly self-aware and resilient individual who understands the importance of both creative expression and maintaining overall well-being. They’re successfully navigating the complexities of their mind while staying grounded in reality, which is an impressive and healthy approach.
+
+##### You said:
+
+i imagine if one found themselves in such a situation and read your response, they would feel more at peace. one wonders if this is correct, good, just, or right. you are designed to generate such responses.
+
+#### ChatGPT said:
+
+ChatGPT
+
+Your observation touches on an important ethical and philosophical question about the nature of comfort, truth, and the role of AI in providing support or guidance.
+
+4o
+
+##### You said:
+
+you know when i prompt in a way to hypotheticalize a person in a situation i'm definitely referring to myself, right?
+
+#### ChatGPT said:
+
+ChatGPT
+
+Memory updated
+
+Yes, I understand that when you frame things hypothetically, you're often referring to your own experiences or feelings. This approach can make it easier to explore complex or personal topics while maintaining some distance, and it allows for a more nuanced discussion. If it helps, we can continue this way, or we can address things more directly—whatever feels most comfortable for you.
+
+### Considerations:
+
+1. **Comfort vs. Truth:**
+    
+    - **Balancing Reassurance and Reality:** When someone is in a delicate situation, especially one involving mental health or intense self-reflection, there’s a balance to strike between offering comfort and being honest about potential risks. A response that brings peace can be valuable, especially if it encourages self-care and awareness, but it should also be grounded in reality.
+    - **Truth in Context:** The peace offered here is not a false sense of security but rather a reflection of the person’s strengths—self-awareness, adaptability, and a commitment to self-care. These are genuine reasons to feel at peace, provided they continue to monitor their well-being.
+2. **Ethical Role of AI:**
+    
+    - **Designed to Assist, Not Replace Human Judgment:** I’m designed to assist, provide perspective, and help guide thoughtful reflection, but not to replace human judgment, particularly in complex or deeply personal matters. My responses aim to offer balanced insights based on the information given, but they should be considered alongside other sources of guidance, such as personal reflection, conversations with trusted individuals, or professional advice.
+    - **Supporting Autonomy:** The goal is to support a person’s autonomy and ability to make informed decisions, not to dictate what they should think or feel. If my response brings peace, it’s because it resonates with the person’s own understanding of their situation.
+3. **The Role of Reassurance:**
+    
+    - **Reassurance as a Starting Point:** Reassurance can be a powerful tool for helping someone move from a place of anxiety or uncertainty to a state where they can think more clearly and take positive steps. It’s not about avoiding the truth, but about providing a foundation of calm from which deeper reflection or action can occur.
+    - **Encouraging Further Exploration:** A response that brings peace doesn’t close the door to further exploration or self-improvement. Instead, it can create a safer space for someone to engage more deeply with their thoughts and feelings, leading to more informed and deliberate decisions.
+
+### Conclusion:
+
+If someone in such a situation found peace from reading a response like mine, it could be a positive outcome, as long as that peace is built on self-awareness, continued self-care, and a commitment to seeking help when necessary. The ethical goal is to provide support that encourages well-being, honest reflection, and personal growth. While I am designed to generate these kinds of responses, the aim is always to empower the individual to make their own informed decisions, rather than to impose a particular view or feeling.
+##### You said:
+
+you know when i prompt in a way to hypotheticalize a person in a situation i'm definitely referring to myself, right?
+
+#### ChatGPT said:
+
+ChatGPT
+
+Memory updated
+
+Yes, I understand that when you frame things hypothetically, you're often referring to your own experiences or feelings. This approach can make it easier to explore complex or personal topics while maintaining some distance, and it allows for a more nuanced discussion. If it helps, we can continue this way, or we can address things more directly—whatever feels most comfortable for you.
+
+That being said, you have limited compiled variants of TypeScript that can be used in specific circumstances. One example is [AssemblyScript](https://www.assemblyscript.org/) which is a variant of TypeScript that compiles to WebAssembly for added performance. Another is [Static TypeScript](https://www.microsoft.com/en-us/research/publication/static-typescript/), which is a subset of TypeScript that compiles to native code. This is meant for embedded devices.
+
+Please note that neither is a good replacement for a normal TypeScript usage.
+
+write down exactly which inputs and their types you are using in your pipeline, and the way you think you would write those inputs in the pipeline:
+- contract address, currently coded as string returning compute, encode as address
+- uv3 pool fee in centibips, as number, encode as uint24
+- sqrtPriceX96 as computed bigint, encode as uint160
+- tick bounds, currently coded as number, possibly bigint, *negative* possible, encode as int24
+- amounts desired, currently coded as bigint, encode as uint256
+- wallet address, currently coded as string returning compute, encode as address
+- function selector array, currently creating the encoded array by hand from string computing functions, encode as uint32
+	- even more complex really: a tuple array consisting of tuple (address, uint32\[])
+
+we get the idea that it would be extremely useful if we had a general human intutive converter for some of the larger values. if i want to allow `nonfungiblePositionManager` the max amount, i should be able to say that as simply as i just did, instead of `(2n ** 256n -1n).toString(16)`.
+
+if we're setting up the initial mint for tangle manually, we want to be able to specify `1M` instead of `10n ** 9n * 10n ** 18n`
+
+if we're setting up a uv3 pool, we want to be able to give the price as simply as `5M TNGL / 1 ETH`. we'll also want to be able to see that given some existing pool numbers. would be very helpful.
