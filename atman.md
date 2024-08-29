@@ -1823,3 +1823,109 @@ we get the idea that it would be extremely useful if we had a general human intu
 if we're setting up the initial mint for tangle manually, we want to be able to specify `1M` instead of `10n ** 9n * 10n ** 18n`
 
 if we're setting up a uv3 pool, we want to be able to give the price as simply as `5M TNGL / 1 ETH`. we'll also want to be able to see that given some existing pool numbers. would be very helpful.
+
+code reusability vs making sure the generated modules don't need extra stuff to work and the concept of isolating functionality to the bare minimum.
+
+a descriptor's encode function will always want to check the params type
+a contract with more than one descriptor will benefit from reusing that checking code
+the check depends on the descriptor content, namely its inputs
+
+a lone descriptor would need checkParamsType in it to be most compact
+to isolate functionality, checkParamsType would be imported as a module
+to be standalone, the module would be a sibling module, and encode and checkParamsType would be two separate sources in a single module. the module would be the standalone.
+to reuse, reduce, and recycle, the module would remotely import checkParamsType
+
+hm. there is a vendor setting that allows external dependencies to be stored locally
+https://docs.deno.com/runtime/manual/basics/vendoring/
+this essentially changes the cache directory to a project local one
+a flag --cached-only can be used to force usage of the cache
+https://docs.deno.com/runtime/manual/basics/modules/integrity_checking/
+once a cache is built, if you have a deno.json or if you specify, you'll get a lock file that maps dependencies to hashes
+you can freeze the lock in a config to prevent it from being changed
+couple a frozen lock file this with --cached-only and you get something nice and secure:
+depencies are acquired in a previous step, then you can assure the dependency code won't change.
+we were thinking about this just earlier.
+
+this'll probably be very important to use so as to prevent accidentally fucking up a production typescript app (vertigo) by way of the imports changing unexpectedly (which should be difficult if we import a release, but still possible)
+
+so if we're worried about making standalone stuff, that's already possible to do given whatever imports
+
+`abiEncodeV2`, takes `TypePointers` (given), `TypePointers` (target), options for `_encodeAsLibraryTypes` and `_padToWordBoundaries`
+TypePointers (given) for us would just be the values in typescript, TypePointers (target) would be descriptor.inputs
+
+checkParamsType is weirdly not general enough to be an actual library function, especially since it doesn't handle overloads. we could treat it as a template with no placeholders.
+
+we also notice ByIndex and ByName appearing in a few places
+in a descriptor's encode function file, these should be template substituted with the actual typescript types to make nice functions
+in bytecode getter functions, we know the type is strings and not unknowns
+in checkParamsType, these are unknowns
+
+in the encodeByName and encodeByIndex, would it make more sense to normalize byName into byIndex and use a default encode?
+or would it make more sense to produce more code but with 2 different logics, where byName would be very intutively done by name?
+
+either way, those encodeBys will need the generic ByIndex and ByName types, so we should isolate those
+should those be uncoupled from contract generation? probably
+anyone wanting to abi encode anything might find that useful for reasons other than contract generation
+`evm/contract/encode` ?
+should we make an `abi` folder? it would also be a nice place for all the current ABI types in `solc/output`
+however, those abis are a result of `solc/output` and not much else
+`deno/evm/solc/output/abi`
+evm outside of deno loses the context of everything in there being evm related
+for instance, `geth` could definitely go under a non-deno specific `evm` folder
+does abi being anywhere else lose context?
+https://docs.soliditylang.org/en/latest/abi-spec.html
+```
+The Contract Application Binary Interface (ABI) is the standard way to interact with contracts in the Ethereum ecosystem, both from outside the blockchain and for contract-to-contract interaction. Data is encoded according to its type, as described in this specification. The encoding is not self describing and thus requires a schema in order to decode
+```
+if anything, it should not even be in `solc`, since by its definition in the docs it does not appear to be related to the compiler at all
+`evm/abi` it is then
+
+we're thinking we should make the typescript types, then make the schemas conform to the types, although we're thinking about how it is extremely useful to group descriptors by name and type, and also how ABIs can be very different based on what compiler version produced them (type "" being function is an odd one)
+
+we also remember that we want to make the map folding not methods of an extended map class, but rather static methods of an extended map class
+main reason being that we will want to store an abi in a memory database to pass it around for module generation, and if the grouped descriptors are part of some fancy extended map class, it will get mangled during serialization into the db
+the current workaround is a messy conversion
+if we just put them in the db how they are, pull them out how they are, then have nice static methods, that should be the most sane thing
+
+one thing on our mind right now
+if we have different ABI versions, it would be the most intuitive and reasonable if we could just import the right version
+
+is there a way to have different versions without duplicating a bunch of code?
+we're thinking "yes" and the intuitive answer would be simply having newer versions just rexport and change whatever changed from an older version,
+but then you get a weirdly long import chain. not sure if that's an actual issue
+you'd get a readability issue for sure.
+maybe duplicating code should be handled slightly more case-by-case
+if we have a standard that only has very minor changes, but has had 100 such over years and years, it would make more sense to store the types of each standard if it wouldn't be a hassle, rather than this fucked up 100-long dependency chain. you'd never be able to understand the standard if it looked like that
+
+maybe that's a fault in typescript. the c++ docs handle that in a fun way, the docs are there and there's outlines around sections marked with the versions where those sections became or stopped being valid
+so you can see the documentation of all versions in one place and differentiate the versions fairly easily
+
+actually
+would it not already be possible?
+```ts
+type Foo<V> =
+	{
+	    bar: number
+	}
+	& V extends '3' ?
+	{
+		baz: string
+	} : {}
+```
+no, not really, we'd need something like V >= '3' but you can't do arithmetic in typescript without doing some really rough shit
+well, claude thought it'd be fun to implement `rough shit` and it did a good job. is it usable?
+i think it is, it gave me a nice compromise implementation so we can pick a few key versions
+
+we'll need to figure out what those key versions will be. we know WETH will be one
+we should try to make a list of the changes in the ABI JSON structure
+https://github.com/ethereum/solidity/blame/develop/docs/abi-spec.rst
+
+https://github.com/ethereum/solidity/commit/3321fc56ea0ed6c74c85005d17abc8b7ec151cd9
+https://docs.soliditylang.org/en/breaking/050-breaking-changes.html
+
+https://github.com/ethereum/solidity/commit/548ae18dfdadd55fcb88a649cdbfd2a559637d87
+begin abi spec translation into solidity docs
+Jun 9, 2017
+[Version 0.4.11](https://github.com/ethereum/solidity/releases/tag/v0.4.11)
+
+it's quite a tangled mess, just start with supported version 0.8.26 (now), and if we bump into issues, add more
