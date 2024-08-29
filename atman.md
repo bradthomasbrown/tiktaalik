@@ -1929,3 +1929,7 @@ Jun 9, 2017
 [Version 0.4.11](https://github.com/ethereum/solidity/releases/tag/v0.4.11)
 
 it's quite a tangled mess, just start with supported version 0.8.26 (now), and if we bump into issues, add more
+
+ah, we get it
+T\[] is dynamic array (any length)
+T\[k] is static array (known length)
