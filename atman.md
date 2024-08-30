@@ -1970,3 +1970,4 @@ https://www.promises.com/addiction-blog/nightmares-have-unique-damaging-impact-o
 https://pubmed.ncbi.nlm.nih.gov/37392443/
 
 curious.
+well, you figured that one out. good job. 
