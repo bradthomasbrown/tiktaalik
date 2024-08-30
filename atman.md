@@ -1933,3 +1933,40 @@ it's quite a tangled mess, just start with supported version 0.8.26 (now), and i
 ah, we get it
 T\[] is dynamic array (any length)
 T\[k] is static array (known length)
+
+we think we should go back to trying to stick hard to a regular sleep schedule, melatonin if our brain doesn't want to sleep.
+
+... bipolar? we've always known there was something additionally "incorrect" that we most likely inherited. ADHD seems unlikely in explaining the whole story.
+https://www.brown.edu/Courses/BI_278/Other/Clerkship/Didactics/Readings/Bipolar%20Disorder.pdf
+some of the things in here are eerily familiar, and it would explain _a lot_. it seems unlikely that it could go through a generation or two in a family with employed medical professionals without being identified accruately, since the symptoms should be fairly obvious. 
+orbicular started in a wild ferocity, then activity died down to near nothing, for just about the right amount of time to encompass a depressive episode. then tangle started in a wild ferocity, then activity died down to near nothing, for just the right amount of time to encompass a depressive episode.
+dizzyhavoc started in a wild ferocity, then activity died down to near nothing. then, we interfered with adhd medication.
+hm.
+one parent who had ADHD plus something definitely more that was undetected, with behavior changing episodically in a way aligned with quite a few of the points in the above link, the other with presumed seasonal affective disorder.
+above text notes that one may feel driven by energy around the time others are supposed to sleep. other texts note that disordered sleeping can exacerbate things.
+keep an eye on that.
+
+from a quick search "melatonin bipolar"
+```
+Melatonin supplements are often recommended for bipolar patients who have trouble sleeping. However, some say that melatonin tablets may not be as effective as light blocking strategies for patients who have delayed sleep onset
+```
+huh, our best strategy if we found it hard to sleep was using a sleeping mask, with melatonin being good, and combining the two being so far unstoppable. only reason we don't do this all the time is because our sleeping mask kinda sucks.
+
+maybe _definitely_ take the melatonin if you don't think you'll be able to sleep.
+
+also consider delayed phase sleep disorder, or possibly note that the above might mimic the latter. we wonder if we allowed ourselves to sleep whenever we felt like we should but logged sleeping, waking, and mood as related to the former, would we learn something?
+we wonder if we just stay awake longer, or does the sleep cycle tend to invert or track to some consistent yet not normal pattern?
+https://en.wikipedia.org/wiki/Delayed_sleep_phase_disorder
+"1. Occasional noncircadian days may occur (i.e., sleep is "skipped" for an entire day and night plus some portion of the following day), followed by a sleep period lasting 12 to 18 hours."
+
+if you tend towards an offset sleep schedule, but have found that you can mostly enforce an unwanted sleep schedule with lisdexamphetamine to wake and melatonin to sleep, we wonder if identifying the offset sleep schedule, then enforcing that, could lead to significant improvements.
+
+https://en.wikipedia.org/wiki/Non-24-hour_sleep%E2%80%93wake_disorder
+if you tend to drift not towards an offset sleep schedule, but more generally, consider this.
+
+if the drifting or other issues don't occur consistently, but occur possibly cyclically coinciding with moood changes, then that points somewhere specific
+
+https://www.promises.com/addiction-blog/nightmares-have-unique-damaging-impact-on-bpd-sufferers/
+https://pubmed.ncbi.nlm.nih.gov/37392443/
+
+curious.
