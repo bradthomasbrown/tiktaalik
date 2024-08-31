@@ -1973,3 +1973,10 @@ curious.
 well, you figured that one out. good job. 
 
 update github links
+
+merge some commits
+this won't resolve the pull requests
+what we can do is merge the requests on beta, test, if all good, merge to main,
+then merge to dizzyhavoc-web,
+then update its readme to point to the new location
+then archive
