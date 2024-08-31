@@ -1983,3 +1983,8 @@ then archive
 
 this worked wonderfully
 git pull --no-rebase -Xsubtree=web/ corv 0.0.0 92dde0b2da3a5ee3b9fa1fd15187ea2d4e80555b
+
+we wonder
+reusing code in the EVM can save a lot of gas on deployment, what would the impact be for ABI encoding/decoding functions? it would be massive, since it's ingrained into every single contract. 
+but wait, how would you do that? abi encoding is used *in order* to interact with other contracts.
+the only way to implement abi encoding as reusable would be to necessarily create some other kind of encoding 
