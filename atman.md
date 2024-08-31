@@ -1988,3 +1988,8 @@ we wonder
 reusing code in the EVM can save a lot of gas on deployment, what would the impact be for ABI encoding/decoding functions? it would be massive, since it's ingrained into every single contract. 
 but wait, how would you do that? abi encoding is used *in order* to interact with other contracts.
 the only way to implement abi encoding as reusable would be to necessarily create some other kind of encoding 
+
+what are we trying to do with the abi encoder rewrite?
+we want to get closer to how its done conceptually in the solidity source code so that it can correctly handle uints specific to a number of bits
+
+but we're tripping up and almost rewriting the source code, so try to dumb whatever you're doing down
