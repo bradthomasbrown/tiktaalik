@@ -1993,3 +1993,20 @@ what are we trying to do with the abi encoder rewrite?
 we want to get closer to how its done conceptually in the solidity source code so that it can correctly handle uints specific to a number of bits
 
 but we're tripping up and almost rewriting the source code, so try to dumb whatever you're doing down
+
+on a good path now thanks to claude
+array to typed value has interesting branches for validation:
+is "0x1234" a string or a bytes array?
+we'll add a `coerce` optional parameter 
+if what we have matches a bytes string and `coerce` is undefined, we'll throw (this may be usable for handling our previous "struct or named parameter object" problem) 
+however, we can only check if what we have matches a bytes string if it is a string
+
+```
+isString
+1 isBytesString
+  1 coerce?
+    1
+    0 throw
+  0
+0
+```
