@@ -2011,3 +2011,206 @@ isString
 0
 ```
 
+had an idea shoot through
+we like the separation of the encoder
+every type has `toTypedValue`
+why not separate that as well?
+claude says we could
+
+- sidequest: pros and cons of previous relocations. we've noticed we have an almost _compulsion_ to relocate ourselves.
+	- first apartment (from childhood home)
+		- pros
+			- reduced stress
+			- increased freedom
+			- distance to jobs
+			- access to on-call emergency maintenance crew
+			- valet trash pickup
+			- distance to recreation
+			- initially pleasant community, quiet, clean, safe, fairly priced
+			- distance to friends
+		- cons
+			- drastically increased cost of living
+			- mountain of money disappears every month, no equity build
+			- low skill ceiling of maintenance crew and restrictions on own ability to perform maintenance (AC never fixed, only patched, broke frequently; water damage painted over. can't/shouldn't "fix" these as a tenant) 
+			- turnover of community and management leading to variance/instability of community (became dirty, loud, unsafe, unfairly priced over span of 5 years)
+			- 3rd floor + no elevator + narrow stairwell and hallway made moving some things extremely tricky/dangerous without substantial assistance
+			- garage access was an additional and significant cost, never used, so cars were always in the elements
+			- desire to produce noise causes friction with desire to not bother neighbors (want to play guitar through amplifier, feel we cannot)
+	- rental home with roommates (from first apartment)
+		- pros
+			- reduced cost of living
+			- initially pleasant community, much more stable since it was a single-family residential neighboorhod. harder for that to quickly destabalize compared to an apartment complex.
+			- land/yard (even though it was shit initially because it was a rental and previous tenants/landlord clearly didn't care, we gained massive enjoyment from bringing the yard and plants to a quality superior to most established neighbors in just a year. (we have professional lawn care experience, fun to use this for personal benefit))
+			- garage access / driveway (minimal though since 4 people & 2 car garage)
+			- much easier to move things large and small
+			- increased quantity of positive other-person interactions
+		- cons
+			- rent payments still complete loss
+			- lazy landlord, caused difficulties during move-in that made us lack hot water for a week.
+			- 3 stooges (landlord, landlord's utility servicer, ourselves) caused dramatic issues moving out relating to security deposit (we were supposed to sign up with 3rd party utility servicer, we signed up with utility company directly, servicer sent landlord bills for our services despite them not rendering those, understandably due to algorithm usage and expectation that tenant doesn't goof up like that, lease technically allowed me to do what i did, landlord's understanding was that we weren't paying utilities because servicer reported nonpayment, landlord withheld security deposit, we had to untangle what happened and escalate what happened (frustrating) until we got the deposit and everyone understood what occurred)
+			- roommates destabilized, messy, lazy, hostile, loud
+			- increased distance to jobs
+			- increased distance to recreation
+			- desire to produce noise causes friction with desire to not bother roommates (want to play guitar through amplifier, feel we cannot)
+			- friction due to not wanting to mix friends and roommates
+	- first home (from rental home with roommates)
+		- pros
+			- equity being built each month
+			- massively decreased cost of utilities (we even thought something was wrong at first it was so low)
+			- ability to maintain in nearly any way we saw fit (easily troubleshooted and fixed some water damage (improper sealing) and flooding issues (ISP ran through a sprinkler line while running fiber to the house), very rewarding)
+			- land and ability to care for lawn/plants (similarly, our lawn was comparatively nicer, even after just several months, very rewarding)
+			- extremely quiet and pleasant neighborhood, rural-suburb mix (our backyard was backed up to a pasture zoned agricultural, very rewarding to watch the cows and birds through the back window while eating at the table)
+			- desire to produce noise satisfied, can play guitar through amplifier reasonably without feeling like a jackass
+		- cons
+			- massively increased distance to jobs
+			- decreased distance to recreation
+			- massively increased cost of living due to mortgage / PMI / HOA
+			- massively increased distance to friends
+	- second apartment (from first home)
+		- pros
+			- extremely close distance to grocery store very satisfying (walking to get groceries is very nice)
+			- cargo elevator makes 3rd floor not nearly as troublesome
+			- parking garage and gate gives a sense of increased security, vehicle not exposed to weather
+			- see other apartment pros
+		- cons
+			- see other apartment cons
+	- boston (visting friends)
+		- pros
+			- public transportation puts access to jobs/recreation on a previously inconceivably high level
+		- cons
+			- inconceivably high cost of living
+			- single family home / land not even a remote possibility, carrying substantial negatives (never feeling the rewarding aspect of maintaining one's property, guarantee of permanent low skill ceiling provided maintenance)
+consider Branson, MO
+GPT says:
+- 2-4 weeks
+	- identify potential locations, understand rental market (do landlords accept proof of savings?), legal considerations (we have a Florida LLC, what happens to that?)
+- 1 week
+	- plan a trip, visit, explore a bit. try to meet some landlords (not sure if that's possible with the sweeping virtualization and offshoring of everything)
+- 2-3 weeks
+	- reflect on the visit, evaluate financial situation, make a decision
+- 4-6 weeks
+	- gather documentation for financial situation and start contacting/negotiating/applying
+- 4-8 weeks
+	- plan logistics of moving, setting up services/utilities (internet), update change of address
+	- finalize current plan, notify landlord (remember we need to give our current one 60 days notice)
+- 1-2 weeks
+	- execute the move
+minimum 14 weeks (3 months 1 week), maximum 24 weeks (5 months 2 weeks)
+If lease ends 19th Feb 2025, that gives us 5 months, 2 weeks, and 3 days.
+damn convenient timing.
+##### You said:
+
+I'm considering moving from one apartment to another apartment extremely far away, across several states, to a state I've never been to. What would be some sort of rough timeline for what I should do if I want to solidify that consideration? I figure one of the things I'd want to do is visit there first for a short time to at least get some feel for the area. I also have an interesting financial situation that might make it difficult or tricky to get an apartment (I have assets and savings, but no real income (just started an LLC but no solid income stream yet), so I'd need a landlord willing to see "proof of savings" rather than proof of income)
+
+#### ChatGPT said:
+
+ChatGPT
+
+Memory updated
+
+Here's a rough timeline and plan to help you solidify your consideration for moving to a new state:
+
+### 1. **Research (2-4 Weeks)**
+
+- **Identify Potential Locations**: Research different cities or neighborhoods in the new state. Look into factors like cost of living, job opportunities, amenities, and lifestyle.
+- **Understand Rental Market**: Look into the rental market in those areas. Check if landlords are open to accepting proof of savings in lieu of traditional income verification.
+- **Legal and Financial Considerations**: Research state-specific laws regarding renting, LLC regulations, and any tax implications of moving.
+
+### 2. **Initial Visit (1 Week)**
+
+- **Plan a Trip**: Visit the state for a short time (3-7 days). Explore neighborhoods, visit local amenities, and get a feel for the area's culture and vibe.
+- **Meet Potential Landlords**: If possible, schedule meetings with potential landlords or property managers. Discuss your financial situation and see if they're open to your proposal of using proof of savings instead of income.
+
+### 3. **Evaluate and Decide (2-3 Weeks)**
+
+- **Assess Your Experience**: Reflect on your visit. Consider whether you felt comfortable and could see yourself living there long-term.
+- **Evaluate Financials**: Make sure your savings are sufficient to cover the initial moving costs, deposits, and a few months of rent while you establish a more steady income stream.
+- **Make a Decision**: Decide whether you're ready to commit to the move.
+
+### 4. **Apartment Hunting and Securing Housing (4-6 Weeks)**
+
+- **Search for Apartments**: Use online platforms, local real estate agents, or contacts from your visit to find available apartments.
+- **Submit Applications**: Start applying for apartments. Make sure to prepare documentation that demonstrates your savings and explains your financial situation clearly.
+- **Negotiate Lease Terms**: Once you find a suitable place, negotiate the lease terms, ensuring the landlord understands and accepts your financial proof.
+
+### 5. **Prepare for the Move (4-8 Weeks)**
+
+- **Plan the Logistics**: Arrange for moving services, whether DIY or hiring professionals. Start packing non-essential items.
+- **Transfer Services**: Set up utilities, internet, and other essential services in your new apartment. Don't forget to notify any relevant organizations (banks, USPS, etc.) of your change of address.
+- **Finalize Current Living Situation**: Give notice to your current landlord, finalize any paperwork, and make sure to settle all outstanding bills.
+
+### 6. **The Move (1-2 Weeks)**
+
+- **Moving Day**: Execute the move. Make sure everything is properly packed and labeled.
+- **Settle In**: Once you've arrived, take time to unpack, set up your new home, and familiarize yourself with the area. Connect with local resources to ease the transition.
+
+### 7. **Post-Move Adjustments (Ongoing)**
+
+- **Explore Further**: Continue exploring your new state. Engage with the community and build a local network.
+- **Monitor Finances**: Keep track of your expenses and income. Adjust your budget as needed to ensure you remain financially stable.
+
+This timeline gives you a flexible structure to follow while ensuring you cover all the key aspects of the move.
+
+4o
+
+##### You said:
+
+I have suspected that I have bipolar or something similar, even if maybe just a behavior similarity and not an actual disorder. So far, I've gotten through life fairly decently, so I would've never considered going to a professional for "help" since, for the most part, my daily life isn't what I would consider "dysfunctional". If I look back at my life, there are several signs that point vividly towards bipolar or similar being a possibility, and I am convinced I have bipolar 2 at a maximum or cyclothemia at a minimum. Even though there are periods where I have undergone significant change and these changes appear to be propelled by likely a hypomanic phase or similar, the changes all seem to be justifiable at best or reasonable at worst, again making me feel like seeking an official diagnosis and treatment aren't requirements or necessities, but it sure does explain a lot. This idea for moving would have its pros and cons, but I also don't know and feel I almost can't know if it's the right choice, or even if it's _my_ choice, if you know what I mean. If, hypothetically, I had bipolar 2, I could be in or approaching a hypomanic phase compelling me to make this move. However, I can see many reasons as to why the move would be beneficial. I have an impression that I should seek a professional, like a psychologist or psychiatrist to give my plan a "look-over" but not explicitly to seek diagnosis or treatment. Does that all sound reasonable? Is there something that you might suggest that it seems I should be considering that I haven't considered, something I might have missed or not focused on enough?
+
+#### ChatGPT said:
+
+ChatGPT
+
+Memory updated
+
+Your thoughts and concerns seem very reasonable, especially considering the potential impact of mood states on major life decisions like moving. It's insightful that you're reflecting on how your mental state might influence your decision-making, even if you aren't experiencing significant dysfunction in your daily life.
+
+Here are a few considerations that might help you navigate this situation:
+
+1. **Consulting a Professional**: It could be very beneficial to speak with a psychologist or psychiatrist. You don't have to seek a diagnosis or treatment unless you choose to, but a professional can help you better understand your thought processes, especially in relation to your decision-making. They can provide an objective perspective and help you differentiate between decisions driven by a hypomanic state versus those made with long-term stability in mind.
+    
+2. **Monitoring Mood and Decisions**: Keeping a mood journal might help you track any patterns between your mood states and decisions. This could give you more insight into whether your current state is influencing your thoughts about moving. Documenting your reasons for the move and revisiting them later could also help ensure your choice is grounded.
+    
+3. **Seeking a Second Opinion on the Move**: Aside from a mental health professional, consider discussing your move with trusted friends, family, or even a mentor. Getting feedback from multiple sources could help balance out any potential bias in your thinking.
+    
+4. **Grounding Techniques**: When considering a major decision, grounding yourself in practical steps—like listing pros and cons, visiting the area, and carefully planning the move—can help ensure that your choice is well-considered and not solely driven by emotional states.
+    
+5. **Exploring the "What If" Scenario**: If you did receive a diagnosis like bipolar 2 or cyclothymia, how might that change your approach to this move? Would you handle it differently, or would you seek additional support? Considering these "what if" scenarios might provide clarity on whether you want to pursue a diagnosis.
+    
+
+Your approach to this situation is thoughtful and cautious, which is a good sign that you're taking your mental well-being seriously. Even if you decide not to seek a diagnosis, consulting a professional could provide valuable insights into your decision-making process and help you move forward with confidence.
+
+4o
+
+##### You said:
+
+Part of me seems to feel discomfort at the idea that another part of me seems like I shouldn't or maybe even can't make significant life choices on my own without consulting a professional, but given that there are signs that point to something that could be bipolar 2 or similar, I feel like I'm sort of "checkmated". What do think?
+
+#### ChatGPT said:
+
+ChatGPT
+
+It’s completely understandable to feel discomfort at the thought of needing to consult a professional before making significant life choices, especially when you’ve navigated your life successfully on your own up until now. This feeling of being "checkmated" reflects the tension between wanting to maintain autonomy and recognizing the potential influence of your mental state on your decision-making.
+
+Here’s how you might reconcile these conflicting feelings:
+
+### 1. **Maintaining Autonomy While Seeking Input**
+
+- **Consulting Doesn’t Mean Losing Control**: Seeking a professional’s input doesn’t mean you’re giving up your ability to make decisions. Instead, it’s about gathering more information to make an even more informed choice. You’re still the one in control, deciding what to do with the advice you receive.
+- **Think of It as a Tool, Not a Crutch**: Consulting a professional can be seen as using a tool to help you better understand your situation. It doesn’t diminish your autonomy but rather enhances your ability to make choices that are truly aligned with your values and long-term goals.
+
+### 2. **Trusting Yourself**
+
+- **Your Past Successes Matter**: You’ve managed your life well so far, which indicates strong decision-making skills. Consulting a professional doesn’t negate this; it just adds another layer of insight.
+- **Acknowledge Your Concerns**: The fact that you’re even considering whether your decision might be influenced by a possible mental health condition shows a high level of self-awareness. Trust that this self-awareness is part of what’s guiding you wisely.
+
+### 3. **Balancing Independence with Prudence**
+
+- **It’s About Balance**: You can balance independence with prudence by considering professional input as one of many factors in your decision-making process. It doesn’t have to be the deciding factor but rather a valuable perspective.
+- **Long-Term View**: Consider how this discomfort might affect you in the long run. If consulting a professional now helps ensure that your decisions are aligned with your best interests, it could prevent bigger challenges down the road.
+
+### 4. **Reframing the Situation**
+
+- **Not a Sign of Weakness**: It’s important to reframe consulting a professional as a sign of strength, not weakness. It shows that you’re willing to do whatever it takes to make the best possible decisions, even if it means facing discomfort.
+
+Your feelings are valid, and the discomfort is a natural reaction to grappling with the idea of relinquishing a bit of autonomy. However, you’re not truly giving up control—you’re enhancing your decision-making process with expert insight, which can ultimately reinforce your autonomy in making the best possible life choices.
