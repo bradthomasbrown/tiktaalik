@@ -2214,3 +2214,94 @@ Here’s how you might reconcile these conflicting feelings:
 - **Not a Sign of Weakness**: It’s important to reframe consulting a professional as a sign of strength, not weakness. It shows that you’re willing to do whatever it takes to make the best possible decisions, even if it means facing discomfort.
 
 Your feelings are valid, and the discomfort is a natural reaction to grappling with the idea of relinquishing a bit of autonomy. However, you’re not truly giving up control—you’re enhancing your decision-making process with expert insight, which can ultimately reinforce your autonomy in making the best possible life choices.
+
+bytes encoding is very similar to array encoding
+we think we can reuse most of the array logic
+however, ArrayType has a baseType `Type<V, T>` and currently assumes that itself will be `Type<V[], self>`
+bytes encoding would not be some `T[]` for some underlying `T`, since it would be a `Uint8Array` which doesn't extend `Array<T>` for any `T`
+what we could do then is change `ArrayType` to take an additional type parameter, and the existing underlying could remain but the additional would be the type of the overlying (?).
+when `ArrayType` converts to a `TypedValue`, it takes values (currently narrowing from unknown to array) then `TypedValue.value` becomes the values mapped to the `TypedValue` of the base type
+
+a generalization could be made, but we don't think it'd be an array any more:
+- a value type and a type like a normal `Type`
+- we wouldn't assume a base type, but possibly could we assume a functional approach of some function that operates on an unknown value to produce the value type?
+	- for our usual `ArrayType`, that would be something like `(a: unknown[]) => value type`
+	- for our `BytesType`, that would be something like `(a: Uint8Array) => Uint8Array`
+	- for our `StringType`, that would be something like `(a: string) => Uint8Array`
+
+after the generalization, the encoding of the generalized would always be `enc(len)) + values.map(enc)`
+
+this diverges from the formal specification, doesn't it? not particularly, it just puts a logical category on top of `arrays`, `bytes`, and `string` that didn't previously exist
+
+the commonality is that all of these are things that have length
+the encoders for `ArrayType` and `BytesType/StringType` should be somewhat shared then, since they'll encode a length and then append an encoding of something else
+so there should be an encoder for our new group (`countable`?) that encodes length and appends `???` where `???` can be given to the new group encoder and `ArrayType` will give `X` and `BytesType/StringType` will give `Y`
+
+hm. for `encodeIterable` we obviously get the length (interestingly, `[...value].length` for any iterable gives us a length, even if the iterable itself has no length)
+but then we need `+ this.encode(???)`
+`values.map(this.encode(value => ({ value, type: baseType })`
+in the compiler, there is a `CompositeType` abstract that composite types derive from the declares a decomposition function that produces a vector of types.
+arrays are encoded as \<len> + \<as tuple>
+but we don't think that's very elegant, since tuples generally have one type per element, where the types may not be the same, and to coerce encoding as a tuple, we need to repeatedly duplicate the base type of the array to the length of the values, which is goofy
+we could generalize tuple encoding into `groupEncode`, which can take either an array of types or a `groupType` representing a type that applies to every member
+then a tuple is a group with many types and an array is a group with a groupType
+
+part of us thinks it's not as elegant as it could be, and a possibility that is more generalized but less intuitive and even weird is `values` and `???`, where `???` is a `Type[]` and we apply `Type`s to the `values` "rotationally" (?). in other words, if we run out of types before we run out of values, we simply start back at the beginning of the types list, but that behavior is definitely strange and sure it would cover both cases but it seems like it's covering them for the wrong reason. is it?
+
+claude seems to think i am on the right track, and the correct end result is related to "applicative functors". unfortunately, despite trying to learn about this many times, our brain's wrinkles were never deep enough.
+claude provides a definition for `liftA2` which seems to differ slightly (maybe made more specific for what we're doing) from the haskell default implementation (granted, it's a default, maybe for lists claude got the right one)
+
+an abstract datatype `f a` (my understanding here is `f` takes a type parameter `a`) which has the ability for its value(s) to be mapped over can become an instance of the `Functor` typeclass.
+"that is to say, a new `Functor`, `f b` can be made from `f a` by transforming all of its value(s) whilst leaving the structure of `f` unmodified".
+there are functor laws.
+
+okay, makes sense, we have a list of strings and want a list of numbers, if a list is a functor, we can do what we want with one string -> number function.
+
+what's an applicative functor?
+"a functor with application" that does not help my understanding
+https://www.staff.city.ac.uk/~ross/papers/Applicative.pdf
+gives me a general idea relating applying one function to many arguments, although that sounds like a standard `map`.
+unfortunately the paper seems to have generalized applicative functors from the concept of monads, which is even further away from my smooth brain's comprehension (for now)
+
+an applicative functor "must include implementations of `pure` and of either `<*>` or `liftA2`"
+both standard definitions include the other, which is odd and interesting
+```haskell
+fmap :: (a -> b) -> f a -> f b
+
+pure :: a -> f a
+
+(<*>) :: f (a -> b) -> f a -> f b
+(<*>) = liftA2 id
+
+liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+liftA2 f x = (<*>) (fmap f x)
+```
+i'll try to summarize in english and pseudocode (c++ and typescript?):
+pure takes a type and uses it to construct another type which needs a type parameter
+`Array<A> list::pure = <A>(a: A) => [a]`
+`(<*>)` takes a structure of functions of `a -> b`, a structure of `a`, and returns a structure of `b`
+that makes sense, but default of `liftA2 id` I don't understand, especially since id is `a -> a` with default implementation `id x = x`
+
+`liftA2` is a bit more opaque looking
+"given some function `f: (A, B) => C`, a structure of `A`s `f a`, and a structure of `B`s `f b`, return a structure of `C`s `f c`"
+the default implementation takes a function described above and a structure of `A`s `f a`...
+so far
+`??? list::liftA2 = <A, B, C>(f: (A, B) => C, fa: Array<A>) => ???`
+it's not fully applied, so we don't get a value back, but another function that takes fewer parameters (my midwit imperative understanding)
+we take `(<*>)` and partially apply with our our function, which is `fmap f x` (which we don't understand right now)
+
+if we combine, that means `fmap f x` can be considered "a structure of functions" and what we get is a function that expects a structure of `a` and will return a structure of `b` using our "structure of functions"
+
+```haskell
+(<*>) = liftA2 id
+liftA2 f x = (<*>) (fmap f x)
+liftA2 f x = (liftA2 id) (fmap f x)
+(liftA2 id) (fmap (a -> b -> c) f a)
+(liftA2 id) (fmap (a -> (b -> c)) f a)
+fmap :: (a -> b) -> f a -> f b
+(liftA2 id) (f (b -> c))
+f (b -> c)
+(<*>) :: f (a -> b) -> f a -> f b
+{- say we create some f b "foo" and have some a -> b "bar" -}
+"bar" <*> "foo" -- -> f c, call it "baz"
+```
