@@ -2325,3 +2325,5 @@ okay, that means that what we want is something like zipWith that takes a binary
 
 then claude took it a step further and defined both zipWith and map in terms of liftA2 instead of map in terms of zipWith so that it would truly satisfy my need for a generalization of the concepts
 except we're farily certain its definition of zipWith in terms of the generated liftA2 was not correct or valid
+
+how can we declare a generic function definition in an encapsulation like an interface then later create a function whose definition must match?
