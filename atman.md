@@ -2305,3 +2305,23 @@ f (b -> c)
 {- say we create some f b "foo" and have some a -> b "bar" -}
 "bar" <*> "foo" -- -> f c, call it "baz"
 ```
+
+alright, so, we think we now understand what the generalization was and claude was right: we were really close.
+
+what we don't want to do is "start again" if we run out of types, but a different and practically identical action: create a generator function that yields the same function forever
+even more general is a generator function that yields the same `x` forever
+this is haskell's repeat function in essence
+
+with that, we can make a bastardized `liftA2` that works on iterables by taking a function, an array of `x` `xs`, an array of `y` `ys`, then it will recursively take the head of the arrays, apply the function and put the result in the same position in a new array, and keep going until the 
+
+`map f xs = zipWith ($) (repeat f) xs`
+we finally get this line, took us long enough
+`($)` is the function application operator, literally a function allowing use of a function
+`zipWith f [x1, x2, ...] [y1, y2, ...] = [f x1 y1, f x2 y2, ...]`
+so map takes a list of fs and a list of xs, then zipWiths but the binary function used is the function application operator, so that each f maps each x.
+that is wild
+
+okay, that means that what we want is something like zipWith that takes a binary function, and two lists like in Haskell, but we need to figure out how the function application operator can exist in typescript/javascript. that shouldn't be too hard at all, we'd just need to definte it as a function (god we wish we could make our own operators and infix operators that'd be so cool)
+
+then claude took it a step further and defined both zipWith and map in terms of liftA2 instead of map in terms of zipWith so that it would truly satisfy my need for a generalization of the concepts
+except we're farily certain its definition of zipWith in terms of the generated liftA2 was not correct or valid
