@@ -2327,3 +2327,51 @@ then claude took it a step further and defined both zipWith and map in terms of 
 except we're farily certain its definition of zipWith in terms of the generated liftA2 was not correct or valid
 
 how can we declare a generic function definition in an encapsulation like an interface then later create a function whose definition must match?
+
+we're doing something weird, getting really into the types and trying to make things more and more generic
+
+we started with a neat zipWith function that took a function with two args and two lists, and made a new list by mapping each arg pair across the lists via the function
+
+but
+for this to be generalized so that we can do this with many functions or one function, we thought it would be very useful to somewhat recreate a Haskell ZipList. this is roughly a context for a list with a `pure` function that creates an infinitely repeating element
+
+with that we can use zipWith, but we need to do something kind of weird. the first list will be our functions, the second list will be our pairs of elements, and the function we zip with would be a function that applies the second element as parameters to the first element function
+
+then, if we modify zipWith to take iterableIterators instead of just arrays, we can use our `pure` created ZipLists to zipWith one or many functions against many pairs of elements.
+this is what we wanted: given one f, apply f to every pair, given many fs, apply fs to pairs respectively
+
+HOWEVER
+
+when making zipWith work with iterableIterators, we noticed a few things that sort of struck us to go deeper:
+- the intuitive for loop header(?) we made was like
+```typescript
+for (let a = iia.next(), b = iib.next(); !(a.done || b.done); a = iia.next(), b = iib.next())
+```
+- there's nothing inherently wrong with this, but we felt the strong urge to make it a little more succinct. namely, we saw `a = iia.next(), b = iib.next()` twice, and one way we could rewrite that is `[a, b] = [iia, iib].map(ii => ii.next())`. this isn't more concise, but it is more general, and the generalization is "given some iterable iterators, map them to their `next()`s". this generalization means we can group `iia` and `iib` like `iis = [iia, iib]` then we can use `[a, b] = iis.map(ii => ii.next())`. we like this quite a bit
+- HOWEVER, we thought we could go a bit further. "why not make a class?" the constructor of the class can take your iterable iterators, then put them into a list, then provide a `next()` function that internally `next()`s the `ii`s passed via mapping and returns that. so we'd have something like
+```typescript
+const iis = new Iis(iia, iib)
+for (let [a, b] = iis.next(); !(a.done || b.done); [a, b] = iis.next())
+```
+- this generalization is quite concise and nice, but it could go even further.
+	- one thing is that  !(a.done || b.done) could be rewritten as an Iis class method that reduces the "doneness" of its `iis`.
+	- another idea specific to the class was "instead of storing a group of IterableIterators like `iis: [IterableIterator<A>, IterableIterator<B>]`, what if that was simplified to `ii: IterableIterator<[A, B]>`? 
+	- another idea was "why only two IterableIterators?" this class is separate from zipWith so a further generalization would be any class that takes many IterableIterators and works on them all, or maybe instead of a class then we could just make a function that "crunches" iterable iterators.
+- to make that, we wanted to first make a type that crunched many IterableIterators into a single one.
+- HOWEVER, that type could be further generalized. An IterableIterator is a type with one type parameter. The idea then is "can we make a type that crunches a group of "arity 1 type constructors" into "a single arity 1 type constructor whose parameter is the tuple of the parameters of the given arity 1 types?" we don't think we could go further because even in Haskell it seems different arity things have to be made separately, hence stuff like `liftA1, liftA2, liftA3`. we wonder why that's not further generalizable in Haskell, but, since it isn't, it almost certainly isn't in Typescript.
+- the above raises an interesting issue: it would be intuitive if we could write a simple generic type with one parameter with a conditional that the parameter is an arity 1 type, inferring its parameter, if so refer the arity 1 type's parameter, otherwise return never. however
+  `Type A1ToT<A1> = A1 extends ??? ? T : never`
+  `Type A1ToT<A1> = A1 extends infer A1<T> ? T : never`
+  `Type A1ToT<A1_> = A1_ extends A1<infer T> ? T : never`
+  you can't exactly do that. you can't say "extends any arity 1", nor can you infer the parameter of the A1 if A1 isn't generic. if you make A1 generic like that last line, it simplifies to just taking a type and seeing if it's a generic A1, but then you'll need to define A1 somewhere as a generic. 
+  You can't define it as a class, unless you make *every* arity 1 function derive from that class, otherwise `extends` will always be false.
+  For the same reason, you wouldn't make it a function, since `T` isn't always going to be a function (and even if it was, we're guessing no two different functions will satisfy `extends`, so you'd be limited to just one function)
+  Right now we're at the point where we tried to define it as a blank interface, but that seems to return `unknown`.
+  ```typescript
+// deno-lint-ignore no-empty-interface
+interface Yoo<T> {}
+declare const iia: IterableIterator<number>
+type Bar<T> = T extends Yoo<infer U> ? U : never
+declare const bar: Bar<typeof iia> // const bar: unknown
+```
+- what we can do is use a simplified trick that we think we saw in `fp-ts`: instead of rewriting _every_ arity 1 thing to extend an arity 1 interface, what if we instead made an arity 1 interface with keys matching 
