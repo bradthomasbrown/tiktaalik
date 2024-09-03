@@ -2377,4 +2377,17 @@ declare const bar: Bar<typeof iia> // const bar: unknown
 - `unknown` makes sense, we're asking if T asks what is essentially an empty object, then asking TypeScript to infer the type parameter of the empty object. Since the object is always empty, the type parameter of it doesn't change anything. We're not entirely sure how TypeScript resolves the type parameter when multiple things could be inferred (or anything could be inferred), but here it seems that results in `unknown`.
 - So what if the object wasn't empty? If we put one IterableIterator property in Yoo, this does return `number`. 
 - some generic interface `A` with one type parameter `T` minimally needs one property from `B` that uses `T` in any way in order for `B extends A<infer X> ? X : never` to return the type parameter of `B`, even if `B` is nongeneric alias to a generic interface.
-- 
+
+```ts
+type Goo<F, A> = F extends Array<unknown> ? Array<A> : never
+type Gooa = Goo<Array<boolean>, string>
+```
+
+```ts
+interface Foog<A> {
+    Array: Array<A>
+}
+type Goo<A, K> = K extends keyof Foog<unknown> ? Foog<A>[K] : never
+type Gooa = Goo<boolean, "Array">
+```
+
