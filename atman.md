@@ -2395,3 +2395,12 @@ we failed, had to get claude to back us up. it also failed but i realized quickl
 
 its is tuple of iterators
 foo is its mapped to next
+
+iterators are { next, etc. }
+iterables are { \Symbol.iterator }
+iterableIterators are both
+
+\[1, 2, 3] is a number array, which is an iterable
+basically anything you'd be moving around and interacting with is going to be an iterable
+
+iterableIterators are nicer to use, but not everything is one of those
