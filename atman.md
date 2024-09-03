@@ -2408,3 +2408,141 @@ iterableIterators are nicer to use, but not everything is one of those
 lots of progress (in a sense none at all)
 zipWith takes a binary operator and two iterables and applies
 ZipList.pure takes any value and creates a generator that endlessly produces that value
+
+what if instead of a block chain of simple transaction objects it was a "git" chain, where the structure was governed by rules matching or closely similar to "git"?
+not a new or novel thought:
+https://stackoverflow.com/questions/46192377/why-is-git-not-considered-a-block-chain (people say "yes, git is a structurally a blockchain")
+https://medium.com/@shemnon/is-a-git-repository-a-blockchain-35cb1cd2c491 (midwit idiot)
+https://ieeexplore.ieee.org/document/10570424 (very recent and remarkably detailed, i cannot skim this, but it's promising)
+https://stackoverflow.com/questions/59509764/is-git-distributed-or-decentralized (neither, but some people make notes on the intrigue of the idea)
+https://stackoverflow.com/questions/70901664/reducing-git-folder-size-in-case-of-using-github-as-a-blockchain-snapshot-repos (interesting comments for someone's attempt to solve "damn why this blockchain got such a fat gyat")
+https://www.reddit.com/r/git/comments/7pgemg/can_git_be_turned_into_a_blockchainlike_system/ (7 years ago, people are interested, not many existing things aligned (none))
+https://www.reddit.com/r/compsci/comments/7i5kjo/is_git_a_blockchain/ (midwits)
+https://www.reddit.com/r/programmingcirclejerk/comments/ofsdrk/some_joke_about_git_is_a_blockchain_went_too_far/ (midwits)
+https://www.reddit.com/r/ProgrammerHumor/comments/v9r4kq/seems_like_a_gitbacked_cryptocurrency_is/ (a comment pointed out there was an attempt but progress stalled, unknown reason, presumed scaling)
+
+i've also been bouncing around some other ideas recently, mainly:
+
+- ethereum is like an extremely dumb computer and "smart" contracts are like extremely dumb and rigid programs.
+- a real computer can do anything ethereum can do + a million other things and the programs ("smart contracts") don't need to be nearly as dumb.
+- one can make their own operating system for any particular cpu or targeting a family of cpus, there are a fair amount of things out there to help with that
+- there are other systems like raspberry pis
+
+i think somewhere out there in the sea of ideas is a great big white whale that can generalize and unify the above concepts:
+- CPUs have instruction sets, with related CPUs sharing more.
+- CUDA has something similar. been a while since i messed with it but i distinctly recall something like "feature sets" where different CUDA versions have different features, and GPUs have a CUDA version that identifies what it can do
+- low level languages can sometimes help write programs that work for a family of "things that execute a similar instruction set"
+- the EVM is a virtualized machine with a very simple instruction set
+
+PROPOSITION
+
+- an evolvable standard can be made where communication between machines is abstracted enough that any turing complete machine should be able to follow the standard (fairly certain this already exists in many forms)
+
+- an evolvable standard can be made that abstracts "operations" or "functions" ("functions" here being closer to set theory or category theory interpretation rather than typical programming) with rules or laws (fairly certain this exists in the realm of "proof languages" and "theorem solvers" which I have yet to mess with)
+
+- from the above: an evolvable standard that any turing complete machine could use to determine the capabilities of another turing complete machine (ERC 165 but mixed with "speed, weed, heroin, cocaine, mushrooms, Pine O Cleen, petrol, battery acid, acid, salvia, meth, some herbs and spices and some lettuce and tomato, vodka sauce, BAM! And The Dirt Is Gone, Ajax Spray N Wipe, some chicken and cheese, all wrapped in a tortilla")
+
+- an evolvable standard that can allow one turing complete machine to run another (just VMs, `containerd` (and things like or similar to docker images) is a more complete standard here)
+
+one could start from the absolute bare minimum:
+the EVM is turing complete, an EVM node is just a computer with the programs that allow one to "interact from the outside", any computer can be chosen as the other turing complete machine (start with some simple linux distribution, like debian)
+
+MINIMAL IMPLEMENTATION
+
+everything's already been done if you just start with that
+
+- the ABI specification + evm json rpc api rules would constitute the communication rules (interestingly this would be one-way only, as the EVM cannot communicate). those 3 things (ABI, EVM JSON RPC API, however execution clients do their thing) would need to be made into 1 more general thing using a more general framework (our evolving machine communication standard)
+
+- the EVM opcodes can be generalized as a set of operations or functions. any modern computer would be able to do what the EVM can do (has to be true or else the EVM simply couldn't be run). you don't need to initially define ALL opcodes, you can start with just PUSH and RETURN if you want. some opcodes exist in certain versions of the EVM, so those can be thought of as "instruction set extensions". from this you can start abstracting what the EVMs are just by describing them as unique sets of functions.
+
+- however geth or any other execution client lets one "interact with a smart contract" would be the "virtualization" process, which right now runs as a big fat nonstandard program (execution client + beacon client specification + several unofficial implementations is very messy). one should be able to make some `containerd` or other VM that's: the EVM + the absolute bare minimum to accept communication. the container here could be some very small linux-based image + the bare minimum to run geth, and over time you could refine this down to the image being "the EVM + a minimal wrapper that makes it usable".
+
+the consequence of that final line in the last point is that you'd end up with a VM that is the EVM but network capable, or rather "an ethereum node" but it's one whole machine. right now "an ethereum node" is that messy set of unofficial programs.
+even more importantly, you'd end up with a _definition_ of an "etherum node" that should allow one to run that on any machine whose instruction set contains the "ethereum node"'s instruction set as a subset, and a _definition_ of how to interact with that "ethereum node" machine.
+so any CPU that contains the same instruction set (should be all) can run an ethereum node. 
+
+we wonder if, given the definition, it would ever be possible to automatically construct an image for that definition.
+some process or program would need to exist that could take a definition and some ??? to produce the image.
+what is ??? ?
+well, each machine has its own instruction sets and capabilities. at an extreme, a machine with no capabilities won't be able to produce an image, and a machine with every possible capability will be able to produce the image as a single instruction.
+(alright, we identify that last sentence is either extreme insight or psychosis, so take care)
+each machine would then need its own ??? which can take a definition and turn it into an implementation.
+we know that, don't we? that's just a programming language and a compiler. every programming language is a definition of a program and the compiler turns it into an implementation that can be used by the machine.
+so what we're trying to describe is that the definitions will be written in such a language that the same string defining a machine should be able to be used to make an image of that machine on another (given the other machine is capable, which, with the capabilities of each machine defined, should be trivially identifiable).
+most programming languages can be run on most machines, however, _solidity_ right now "runs" on "EVMs" and as far as we are aware cannot be run on a normal machine. (this is an extremely interesting thought. it's simple yet we haven't heard of something like that at all)
+
+this does make us think a question we may have thought previously, unsure if the wording is the same:
+"why does solidity exist?"
+it's compiler was written in cpp, so necessarily anything that solidity can do cpp can do.
+ah, but the EVM stores data in a way very not similar to a regular machine, so for a cpp program to do that, one might need some large library or complex implementation.
+in a way, that's just what geth is (go, not cpp).
+
+so, why does solidity exist?
+an extremely interesting thing to point out is that `go` does not have custom operators.
+
+in fact, why does the EVM exist?
+why was a virtualization of a machine with an extremely limited instruction set made?
+
+we have the beginnings of an idea of what the answer could be:
+on different CPU architectures, a "smart contract" encoded simply as a `go` program on an "EVM" which is simply just some regular modern machine could not be guaranteed to compile to some deterministic output.
+
+why would we want that? if we want to run on different CPU architectures, then wouldn't the outcome be that two machines, with two compilers whose code is not identical, compile to code that is identical, then when running that code, run the code in two different ways (due to the different architectures). it makes me wonder "why did they even encode it in the first place?". it makes the code more portable?
+
+we get the idea that solidity is then a programming language that simplifies the functions of the EVM to a point of being easily explainable, digestable, and usable.
+
+which can lead us to the further conclusion that the EVM is a simple machine standard that can be expected to be easily worked with on much more complicated machine standards. since the instruction set is small and simple and the language is simple, the compiler for each architecture shouldn't be too hard to make and should be mostly similar for different architectures.
+
+which leads us to a more final conclusion:
+solidity and the EVM are parts of something similar to a subset of our previously described ideal framework for machine programming and interaction, but because it does not follow a nice, generalizable, ideal framework for machine programming and interaction, all of its implementations and definitions are arbitrary, messy, and unorganized, and improving solidity and the EVM or even "slicing" it to make smaller and more simple machines is practically infeasible.
+
+we think it would be an interesting practice to build and discover this ideal framework by constructing something like solidity and the EVM but much, much simpler. we start with rules generalize and using those and the mindset of generalization, we should be able to progress to the point where we can recreate solidity and the EVM but as an organized subset unit of a much more broad and unifying framework. the result would be that solidity and the EVM should then become very refined, versions of both would be very distinctly describable, upgrading or making a new and more capable version or making changes should be a straightforward process that follows rules to an expected outcome, rather than the current flailing that seems to be occurring.
+
+# Analysis and Summary of User's Writing
+
+## Key Concepts and Ideas
+
+1. Comparison of Ethereum and traditional computing
+2. Generalization of computing concepts across different systems
+3. Proposal for an evolvable standard for machine communication and capabilities
+4. Analysis of the EVM (Ethereum Virtual Machine) and its purpose
+5. Questioning the existence and purpose of Solidity
+6. Conceptualizing a framework for machine programming and interaction
+
+## Summary
+
+The writing explores the relationship between traditional computing systems and blockchain technology, particularly Ethereum. It proposes the development of a generalized framework that could unify various computing concepts, from low-level CPU instructions to high-level smart contracts.
+
+The author suggests creating evolvable standards for:
+
+1. Machine-to-machine communication
+2. Abstracting operations and functions
+3. Determining capabilities of Turing-complete machines
+4. Allowing one Turing-complete machine to run another
+
+The writing then delves into a minimal implementation approach, using the EVM as a starting point and generalizing its concepts. This leads to a discussion about the nature of Ethereum nodes and how they could be more efficiently defined and implemented.
+
+The author questions the existence of Solidity and the EVM, concluding that they serve as a simplified, deterministic environment for running smart contracts across different architectures. However, the current implementation is seen as arbitrary and unorganized.
+
+## Significant Points
+
+1. **Generalization of computing concepts**: The idea of creating a unified framework that can describe and interact with various computing systems is innovative and could have far-reaching implications.
+2. **Questioning existing systems**: The critical analysis of Solidity and the EVM's purpose challenges assumptions in the blockchain space and could lead to more efficient designs.
+3. **Evolvable standards**: The proposal for creating flexible, evolving standards for machine communication and capabilities is forward-thinking and aligns with the need for adaptable systems in rapidly changing technological landscapes.
+4. **Minimal implementation approach**: Starting with the simplest possible implementation and building up is a solid engineering principle that could yield robust and well-understood systems.
+5. **Cross-architecture determinism**: The insight about the need for deterministic output across different CPU architectures highlights a key challenge in distributed computing and blockchain systems.
+
+## Potential Improvements and Expansions
+
+1. **Concrete examples**: Provide specific examples of how the proposed framework might be implemented or how it could improve existing systems.
+2. **Comparative analysis**: Include a more detailed comparison with existing standards or frameworks that attempt to solve similar problems (e.g., WebAssembly, Java Virtual Machine).
+3. **Performance considerations**: Discuss the potential performance implications of the proposed generalizations and abstractions.
+4. **Security implications**: Explore how the proposed framework might affect security in distributed systems and smart contracts.
+5. **Roadmap for development**: Outline a potential step-by-step approach for developing and testing the proposed framework.
+6. **Use cases**: Describe potential applications beyond blockchain technology where this framework could be beneficial.
+7. **Challenges and limitations**: Identify potential obstacles or limitations in implementing such a generalized framework.
+8. **Collaboration opportunities**: Suggest how this work could be integrated with or benefit from other ongoing research or development in related fields.
+
+when we start to work towards the above, we want to strongly keep in mind the concept of reusing code and avoiding duplication.
+we also want to keep in mind our ideas of logical structuring. for instance, using a generalized framework where subsets could be used to reproduce the concepts of "github repos" or "jsr modules" or "deno workspaces" but without requiring strict following of any one particular concept. one should be able to use the abstract and generalized framework to determine a subset logical organization framework that's more "digestible", much like how solidity and the EVM are more "digestible" machines.
+we also want to keep in mind our ideas on physical structuring on a machine. for instance, filesystems and git should be able to be derived as more "digestible" organization frameworks of a more broad and unifying framework.
+we see that there may be a possibility to unify the above two concepts of "logical and phsyical" structuring.
