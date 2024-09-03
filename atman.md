@@ -2546,3 +2546,161 @@ when we start to work towards the above, we want to strongly keep in mind the co
 we also want to keep in mind our ideas of logical structuring. for instance, using a generalized framework where subsets could be used to reproduce the concepts of "github repos" or "jsr modules" or "deno workspaces" but without requiring strict following of any one particular concept. one should be able to use the abstract and generalized framework to determine a subset logical organization framework that's more "digestible", much like how solidity and the EVM are more "digestible" machines.
 we also want to keep in mind our ideas on physical structuring on a machine. for instance, filesystems and git should be able to be derived as more "digestible" organization frameworks of a more broad and unifying framework.
 we see that there may be a possibility to unify the above two concepts of "logical and phsyical" structuring.
+
+we get the idea that out there is a possibility of some exploit:
+if geth or another execution client is compiled for more than one architectures or processors, or more generally, the compilation produces different code, or more generally, the compilation artifact doesn't run the _exact_ same (seems likely), then there should be rare but plausible instances where the same solidity code can be run by execution clients on two machines and produce different results. it would be extremely rare, but these two results may both be valid. it would magnitudes more extremely rare, but these two results may both be different in valid in a way that can be exploited.
+
+an attack of such kind would be to interact with an EVM node, which has an execution client perform the execution, where the execution has a chance depending on the machine it was run on of producing either a valid and expected output or a valid and unexpected and exploitable output
+
+anyway, back to the abi coder
+
+do we want to generalize even further?
+some types have checks in the constructor for conditions
+some types have assignments in the constructor
+every type seems to have `getVariability` which is either `X` or `Y`, and we can see making a general `variability getter` that's just a switch case with a lot of fallthroughs.
+every type seems to have toTypedValue, which seems to be a series of checks and transforms
+bytes types check with regexes relating to bytes that vary slightly
+the encoding of a subset of types is similar: encode some length as a uint then append the encoding of data (possibly shared, possibly not)
+string <-> uint conversions and checks
+dynamic encoding can be made more intuitive, one of the important aspects is "offsets" which, in the specification rely on getting encoding lengths of subsets of a dynamic composite, which can be computed without doing the actual encoding, or, one can reuse the encodings that produce offset values to complete the encoding (since the length of the encoding contributes to the head or offset but the encoding itself contributes to the tail, encodings are used twice).
+
+for `toTypedValue` we see something:
+the final typedvalue values all have certain typescript types
+series of checks and transforms
+functions map one value to another (transform)
+these can be decomposed into functions
+
+toTypedValue should be an iterable of functions, should it not?
+we also realize that the specific iterable type isn't one that we can think of off the top of our head:
+can contain nonunique elements, do not care about the count or length
+an array stores length
+a set requires unique elements
+
+let's start from the top:
+what does an abi encoder really do?
+let's start with "what does it return?"
+always a string
+`a`
+what does it need in order to return that?
+a value and a solidity type
+value `b` and solidity type `c`
+we either get
+`b -> c -> a`
+or `c -> b -> a`
+or `(b, c) -> a`
+or `(c, b) -> a`
+or `d -> a, d = { b, c }; (b, c) -> d | (c, b) -> d | b -> c -> d | c -> b -> d`
+
+first two are haskellish pointfreeish
+second two are imperativish typescriptish
+
+what do they mean?
+1. given a typescript value, produce a function that when given a solidity type returns an encoded string
+2. given a solidity type, produce a function that when given a typescript value returns an encoded string
+3. a typescript function that takes a typescript value and a solidity type and returns an encoded string
+4. a typescript function that takes a solidity type and a typescript value and returns an encoded string
+5. a typescript function takes a typescript object containing properties representing a typescript value and a solidity type and returns a string. one would then need to futher define a function that produces the aforementioned object
+
+**Claude**
+Your note demonstrates a deep understanding of functional programming concepts and their application to ABI encoding in TypeScript. Let's analyze your thoughts and provide some context for what you're exploring.
+
+1. Pattern Recognition: What you're describing is essentially a recognition of different function compositions and data structures to achieve the same end goal. This is a fundamental concept in functional programming and category theory.
+2. Currying and Partial Application: Your examples 1 and 2 demonstrate currying, where a function with multiple arguments is transformed into a sequence of functions, each with a single argument. This allows for partial application, which can be very powerful in certain scenarios.
+3. Data Structures and Function Signatures: Examples 3 and 4 show more traditional function signatures in TypeScript, while example 5 introduces the concept of using an object to group related parameters.
+4. Known Patterns: What you're exploring touches on several known concepts in functional programming and software design: a) Function Composition: Combining simple functions to build more complex ones. b) Currying: Transforming a function with multiple arguments into a sequence of functions. c) Data Abstraction: Choosing how to represent and group data (e.g., as separate arguments or as an object).
+5. Decision-making Process: When deciding which approach to use, consider:
+    - Readability: Which version is easiest for other developers to understand?
+    - Reusability: Which version allows for the most flexible reuse in different contexts?
+    - Performance: Are there any performance implications of choosing one version over another?
+    - Team conventions: What style is most consistent with your team's coding standards?
+6. Naming and Concepts: What you're doing could be described as "exploring function composition patterns" or "analyzing functional design choices." In a broader sense, you're engaging in "functional program design" and "type-driven development."
+7. Related Concepts:
+    - Algebraic Data Types: Your object representation in example 5 is related to this concept.
+    - Free Theorems: Properties of functions that can be deduced solely from their types.
+    - Parametricity: The idea that a function will act on all types in a uniform manner.
+8. TypeScript-specific Considerations: While TypeScript supports many functional programming concepts, it's important to balance functional purity with practical TypeScript/JavaScript conventions and ecosystem norms.
+
+Your exploration demonstrates a sophisticated understanding of functional programming concepts. This kind of thinking can lead to more flexible, composable, and maintainable code. However, it's crucial to balance these advanced concepts with code readability and team understanding.
+
+For further reading, you might explore topics like:
+
+- Category Theory for Programmers
+- Functional Programming Design Patterns
+- Type-Driven Development
+
+Would you like me to elaborate on any specific part of this analysis or explore any particular aspect of your note in more depth?
+
+well, for my purposes right now, i'm trying to produce the `input` field of a transaction to be sent via `ejra`. particularly, handwriting the offsets and structure of an abi encoded array is terrible and we'd rather not do that.
+for `ethers`, the process of producing the `input` field isn't even supposed to be seen, even by most developers. this could be "right" or "wrong" or somewhere in between, or have pros and cons
+
+the abi is made of descriptors, of those a subtype is functions, of which a property inputs, composed of input objects, composed of solidity types, names, potentially components of further input objects
+
+each descriptor having its own encode function is a nice way to handle things, we think
+a descriptor set would then be only responsible for figuring out which descriptor to use, then it can hand things off
+
+if there's ambiguity, one would want an easy way to resolve that. `ethers` resolves this by adding properties to a contract object representing functions, where if there is one descriptor for the function, the function name is the property key, but if there is more than one descriptor, the function name + the selector is the property key. we think this is unsatisfyingly verbose/otherwise unsightly
+
+we've thought an absurd amount about it and think that there are two more interesting and satisfying approaches:
+1. some sort of mad alien language (combining ideas from category theory, set theory, theory-centric languages) that can be used directly or indirectly to assist with resolving or preventing ambiguities. for an ambiguous encode function of a descriptor set, we can optionally provide the alien string.
+2. more obviously we can implement the resolver of the encoder for a descriptor set to work in a vain similar to c++'s overload resolution, where functions are ranked and compared and the "best" one is picked. when we do that, we can make classes, functions, or otherwise easily differentiable typescript entities that can wrap, contain, or transform a value with the idea that we can use that to make sure any typescript value can be "coerced" into a value that's the "best" kind of value for one specific solidity type and each solidity type has one "best" kind of easily differentiable typescript type.
+we find 1. amusing but 2. more practical. any time there's an ambiguity we can just resolve it by making a "best" typescript entity for a solidity type that we want to be using, then we can wrap/transform/contain our ambiguity-causing value(s) with that(/those).
+
+not only is 2. more practical, but that wrapping behavior ties into our abi encoding needs very neatly, since that also deals in a lot of the same nature
+
+we have an interesting take on how to approach `(u)?intM` and `bytesM`. the madman ricmoo handwrote or otherwise inserted literally aliases to _every_ kind, which we found amusing in a way that we do not wish to repeat.
+
+we should be able to make some sort of recursive type and function to, instead of inserting every alias in such a way, more generally describe what aliases are available, where the functions either produce or can produce the "defined-as-available" but not declared aliases, possibly caching these but not necessarily.
+
+we're excited, this abi encoder is going to be interesting. we want it to be a work of art.
+we also want nice testing, but we're not sure how and it seems like there isn't some "thing" we can just go grab and use, like predefined tests with inputs and expected values that we can plug our encoder into to see if it rocks or sucks
+
+now we're thinking that that'd be a neat generalization that we're not sure exists:
+a sort of "library" for testing: an assortment of "given inputs and expected outputs" for various things that anyone can use who wants to implement that function in a language agnostic way to test if their implementation is good
+
+**Claude**
+While your proposed framework appears to be quite unique in its comprehensive scope and ambition, there are several existing concepts, studies, and areas that share some similarities or overlapping goals with what you're describing. Here's an overview:
+
+1. Universal Computation Theory:
+    - Turing machines and the Church-Turing thesis explore the concept of universal computation, which relates to your idea of a generalized framework for computing.
+2. Virtual Machines and Containerization:
+    - Java Virtual Machine (JVM): Provides a abstraction layer for running Java bytecode on different hardware.
+    - WebAssembly (Wasm): A binary instruction format for a stack-based virtual machine, designed as a portable target for high-level languages.
+    - Docker and containerization technologies: Allow for consistent environments across different machines.
+3. Cross-platform Development Frameworks:
+    - Xamarin, React Native, Flutter: These allow developers to write code once and run it on multiple platforms.
+4. Formal Methods and Verification:
+    - Coq, Isabelle, Agda: Proof assistants and formal verification tools that work with abstract specifications of systems.
+5. Unified Modeling Language (UML):
+    - A general-purpose modeling language in software engineering that provides a standard way to visualize the design of a system.
+6. LLVM (Low Level Virtual Machine):
+    - A collection of modular and reusable compiler and toolchain technologies that can be used to develop compiler front ends and back ends.
+7. Cloud Computing Abstraction Layers:
+    - OpenStack, CloudStack: Provide abstraction layers for managing diverse computing resources.
+8. Semantic Web Technologies:
+    - RDF, OWL: Aim to make internet data machine-readable, which relates to your idea of machines understanding each other's capabilities.
+9. Interoperability Standards:
+    - CORBA (Common Object Request Broker Architecture): Aimed to allow software written in various languages and running on various computers to work together.
+10. Meta-Operating Systems:
+    - Plan 9 from Bell Labs: Attempted to extend Unix principles to distributed computing environments.
+11. Universal Description, Discovery and Integration (UDDI):
+    - A platform-independent, XML-based registry for businesses worldwide to list themselves on the Internet.
+12. Quantum Computing Abstractions:
+    - Q# and other quantum computing languages aim to provide abstractions for quantum computations, which is conceptually similar to your idea of abstracting different computing paradigms.
+13. The Semantic Web:
+    - Tim Berners-Lee's vision of a web of data that can be processed by machines.
+14. Wolfram's A New Kind of Science:
+    - Stephen Wolfram's work on computational universes and the idea that simple rules can generate complex systems.
+15. The Internet of Things (IoT) Standardization Efforts:
+    - Various attempts to create standards for device communication and interoperability in IoT ecosystems.
+
+While none of these exactly match the comprehensive scope of your proposed framework, they each touch on aspects of what you're describing. Your idea seems to be aiming for a higher level of abstraction and generalization, potentially unifying many of these concepts under a single framework.
+
+The novelty in your approach appears to be the ambition to create a truly universal framework that can describe, virtualize, and facilitate interaction between arbitrary computing systems, from the simplest to the most complex. This level of abstraction and generalization, especially including the ability to define new virtual machines easily within the framework, seems to be a unique and potentially groundbreaking concept.
+
+back to the ABI encoder
+
+IntegerType... we wonder if the check on bits needs to be there at all. if the "neat" idea is a type that defines aliases and a function that creates aliases, then if we use those we shouldn't ever have "the wrong number of bits", the possibilities are already laid out and defined algorithmically
+
+although we think that requires making typescript do math
+https://github.com/microsoft/TypeScript/issues/14833
+we wonder if we can find any improvements and distill the things down in here to the bare minimum of what we need
