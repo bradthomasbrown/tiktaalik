@@ -2404,3 +2404,7 @@ iterableIterators are both
 basically anything you'd be moving around and interacting with is going to be an iterable
 
 iterableIterators are nicer to use, but not everything is one of those
+
+lots of progress (in a sense none at all)
+zipWith takes a binary operator and two iterables and applies
+ZipList.pure takes any value and creates a generator that endlessly produces that value
