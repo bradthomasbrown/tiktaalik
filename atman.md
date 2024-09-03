@@ -2391,3 +2391,7 @@ type Goo<A, K> = K extends keyof Foog<unknown> ? Foog<A>[K] : never
 type Gooa = Goo<boolean, "Array">
 ```
 
+we failed, had to get claude to back us up. it also failed but i realized quickly why and it was because my descriptions were __way too general__. we're doing all of this for iterable iterators, so all we had to do was check for the symbol and infer the type parameter of that symbol's return type's iterable iterator.
+
+its is tuple of iterators
+foo is its mapped to next
