@@ -2723,5 +2723,10 @@ what's the pattern there? `{ 1, 2, ..., 32 }`
 what's the pattern in both? `` { ${P}${Str<Mul<X, 1>>}: T } ``
 also, we know that recursive types with an accumulator are very nice ways to fold or traverse a tuple
 
-
 - we wonder if there's hotkeys or something similar and known for better cursor manipulation. "end" and "home" are nice, but "middle" or "halfway to End" or "halfway to Home" or word jumping vim style would all be interesting
+
+https://herringtondarkholme.github.io/2023/04/30/typescript-magic/
+
+alright, so we made that abomination. let's make the IntegerType (right?)
+
+to actually make those things that match the types, we're gonna need some weird functions
