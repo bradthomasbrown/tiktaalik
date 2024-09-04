@@ -2704,3 +2704,24 @@ IntegerType... we wonder if the check on bits needs to be there at all. if the "
 although we think that requires making typescript do math
 https://github.com/microsoft/TypeScript/issues/14833
 we wonder if we can find any improvements and distill the things down in here to the bare minimum of what we need
+
+uh
+what if we made a state object and all of the operations ran through UpdateState in some way shape or form?
+`unique symbol - This type is only allowed on `const` declarations and `readonly static` properties`
+we think we'd be able to do something like having each number be one single unique thing instead of represented by an array, then every time we make a number we can add it to the state to be used for lookups? not sure if that makes too much sense
+
+ah no fucking way we can get the length and string template it
+i can't believe that works, we should at some point figure out what the string template can do since it looks like we can do wacky shit with that
+
+so we want a type like `{ uint8, uint16, ..., uint256 }`
+what changes there? `{ 8, 16, ..., 256 }`
+how do we make this shape with that pattern?
+we're thinking some `{ [key in keyof T]: ? }`
+possibly 
+we also have a type like `{ bytes1, bytes2, ..., bytes32 }`
+what's the pattern there? `{ 1, 2, ..., 32 }`
+what's the pattern in both? `` { ${P}${Str<Mul<X, 1>>}: T } ``
+also, we know that recursive types with an accumulator are very nice ways to fold or traverse a tuple
+
+
+- we wonder if there's hotkeys or something similar and known for better cursor manipulation. "end" and "home" are nice, but "middle" or "halfway to End" or "halfway to Home" or word jumping vim style would all be interesting
