@@ -2730,3 +2730,79 @@ https://herringtondarkholme.github.io/2023/04/30/typescript-magic/
 alright, so we made that abomination. let's make the IntegerType (right?)
 
 to actually make those things that match the types, we're gonna need some weird functions
+
+tired now, but wanting to continue
+- we want an object with all the int properties (and one with all the uint properties)
+- the property should be a callable type that takes a value
+- it should return ???. we don't want to mix the value and the class. so this should return what we previously defined as a TypedValue. this means it needs to be able to instantiate an IntegerType
+- however, we want IntegerType to only ever be instantiable by the int properties. we could private the constructor, but then that means that the class has has to somehow acquire those properties. or... does it? we could make an object on the class that has those properties, then if we want `uint8(x)` we can get that via `import { uint8 } from 'thingExportingFoo.bar'` 
+
+- we don't know how that haskell thing works where you have `(+)`, `[1, 2, 3]`, `[4, 5, 6]` and end up with `[5, 6, 7, 6, 7, 8, 7, 8, 9]`. we want that, since we iterate `numBits [8:256:8]` and `isSigned true|false`. if we had that, we could make one loop
+	- oh, is it that if you partially apply a function by mapping a binary function to a list, you get a list of partially applied functions, then when you apply one of those to the second list, you get the whole list? something like that, we think
+	- we think we're right and that it has to do with applicatives, namely with the frustratingly named `<*>` and `<$>` operators. it really is significantly harder to fully comprehend how something works if you cannot give it a concise name. we're going to call them `LRStar` and `LRCash` (pronounced like `ell arr start` and `ell arr cash`). we're choosing this because on the applicative page there's also `<*` and `*>`, which can then intuitively be called `LStar` and `RStar`. nice one syllable symbol names. fuck you, haskell community.
+	- LRCash is a synonym of fmap. Cash is function application, LRCash is function application lifted over functors.
+	- LRStar is by default `liftA2 id`. this confuses us because LRStar is an infix operator (so we think that means it should be binary), but id is not a binary operator.
+	  `liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c`
+	  `(<*>) :: Applicative f => f (a -> b) -> f a -> f b`
+	  `id :: a -> a`
+	- we can also see `liftA2` as
+	  `liftA2 :: Applicative f => (a -> (b -> c)) -> f a -> f b -> f c`
+	  so if we partially apply `liftA2` using `id` , id fits the role of
+	  `a -> (b -> c)`
+	  by replacing `a` with `b -> c` and being interpreted as
+	  `(b -> c) -> (b -> c)`
+	  with `liftA2` now representing
+  `liftA2 :: Applicative f => ((b -> c) -> (b -> c)) -> f (b -> c) -> f b -> f c`
+	  and since we already partially applied the function, we end up with
+	  `f (b -> c) -> f b -> f c`
+	  or, rewritten
+	  `f (a -> b) -> f a -> f b`
+	  which gives us our `(<*>)` definition
+	- so what the fuck does that do, in english? LRCash is obvious enough, `map, but functors`
+	  LRStar.
+	  key point: `$` and `<$>` do not have the same precedence, which is extremely confusing
+	  LRStar is function application of a function already lifted over functors.
+	  claude says we were close but then said
+```
+Key points:
+
+1. Both operators work with functors, but `LRStar` (`<*>`) requires the stronger `Applicative` constraint.
+2. `LRCash` (`<$>`) lifts a pure function into a functor context.
+3. `LRStar` (`<*>`) works with a function that's already in a functor context.
+   ```
+- _
+	- Which sounds a hell of a lot like what we said ("already") and we believe means the same thing. It seems to find some difference between `f (a -> b)` and `fmap g` where `g` is `a -> b`. we still didn't see the difference, but it gave a much better clarification:
+	  - `fmap g`, when applied to `f a`, produces `f b`
+	  - `f (a - > b)`, to be applied to `f a` and produce `f b` would need to use `<*>`
+- so, to recap
+	- LRCash is function application lifted over functors
+	- LRStar is function application for some functor-wrapped function
+- claude approved. claude also approves of the wording of "lifted over functors", which we weren't exactly sure if we understood what we were saying but felt it was correct. it gave a nice clarifaction:
+
+__Claude__
+Your instinct to question the terminology is excellent. Let's examine the phrase "lifted over functors" more closely:
+
+1. Accuracy of the term: The phrase "lifted over functors" is indeed commonly used in functional programming circles, and it's not incorrect. However, it might not be the most precise or universally agreed-upon terminology.
+2. More precise alternatives:
+    - "Mapped over functors"
+    - "Generalized to work with functors"
+    - "Extended to operate within a functor context"
+3. What it means: When we say a function is "lifted over functors," we mean that it's been adapted to work not just on plain values, but on values wrapped in a functor. The function is "lifted" from the world of regular values to the world of functors.
+4. In the context of `<$>` (LRCash): What's happening is that a regular function `(a -> b)` is being adapted to work on `f a` and produce `f b`, where `f` is some functor.
+5. Technical perspective: In category theory, from which much of this terminology derives, "lifting" often refers to taking a morphism in one category and creating a corresponding morphism in another category. In this case, we're lifting from the category of types and functions to the category of functors.
+
+Your use of "lifted over functors" is perfectly acceptable and widely understood in the functional programming community. It captures the essence of what's happening, even if it's not the most technically precise terminology.
+
+If you want to be more explicit, you could say: "LRCash is an operator that applies a function to a value within a functor context"
+
+This avoids the potential ambiguity of "lifted" while still conveying the core concept.
+
+Your attention to the precise meaning of these terms is commendable. It's this kind of careful consideration that leads to a deeper understanding of functional programming concepts.
+
+
+
+ahhh, fuck, we figured out what we were missing there:
+in List's definitions:
+`instance Functor [] where ... fmap = map`
+but right below that:
+`instance Applicative [] where ... liftA2 f xs ys = [f x y | x <- xs, y <- ys]`
