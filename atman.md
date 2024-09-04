@@ -2840,3 +2840,81 @@ you'd neeed to use Object.freeze to actually make the object frozen
 when we get to the "translations and checks" phase, we'll want to know min and max. we don't need to know numBits and isSigned, since those are just used to determine the min and max and our check just checks if a number is in range.
 
 honestly, we could boil that down to an inRange function, and with a function that creates inRange functions, we'd have everything we need for checks 
+
+thinking about how tuple types are so useful for doing odd things, there's surely more than just tuple types and we wonder if those other types have other properties that could be used.
+we suspect a tuple might be "overkill" for performing a lot of typescript magic when there may be another built in type with an interesting property that's smaller.
+
+ideally, one should be able to build their own types with their own properties. 
+
+we wonder about the performance implication of using one type vs another solely from its size. for example, a "string" is primitive, so it should just be a string, right?
+but a type alias for a mapping of keyof string to string\[k] ends up having 53 properties. 
+`{ [K in keyof null] }: null[K] }` interestingly produces what appears to be an empty object
+
+we want to be able to try different things like that and see performance metrics like time, instantiation count, max instantiation depth, etc.
+
+https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+everyday types
+- js common primitives: `string`, `number`, `boolean`
+- arrays
+- any
+- functions, normal and anonymous
+- objects
+- union
+- type alias
+- interface
+- literals (string, number) (as const?)
+- null and undefined: `` JavaScript has two primitive values used to signal absent or uninitialized value: `null` and `undefined` ``, non-null assertion operator
+- enums
+- bigint
+- symbol
+
+intuitively, to take a bigint and make it something that javascript can determine is "a uint256",
+we could make a uint256 class with a value property of type bigint
+that requires the new keyword (we think, need to learn more about that
+
+Object.getOwnPropertyDescriptors is fun, you can use that to determine that a string and an array are nearly identical, the only difference is that a string's indicies are not writable and neither is its length
+
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
+so new creates a new object, points it at the constructor function's prototype if exists or Object.prototype if it doesn't
+
+https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes
+```
+It's common to see this pattern, in which methods are defined on the prototype, but data properties are defined in the constructor. That's because methods are usually the same for every object we create, while we often want each object to have its own value for its data properties (just as here where every person has a different name).
+```
+we like that description and concept, we understand we've been probably subconciously trying to do just that
+
+we think then that maybe there's something terribly wrong with typescript, since Object.create always returns any.
+if Object.create just makes an object whose prototype is the given argument,
+shouldn't Object.create's return type basically be easily determined?
+
+https://github.com/Microsoft/TypeScript/issues/3865
+ryan cavanaugh's initial response is immediately disheartening: "mostly we see Object.create being used in code that doesn't really benefit from typing, ..."
+
+which is shit and subjective, Object.create returns a very easily determined type, who cares about "mostly we see..."?
+are we out of our mind? wouldn't it be equivalent to `interface extends X` where `X` is the type of the argument? (with a special handler for null, which would return an empty object, which also is frustratingly not intuitive in typescript, or maybe rather there is confusion by the introduction of `null` and `undefined`)
+https://github.com/Microsoft/TypeScript/issues/3865#issuecomment-122581300
+matthewjh here says what i just said in almost the exact same exasperated tone more than 9 years ago
+
+it's like the EVM discoveries all over again, like there's some system that should be there that paints this nice path and somehow Typescript managed to pop into existence 100 feet forward and 100 feet off the path to the left
+
+lay some ground rules for now:
+- we're using deno, we're not using node.js
+- consider https://viem.sh/docs/typescript as an alternative to ethers
+
+we do actually really want to do this the way we want for now, just this small thing: the abi encoder
+maybe give ourselves some limit?
+claude suggests that we split our time, so say we split each day in half: half the day we use viem's abi encoder and proceed as usual, the other half we work on our bizarre abi encoder made up of as many generalizations and abstractions as we desire. or we could spend that latter half writing our own operating system and programming language, who knows? right now we're spending 0 time making real progress and 100% chasing theoretical beauty and abstractions, which is unsustainable.
+
+we should come up with a name for that process we got stuck in that paralyzed productivity.
+significant terms thrown around:
+- terminally disoriented projects
+	- these are projects that could have been implemented in a nice, sane, intuitive way but were not, usually because at some point early on some concept hadn't been thought about or those running the project refused to entertain some thought or issue, setting the project on a path away from being nice, sane, and intuitive. these projects may appear large and organized, but it is a facade hiding the real nature of these projects as an ever-growing amalgamation of patches and hacks
+- unravelling
+	- the stage of increasing frustration and dispair of a developer working with a terminally disoriented project who stumbles upon a rabbit hole of potentially many other issues stemming from some initial disorientation of a project, possibly many years ago and done so in a way that there is no reorienting of the project
+- sisyphus' curse
+	- the stage that immediately follows, where a developer entertains the idea of rewriting the terminally disoriented project from scratch, possibly acting on the idea. if the developer acts on the idea, they inherently become less capable of productivity, since now their capacity is at least somewhat consumed by the "rewrite". at worst, the developer's productivity is fully paralyzed as their attention is wholly consumed by rewriting the terminally disoriented project
+
+the worst part of sisyphus' curse is that the words of camus were too correct:
+`one must imagine sisyphus happy`
+the developer who starts to rewrite the terminally disoriented project is content to do so, finding joy in the process. the more attention consumed and the more progress made towards rewriting, all the more joyous.
+but, the initial work and goal has been forgotten, and meaningful progress ceases.
