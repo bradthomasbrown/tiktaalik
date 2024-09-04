@@ -2806,3 +2806,37 @@ in List's definitions:
 `instance Functor [] where ... fmap = map`
 but right below that:
 `instance Applicative [] where ... liftA2 f xs ys = [f x y | x <- xs, y <- ys]`
+
+we wonder if we can do that in the type system, so instead of creating two objects with all of the "integer class instance properties", one for int and one for uint, we could have the typesystem create the whole object using something similar to `liftA2 f xs ys = [f x y | x <- xs, y <- ys]`
+
+we also see claude's:
+```ts
+type InstanceNames<
+  N extends number,
+  T extends string[] = []
+> =
+  T['length'] extends N
+    ? T[number]
+    : InstanceNames<
+      N,
+      [...T, `instance${T['length'] extends 0 ? '' : T['length']}`]
+    >;
+```
+and we wonder what is the best way to get Typescript to generate a tuple of a certain length. that type adds things one at a time until the length is equal to a specified number, but what if it could add more than one at a time?
+we think there's some way to generalize multiplication and addition better that we did, or maybe that thinking of it this way is just another way that leads us towards what we did
+
+tangled up a bit:
+interface Options - for constructor
+interface Instance - .
+interface Static - .
+const Integer: Static = new Proxy(...
+anonymous class implements Instance
+
+the private constructor isn't actually private, typescript lies.
+you can't have a private constructor in javascript, but you can add a private flag, which is a javascript thing. very confusingly, you can access "private" class members if you made such members private with the private keyword in typescript, but javascript only respects the private flag, `#foo` making member `foo` really a private member
+similarly, readonly members aren't actually readonly
+you'd neeed to use Object.freeze to actually make the object frozen
+
+when we get to the "translations and checks" phase, we'll want to know min and max. we don't need to know numBits and isSigned, since those are just used to determine the min and max and our check just checks if a number is in range.
+
+honestly, we could boil that down to an inRange function, and with a function that creates inRange functions, we'd have everything we need for checks 
