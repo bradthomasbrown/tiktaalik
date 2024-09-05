@@ -2918,3 +2918,24 @@ the worst part of sisyphus' curse is that the words of camus were too correct:
 `one must imagine sisyphus happy`
 the developer who starts to rewrite the terminally disoriented project is content to do so, finding joy in the process. the more attention consumed and the more progress made towards rewriting, all the more joyous.
 but, the initial work and goal has been forgotten, and meaningful progress ceases.
+
+despite being aware, we cannot help it.
+declaring an empty interface prompts a warning: "don't do that"
+why? who the fuck knows
+either way, we tell it to fuck off, say we want to make a blank, truly blank object to start from, without any prototype. should be the most performant, right?
+an empty interface is assumed to be an object with prototype Object.prototype
+god damn it
+so if we make a truly empty object like `const foo = Object.create(null)`, typescript thinks `foo.toString` is a function (after we cast it to empty interface because it thinks `Object.create(null)` is type `any`, which is comically incorrect
+https://github.com/microsoft/TypeScript/issues/1108
+seems i'm not the first, this issue goes back almost 10 years.
+funny how we keep hitting issues that've been around for almost 10 years
+
+ah
+the first issue was opened Jul 14, 2014. that issue we found was from Nov 2014.
+we're quite literally running into issues discussed during the founding of Typescript
+our issues are ones that have friction with the core and fundamentals of typescript
+goddamnit
+
+if we poke around at the oldest open issues we can find even more fun examples of people dogpiling onto something obvious and typescript refusing and fighting for a decade
+only god knows how many of those oldest closed issues were just rage-closed by some typescript jackass that didn't want to hear it
+one wonders why some typescript competitor didn't pop up
