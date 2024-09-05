@@ -2939,3 +2939,25 @@ goddamnit
 if we poke around at the oldest open issues we can find even more fun examples of people dogpiling onto something obvious and typescript refusing and fighting for a decade
 only god knows how many of those oldest closed issues were just rage-closed by some typescript jackass that didn't want to hear it
 one wonders why some typescript competitor didn't pop up
+
+to make it it so a bigint can be narrowed to a (u)?intX, 
+should be part of the checks and transformations
+given a bigint and `"uint256"`, return some `foo` that contains `check(x)` and `transform(x)` and a combination `bar(x)`
+we want to be able to easily and simply switch case, so making each result of `transform` a class isn't necessarily ideal. we think this because the only way to switch case that is `switch true case x instanceof y, case x instanceof z, ...` which is unpleasntly verbose
+ideally here should be most likely an enum, although there will be a need to logically group results from `transform` that so far has always been done nongenerically
+for example, a category enum `Integer`, a class `Integer` with `Integer`ish properties, like `numBits` and `isSigned`
+this seems fucked up to us now, since `uint256` and `uint128` should be two things easily differentiable (like `switch x.type case "uint256" case "uint128" ...`)
+but for u?intM we're going to have 64 similarly named things and for bytesM 32. in general, things should be able to be grouped and differentiated or not grouped and differentiated
+
+hahaha oh shit
+what about Sets? isn't that what Set theory and Category theory are all about?
+if we have some class "uint256", we could make a Set "uint" and put the former in the latter
+then, we could make a Set "integer" and put the "uint" Set in some "integer" set
+the "integer" set could exist in some "solidityLibAstType" set
+
+you can make a class that extends set to have all the set functions "built in"
+there's a currently kind of sneakily hidden typescript compiler option: `noImplicitOverride` which can make it so we can extend Set without needing to know every part of it (so we don't accidentally break it). if we override something without explicitly doing so (keyword `override`), then we get yelled at. great!
+
+well, solidityLibAstType, or SolLibAstType, is a bunch of prefixes, isn't it?
+
+aliases, claude had an interesting suggestion that scratched the surface of implementing them via typescript magic
