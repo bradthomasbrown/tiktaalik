@@ -3185,3 +3185,53 @@ conditionals that throw errors can also probably be seen functionally, but i thi
 
 the map getter could also be turned into a function, `S_O`, but setting is another weird stateful thing that we understand in the imperative world and don't want to (for now) venture into the functional world
 
+https://github.com/Microsoft/TypeScript/issues/30540
+add another one to the list, god damn
+
+think about how the encoder will encode different numbers
+and how the values of different "Integers" may have further restrictions or transformations
+
+for instance uint8(256) should be an error, since 256 is greater than uint8.max
+the encoder should not have to worry about that sort of thing
+negative numbers are also handled odd
+
+a converter should handle that
+
+perhaps the converter or converters should be bundled?
+instead of a function `bigintToSolLibAstInteger`
+we notice that large prefix, preferably we'd say
+`bigintToInteger`, but `Integer` is vague enough that it warrants further explanation
+but we strongly believe that prefixing should only be done when it's otherwise impossible to avoid, due to a name collision
+
+what if we had `/sol/lib/ast/converter`
+and it had a `fromBigInt`?
+
+nah, go big or go home
+imagine we have some strange interaction between "types" of two different things with several logical prefixes
+`fromFooBarBazIntegerToGooGarCazString`
+to generalize this, we may have some extraordinarily abstract "converter" that can take an abstract `from` and an abstract `to`. we can have an abstract `options` with an option denoting "who"'s rules to follow, if, for some reason, `FooBarBaz.Integer` had a `Target.GooCarCaz.String` set with some rules different from the rules of a `GooCarCaz.String` with a `Source.FooBarBaz.Integer` 
+
+the idea sounds similar to `Category`s, where the abstract `converter` is a functor
+borrowing from haskell, this means our objects with an identifier and value are really more or less values lifted over functors
+
+(3, true, 100n, "hello")
+-> (
+  { value: 3n, id: uint8 },
+  { value: true, id: bool },
+  { value: 100n, id: uint16 },
+  { value: Uint8Array(...), id: string }
+)
+
+Haskell:
+`fmap` which, given any types `a` and `b` lets you apply any function from `(a -> b)` to turn an `f a` into an `f b`, preserving the structure of `f`.
+plus some rules
+
+that doesn't seem particularly feasible, does it?
+
+Claude suggestions:
+- TypedValue interface, we've been there but we do want to extend the typeId into something involving sets and symbols for more flexibility, maybe
+- ConversionRule interface, generic with parameters unknown `From`, `To`. has a fromTypeId, toTypeId, convert function, and an optional validate function.
+- Converter class with rules member, addRule method, convert method
+- Encoder class, has systemId and converter members and an encode function
+
+we might have to do some typescript magic to get the converter rule map the way we want
