@@ -2961,3 +2961,227 @@ there's a currently kind of sneakily hidden typescript compiler option: `noImpli
 well, solidityLibAstType, or SolLibAstType, is a bunch of prefixes, isn't it?
 
 aliases, claude had an interesting suggestion that scratched the surface of implementing them via typescript magic
+
+here's the pisser for our sets idea:
+we don't want a class that extends sets, since we want to cast values as concisely as possible:
+```ts
+import { uint256 } from 'foo'
+const x = uint256(100);
+```
+so we want a function
+
+we want something like:
+```ts
+function uint256(x: number) {
+	if (x > uint256.max || x < uint256.min || !Number.isInteger(x)) {
+		throw new Error("???")
+	}
+	return `{ identifier, value }`
+}
+```
+
+we could have the identifier be some general thing like "Integer", but if at any point down the road we want to treat some subset of "Integer" differently, we'll need to change potentially many identifiers. Ideally, the thing using the output of the above will take the distinct identifiers and treat them the same.
+so instead of having 64 different "Integer" objects and potentially needing to untangle all that later, we'll have 64 different objects and say the encoder should be able to just easily treat them all the same.
+we don't want these to extend an Integer class for the same reason: all 64 possible objects would then be tied to one and if we need to break that apart it could become messy
+the identifier being a unique symbol would make intuitive sense: it's literally an identifier.
+however, if we have some encoder that should, for now, treat all 64 of these objects the same, but treat a bunch of other objects with other identifiers differently, how does the encoder group these?
+we don't want to manually add all the symbols to a set, that'd be quite cumbersome.
+
+we have some ideas popping around that are disjointed and incomplete, so i'll start just saying words:
+symbol set factory generator yield take
+class object generator?
+factory one symbol, generates class objects with identifier as factory symbol, some amount?
+
+let's think about that:
+some sort of function that, given a base object and an identifier/unique symbol, produces objects tagged with the identifier/unique symbol.
+
+say it produces an object with 64 methods (so maybe not a base object, but could be a base function to use as a template for making methods), "uint8", "uint16", etc.
+
+but that would be sort of wasteful if every method was doing the same thing, so perhaps we produce a proxy object with a trap that points valid property names to one function, to give the illusion of many methods
+
+in our function example, though, uint256.max and uint256.min refer to uint256. to generalize the function so it can be pointed to by many things, we need to remove that reference.
+the base function could take an object argument `foo: { min, max }`
+
+the function would then be:
+```ts
+function({ min, max }: { min: ???, max: ??? }, x: number) {
+	if (x > max || x < min || !Number.isInteger(x)) {
+		throw new Error("???")
+	}
+	return `{ identifier, value }`
+}
+```
+
+however, min and max should certainly be `bigints` since the max value of a `uint256` is going to be way outside the range of a normal javascript number
+
+so we want a general transformer of numbers to bigints, probably one that throws (optionally?) if the result isn't the exact same or for any other number of possible future reasons
+
+```ts
+function numberToBigint(n: number, options: ???) {
+	// either
+	if (!Number.isInteger(x)) throw
+	// or
+	const b = BigInt(x)
+	if (!b == x) throw
+	// or some potential
+	if (n < Number.MIN_SAFE_INTEGER || N > Number.MAX_SAFE_INTEGER)
+		if (options.onlySafe) throw
+		if (!options.allowUnsafe) warn(...)
+		return b
+}
+```
+
+out base function should optimally be (to remove the isInteger check by moving control of that to the above transformer function)
+```ts
+function({ min, max }: { min: bigint, max: bigint }, x: bigint) {
+	if (x > max || x < min) {
+		throw new Error("???")
+	}
+	return `{ identifier, value }`
+}
+```
+
+where the minMax object could be generalized to some tiny class with min, max, and an inRange method like
+
+```ts
+class Foo {
+	min: bigint
+	max: bigint
+	constructor({ min, max }: { min: bigint, max: bigint }) {
+		this.min = min
+		this.max = max
+	}
+	inRange(n: bigint) {
+		return n >= this.min
+			&& n <= this.max
+	}
+}
+
+function(foo: Foo, x: bigint) {
+	if (foo.inRange(x)) {
+		throw new Error("???")
+	}
+	return `{ identifier, value }`
+}
+```
+
+where we could simplify the constructor parameters into 
+
+```ts
+type Params = {
+	min: bigint
+	max: bigint
+}
+
+class Foo {
+	min: bigint
+	max: bigint
+	constructor(params: Params) {
+		this.min = min
+		this.max = max
+	}
+	inRange(n: bigint) {
+		return n >= this.min
+			&& n <= this.max
+	}
+}
+
+function(foo: Foo, x: bigint) {
+	if (foo.inRange(x)) {
+		throw new Error("???")
+	}
+	return `{ identifier, value }`
+}
+```
+
+even then, that's quite verbose since we see "min", "max" 10 times, and furthermore all we seem to really need is that "inRange" function, so what if we produced just the function?
+
+we are going to use a decomposition technique we've made before, we're interested in if this is some valid technique. it seems to definitely help _me_, but i imagine this would be very alient to others, so we might want to create some sort of documentation or other thing to help others understand what the below is
+
+```ts
+
+// decomposition technique:
+// #DEFINE
+// M = minMax object
+// N = bigint
+// B = boolean
+// #DECOMPOSE
+// M -> N -> B
+// M -> (N -> B)
+// M -> N_B
+// N_B = N -> B
+// M__N_B = M -> N_B
+
+type M = {
+	min: bigint
+	max: bigint
+}
+
+type N_B = (n: N) => B
+
+type F<A, B> = (m: A) => B
+
+
+const n_b:
+F<N, B>
+= function (this: M, n: N): B
+{
+	return
+		   n < this.min
+		|| n > this.max
+}
+
+const mMap = new Map<bigint, Map<bigint, M>>()
+
+const m__n_b:
+F<M, typeof n_b>
+= function (min: bigint, max: bigint): F<N, B>
+{
+	let m: M
+	if (mMap.has(min)) {
+		const minMap = mMap.get(min)!
+		if (minMap.has(max)) {
+			m = minMap.get(max)!
+		} else {
+			m = { min, max }
+			minMap.set(max, m)
+		}
+	} else {
+		m = { min, max }
+		mMap.set(min, new Map([[max, m]])
+	}
+	return n_b.bind(m)
+}
+
+// #DEFINE
+// O = identifier and value object
+// N_B__N -> O
+// N_B__N____O = M__N_B -> O
+
+const n_b__n____o: M__N_B____O = (n_b: N_B, n: N): O {
+	if (n_b(x)) {
+		throw new Error("???")
+	}
+	const o: O = ???
+	return o
+}
+
+// next is going to more pseudocode-y to avoid a lot of the proxy boilerplate and implementing
+const oMap = Map<string, O>
+
+trap(target, s: S /* property */) {
+	if (oMap.has(property)) return oMap.get(property)!
+	const ? = S_?(S) // we need some S_? function then, but we don't want this one to throw, rather we want it to return undefined
+	if (? === undefined) return ?
+	const o = ?_O(?)
+	oMap.set(s, o)
+	return o
+}
+```
+
+now that we've sort of "broken the mold" and have achieved mostly (conceptually with pseudocode) what we want by functionalizing everything, we see we could totally functionalize everything, but it would probably be overkill. for example, `n < min` is really just `N -> N -> B`, and you could see the compound expression with inequalities as some fold of `N -> N -> B`s, but that's probably taking things too far.
+
+conditionals that throw errors can also probably be seen functionally, but i think that takes us straight into monad territory, which we don't understand and don't think we should even start to try understanding. `if C then X else Y` is so standard and understandable that we should probably not break that down
+
+the map getter could also be turned into a function, `S_O`, but setting is another weird stateful thing that we understand in the imperative world and don't want to (for now) venture into the functional world
+
