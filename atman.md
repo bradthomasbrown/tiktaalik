@@ -3235,3 +3235,36 @@ Claude suggestions:
 - Encoder class, has systemId and converter members and an encode function
 
 we might have to do some typescript magic to get the converter rule map the way we want
+
+https://github.com/Microsoft/TypeScript/issues/14595
+https://github.com/microsoft/TypeScript/issues/54100
+https://github.com/microsoft/TypeScript/issues/35562
+https://github.com/microsoft/TypeScript/issues/53276
+https://github.com/microsoft/TypeScript/pull/20126
+https://github.com/microsoft/TypeScript/pull/53017
+https://github.com/microsoft/TypeScript/pull/53017
+
+trying to do something mind bending:
+we want a namespace/module with an exported const `number`: unique symbol
+or an object with a member `number`: unique symbol
+but we also want the namespace/module/object to have a type `Number`: `TypedValue<typeof number, number`
+
+https://www.reddit.com/r/typescript/comments/f4x6co/why_are_namespaces_regarded_as_deprecated/
+https://www.reddit.com/r/typescript/comments/aehryt/declaration_merge_from_a_different_file/
+
+and we don't want to make another whole file
+
+JavaScript must be an object
+Number must be in an object property of JavaScript
+identifier must be a "unique symbol" property of Number
+
+we seem to want some way to dynamically create a type that TypeScript knows is not a value
+nah, we can do that with just a generic interface and then have fun with the generic
+
+what we seem to want is some way to dynamicall create a type that can contain things that TypeScript knows some are types and some are values.
+
+namespace keyword lets us create a, well, namespace which is a such a thing, but we can't dynamically create namespaces nor can we can create generic namespaces
+
+https://github.com/microsoft/TypeScript/issues/17574
+https://github.com/microsoft/TypeScript/issues/17574#issuecomment-1465105003
+that last specific comment is extremely fascinating becuase the very recent syntax style i started to use is the exact one used in this comment. i haven't seen it anywhere else. neat.
