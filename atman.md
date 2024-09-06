@@ -3209,7 +3209,7 @@ and it had a `fromBigInt`?
 nah, go big or go home
 imagine we have some strange interaction between "types" of two different things with several logical prefixes
 `fromFooBarBazIntegerToGooGarCazString`
-to generalize this, we may have some extraordinarily abstract "converter" that can take an abstract `from` and an abstract `to`. we can have an abstract `options` with an option denoting "who"'s rules to follow, if, for some reason, `FooBarBaz.Integer` had a `Target.GooCarCaz.String` set with some rules different from the rules of a `GooCarCaz.String` with a `Source.FooBarBaz.Integer` 
+to generalize this, we may have some extraordinarily abstract "converter" that can take an abstract `from` and an abstract `to`. we can have an abstract `options` with an option denoting "whose" rules to follow, if, for some reason, `FooBarBaz.Integer` had a `Target.GooCarCaz.String` set with some rules different from the rules of a `GooCarCaz.String` with a `Source.FooBarBaz.Integer` 
 
 the idea sounds similar to `Category`s, where the abstract `converter` is a functor
 borrowing from haskell, this means our objects with an identifier and value are really more or less values lifted over functors
