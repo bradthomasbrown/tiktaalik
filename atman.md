@@ -3268,3 +3268,20 @@ namespace keyword lets us create a, well, namespace which is a such a thing, but
 https://github.com/microsoft/TypeScript/issues/17574
 https://github.com/microsoft/TypeScript/issues/17574#issuecomment-1465105003
 that last specific comment is extremely fascinating becuase the very recent syntax style i started to use is the exact one used in this comment. i haven't seen it anywhere else. neat.
+
+Y is dot separated identifier string
+X is our weird nesting function structure
+
+check if dot in Y
+
+hm
+we have an X that should be a function
+we have a Y that should be a string
+
+while there's a dot in Y, we want to recurse `<X()[Head], Tail>`,
+although `Head` may not be `keyof X()`
+
+if there's no dot in Y, we want to return `X()[Y]`,
+although Y may not be `keyof X()`
+
+we're wondering if it's possible 
