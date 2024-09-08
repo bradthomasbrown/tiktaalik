@@ -3288,3 +3288,75 @@ we're wondering if it's possible
 
 we're getting an idea where we're headed, and we think that it's implementing our own programming language within typescript
 
+back it up a bit, mate
+you had a lot of progress, then went full rabbit hole
+what did you make, why did you stop?
+
+IntegerType, BooleanType, FixedBytesType, etc.
+the Solidity AST types
+
+the constructor for IntegerType only took options for number of bits and is signed. it did *not* take a value. this is a lot like the AST types, which did not have values. AST nodes probably tied values and types together.
+
+IntegerType and the other types had maybe some own property methods, like min and max for IntegerType, they also had getVariability and toTypedValue
+getVariability returned an enum of either static or dynamic.
+in hindsight, we could create something that, given an AST type instance could switch case return static or dynamic allowing us to pull that out of each class and put it in one spot.
+
+following that logic, we probably wanted to take toTypedValue out as well.
+toTypedValue always took an unknown, then performed a series of checks and transformations.
+
+we're guessing we didn't like that either, because the rabbit hole was a functional rabbit hole, and we saw that instead of a "series of checks and transformations", there should instead be the intermediate "things".
+
+for example, in IntegerType.toTypedValue, we take an unknown, then we check if it's a bigint, or if it's a number and it is an integer, or we throw an error, then we check if it's in the range of min and max.
+
+instead, functionally we could have
+- something that takes an unknown and turns it into a number, throwing if not possible.
+- something that takes an unknown and turns it into an integer, throwing if not possible.
+- something that takes an unknown and turns it into a safe integer, throwing if not possible
+- something that takes an unknown and turns it into a bigint, throwing if not possible
+- any permutation of somethings that takes known values and turn it into a desired one, throwing if not possible
+
+if we did this, then we could instead construct a number of independent and reusable conversion functions, which would be quite useful and a good practice, we think.
+however, if we did this, then toTypedValue would be broken up into combinations of numbers of functions that need to be composed, which is not simple, and would be cumbersome to write.
+
+for instance, say we wanted to resolve an ambiguity in an overload. we could do that (with our idea of roughly using c++ ranking) by transforming an ambiguous value into one that is guaranteed to outrank every other type for one specific overload (which would allow the overload resolver to guaranteed pick something).
+
+for instance, if we had a function that took a uint8 and a uint16, and we wanted to encode the argument `3`, this would be ambiguous.
+but if it was encoded as a "typed value" whose type was "uint8", then we'd certainly be able to resolve the overload and get an encoding.
+ideally, this could be done as simple as `someFn.encode(uint8(3))`.
+however, in what we've done, we haven't even made a type to represent a uint8.
+we'd have to extend what we were doing previously.
+
+we could say that toTypedValue took an untyped value and lifted it into a typed value.
+we'd then need `uint8` to be able to lift `3` into something that a system could determine is in fact a `uint8` type.
+
+we made a convoluted thing to help, and now we got an even wilder idea that just shot through. fuck me.
+
+the convoluted thing was intersecting a readonly string with a function. the readonly string would function similarly to a [Deno KV KvKey](https://docs.deno.com/deploy/kv/manual/key_space/), which is a readonly array of values of an arbitrary subset of types (not exactly ones that can be const-ed nor exactly serializable ones)
+
+the similarity in function was that the array was a "key" which identified some thing. in Deno KV, this was a database value. in our convoluted thing, this was any possible value, and we figured that our types being the value would give us a system that logically groups our types.
+
+the way this would then be able to help us, is that a system like an overload resolver, wanting to determine the rank of a typed value, in order to resolve an ambiguity, would then be able to look at the convoluted thing and it would be a function intersected with a key.
+
+ignoring the function, we are left with the key. the system could then just compare the key.
+if we have an abi descriptor for a function with an input and the type of that input is "uint8", and our function knew we were looking for solidity values, we could build a ranking helper.
+
+this could look and see some key like `["Solidity", "uint8"]` ranks higher than a `["Solidity", "uint16"]`.
+
+these keys allow logical grouping, so we could make the key contain more logical groupings to get more expressive ranking comparisons, like `["Solidity", "Integer", "uint16"]` would rank higher than a `["Solidity", "Integer"]` for some descriptor expecting a `uint8` or `uint16`, and we could even compare a ranking to `["JavaScript", "Number"]`.
+
+here, key parts are logical groupings, and these can identify anything (here we represent "types" abstractly).
+
+our ranking helper(s) could then trivially express that "Solidity" types always rank higher than "JavaScript" types or that, if two types were Solidity types (known from the key), then more specific types rank higher than least specific, like "uint16" ranks higher than "Integer".
+
+the idea that shot through was maybe not so wild, but maybe it was:
+there's a well known symbol that's used to evaluate when the `instanceof` keyword is used.
+
+the idea was a little bit ago, so i may have forgot it, but we believe that it was to either add or use as a replacement of the key pattern, inheritence or use of that `instanceof`-related well-known symbol, or any other system similar.
+
+we think it'd be functionally the same though, although using inheritence instead of a key made of parts could be more performant.
+
+with all of the above, we also think that instead of just using that for overload ranking, we can tie in the conversion functions somehow. we can then describe abi encoded values as their own logical group, within solidity or indepently. we can do the same with RLP encoded values. really any type of any system could be described and then organized
+
+there are two possibly important considerations in the forms of ideas:
+- "given some source key for a typed value and a target key for a typed value where the expectation is that we transform the source typed value into the target source value, do so _if possible_, where possibility can be determined by 'navigating' through the possibilities. a 'typescript unknown' need not explicitly say it can be transformed into a 'solidity abi-encoded uint16', but if there is a path of intermediates that allow this to happen, then perhaps a system or function can determine that path. given the path, something could determine the series of transformations that need to occur. given that, something can attempt the conversion. the result is the ability to convert any value into another, _if possible_, without the need to explicitly define how it is possible, using reusable independent converter functions"
+- "given a value whose type is not known, infer its type and/or lift it into a typed value, or just return something that can be used to determine how to lift it into a typed value. if lifting is not performant, then this can be used to make the lifting lazy, which could result in a more efficient transformation process. for example, we could have some function that lifts an unknow value by inferring it, like "given a plain javascript number, lift it into a javascript typed value", or, we could have some function that will return maybe just the key `["javascript", "number"]`, or maybe conversion could happen via the target typed value having a function that uses this lazy function and an assortment of "here's how you can convert X value to me" functions/things. in that case, we could take our lazy identifying function (maybe a key part generator?) and the assortment of "here's how you can convert X to me" and throw it into one function that will figure it out and possibly perform the conversion".
