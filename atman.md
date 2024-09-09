@@ -3418,3 +3418,40 @@ add_3_4() # 7
 
 what if instead of trying to multiply or add in peano numbers we mostly deferred any operations?
 
+we're trying to simplify the peano stuff to do just what we need to and accidentally stumbled on one neat and very useful thing and one very weird looking thing:
+```
+declare const _s: unique symbol;
+type _sFoo<T extends typeof _s[]> = T | [...T, ...T]
+type _s1 = [typeof _s]
+type _s2 = _sFoo<_s1>
+type _s4 = _sFoo<_s2> // _s2 | [typeof _s, typeof _s, typeof _s] | [typeof _s, typeof _s, typeof _s, typeof _s]
+```
+`_sFoo` is a type that takes a unique symbol array and returns the union of it and an array that's it concat with itself. so, given `[s]` we should expect `[s] | [s, s]`
+if we take that type and index it for length, we should get `1 | 2`
+in a template string, a union produces combinations, so for `` `int${8 | 16}` `` we should get `"int8" | "int16"`
+so we should be able to use our type to build a union of successive doubled tuples, index it for length, then make a mapped type where the key is a template string to build an object like `{ int8: X, int16: X, ..., int256: X }`
+
+HOWEVER
+you may notice that at `_s4` we _somehow_ end up with a tuple in our union with a length of __three__. this is definitely odd.
+what's happening here is most likely that since we are giving it the union `_s1 | _s2` and asking it to produce a union `T | [...T, ...T]`, it's returning every combination due to the distributive property, but in a way that we didn't expect.
+we'd expect: `_s1 | [..._s1, ..._s1] | _s2 | [..._s2, ..._s2]
+but that's not actually how distribution works, that's just substituting into T each member of the union
+distribution seems to substitute into _each_ T the entire member union, like
+`(_s1 | _s2) | [...(_s1 | _s2), ...(_s1 | _s2)]`
+which could explain our surprising three appearance because that combined tuple will produce the combinations:
+`[..._s1, ..._s1] | [..._s1, ..._s2] | [..._s2, ..._s1] | [..._s2, ..._s2]`
+which we'd interpret as
+`2 | 3 | 3 | 4`
+
+we wonder if we can use this to augment our peano math system
+
+`T  =  8 | 16   ->    T | [...T, ...T]  =  (8 | 16) | (16 | 24 | 24 | 32)
+`T  =  8 | 16 | 24 | 32   ->   T | [...T, ...T]  =  (8 | 16 | 24 | 32) | (16 | 24 | 32 | 40 | 24 | 32 | 40 | 48 | 32 | 40 | 48 | 56 | 40 | 48 | 56 | 64)
+
+there's a lot of duplicates there, we wonder if we can remove them or do something crafty
+
+`T  =  8 | 16,  U  =  ?   ->   ?  =  8 | 16 | 24 | 32
+`T  =  8 | 16 | 24 | 32,  U  =  ?   ->   ?  =  8 | 16 | 24 | 32 | 40 | 48 | 56 | 64
+
+what is the pattern for new types?
+it's just the highest value applied to the union
