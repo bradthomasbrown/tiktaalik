@@ -3414,3 +3414,7 @@ add_3(2) # 5, application of curried
 ???(x, y) => () => x + y # ???
 add_3_4 = ???(3, 4)
 add_3_4() # 7
+```
+
+what if instead of trying to multiply or add in peano numbers we mostly deferred any operations?
+
