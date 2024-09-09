@@ -3450,8 +3450,9 @@ we wonder if we can use this to augment our peano math system
 
 there's a lot of duplicates there, we wonder if we can remove them or do something crafty
 
+`T  =  8   ->   8 | 16`
 `T  =  8 | 16,  U  =  ?   ->   ?  =  8 | 16 | 24 | 32
 `T  =  8 | 16 | 24 | 32,  U  =  ?   ->   ?  =  8 | 16 | 24 | 32 | 40 | 48 | 56 | 64
 
 what is the pattern for new types?
-it's just the highest value applied to the union
+it's just the highest value concated with the union, then unioned with the original union
