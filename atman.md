@@ -3364,3 +3364,53 @@ there are two possibly important considerations in the forms of ideas:
 damn that's a tricky rabbit hole. fell right down it again. what a sucker.
 
 back up to mod3 where we made the most progress.
+
+turns out we did find the peano stuff reasonable, our object with all the u?intMs is quite useful
+
+```
+"ZERO"
+[NZ, Z] or [[...], []]
+[Z, NZ] or [[], [...]]
+[Z, Z] or [[], []]
+
+"SORT"
+[NZ, NZ]
+```
+
+unpleasant thought:
+adding is just reduction/folding/concat but arbitrarily for two things
+for instance, if we define a monoid/set as having number elements where `concat` is addition, then `x concat y` will be some number in the set.
+but
+why two?
+
+why not 3? or 1? 0? 100?
+
+**Claude**
+
+a) Nullary operations (0-ary): These are essentially constants. In a monoid, the identity element can be thought of as a nullary operation.
+
+b) Unary operations (1-ary): These are functions that take one input. For example, the inverse operation in a group is unary.
+
+c) Ternary operations (3-ary): There are algebraic structures with ternary operations. For instance, a ternary heap is a set with a ternary operation satisfying certain axioms.
+
+a) Operads: These are mathematical structures that generalize the notion of algebras with operations of arbitrary arity. An operad consists of abstract operations with any number of inputs and one output, along with rules for composing these operations.
+
+b) Multicategories: These are a generalization of categories where morphisms can have multiple source objects but only one target object. They provide a framework for talking about operations with multiple inputs.
+
+c) Clones: In universal algebra, a clone is a set of operations on a fixed set, closed under composition and containing all projection functions. Clones can include operations of all arities.
+
+c) Currying: In some contexts, n-ary operations can be reduced to sequences of binary operations through a process called currying.
+
+currying is where you can take an n-ary function and reduce it to sequences of binary operations.
+why stop at binary?
+could you reduce it to nullary operations?
+you could, but it probably wouldn't be useful, and/or the result is basically an entire program:
+```
+add(x, y) => x + y # binary
+add(x) => y => x + y # curried
+add_3 = add(x)
+add_3(2) # 5, application of curried
+...
+???(x, y) => () => x + y # ???
+add_3_4 = ???(3, 4)
+add_3_4() # 7
