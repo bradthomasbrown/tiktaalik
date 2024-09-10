@@ -3460,3 +3460,6 @@ it's just the highest value concated with the union, then unioned with the origi
 do this, but without unions (at first), since the order gets messed up and makes the object look hideous (`{ int8, int64, uint16, int32, ... ??? }`)
 
 given a tuple of `number, number[]`
+
+it seems vscode ultimately sorts alphabetically, so it goes `int104, int112, int120, ...`
+
