@@ -3463,3 +3463,19 @@ given a tuple of `number, number[]`
 
 it seems vscode ultimately sorts alphabetically, so it goes `int104, int112, int120, ...`
 
+**Claude**
+Let's express this mathematically:
+
+Given an initial number N and a repeat count R, the union U will contain all numbers of the form:
+
+U = { k * N | k ∈ ℤ, 1 ≤ k ≤ 2^R }
+(https://emn178.github.io/online-tools/sha256.html, in UTF8, out HEX:
+`2f5ed6c2a6473c0748698657b1a47550e6972313ea853ad684ea1897edba9815`)
+
+In your example:
+
+- N = 8 (the initial `Number`)
+- R = 5 (the `Repeat` count)
+
+So the union contains all multiples of 8 from 8 to 8 * 2^5 = 8 * 32 = 256.
+
