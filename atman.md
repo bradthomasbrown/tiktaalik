@@ -3456,3 +3456,7 @@ there's a lot of duplicates there, we wonder if we can remove them or do somethi
 
 what is the pattern for new types?
 it's just the highest value concated with the union, then unioned with the original union
+
+do this, but without unions (at first), since the order gets messed up and makes the object look hideous (`{ int8, int64, uint16, int32, ... ??? }`)
+
+given a tuple of `number, number[]`
