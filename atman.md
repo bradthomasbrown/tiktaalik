@@ -3479,3 +3479,53 @@ In your example:
 
 So the union contains all multiples of 8 from 8 to 8 * 2^5 = 8 * 32 = 256.
 
+we're focusing recently on a sort of goal or ideal:
+
+```ts
+type Foo<T extends string> = T
+type Bar = Foo<number>
+```
+
+if i put this in a file right now, `number` has a red squiggle under it
+
+fuck
+we just got another bigger idea:
+we posted that code block above but then needed to clarify what it would actually look like given my environment.
+what if instead of that, there was some artifact we could create/produce/take from the actual file and put it somewhere like here so that one could see exactly what we see given the context?
+
+so you'd see the red squiggle like we do, and you'd be able to hover over it and see the typescript error, but we don't need to implement the entirety of deno typescript to do that, we just what would amount to some small rendering application or thing to achieve that
+
+whatever, besides the point.
+there's a red squiggle because `Type 'number' does not satisfy the constraint 'string'`
+
+that's basically the main feature of typescript, since that red squiggle *can* point out mistakes.
+we like that, but the concepts of constraints isn't as flexible as we'd like.
+
+for instance, what if I wanted to constrain a number to be a literal number?
+we can't do `type Foo<T extends NumberLiteral> = T` since `NumberLiteral` isn't a built-in thing.
+
+we can do this:
+`type NumberLiteral<T> = T extends number ? number extends T ? never : T : never`
+but that's got complications:
+1. it's a generic type that requires a parameter to be passed to it
+2. it's got 2 nested conditionals which is inherently less performant
+3. even if T isn't a number literal, we'd get no red squiggle, the type would just return "never". we may only find out we did something incorrectly then if we try to use that rather than immediately, which is preferable
+
+we found a way to mitigate 2. by playing with `extends` and how it works: instead of checking if T is a number then if number is a T, an intersection takes two types and evaluates to the narrowest possibility.
+`type Foo = 3 & number` evaluates to 3
+
+we can use this to remove one layer from the conditional like
+`type NumberLiteral<T> = number extends number & T ? never : T`
+
+to get the red squiggle, an unfollowed constraint seems to have to be in the generic's parameter area (there's probably a better way to explain that if we go through the specification)
+
+we can't do this though:
+`type NumberLiteral<number extends number & T> = T`
+the syntax doesn't allow or undertand that
+
+whatever expression goes there must start with the name of the parameter, then optionally by an extends constraint (although there is variance annotations, which maybe we can use)
+
+maybe a summary of the above is that a red squiggle exists when a type is asserted where that type can not be assigned to another
+
+https://javascript.xgqfrms.xyz/pdfs/TypeScript%20Language%20Specification.pdf#page=43
+explains type parameter lists and where they may be found (class, interface, type alias, and function declarations)
