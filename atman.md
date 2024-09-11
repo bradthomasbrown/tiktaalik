@@ -3541,3 +3541,14 @@ inference of a function is bottom-up because the parameters are looked at, then 
 sometimes this'll work the other way:
 if we have an object with a defined method type and we're writing that type, the types of the parameters of the function can be inferred from the defined method type, in this case starting from a larger part and inferring the smaller parts
 
+```
+If a declaration includes a type annotation that references the entity being declared through a circular path of type queries or type references containing type queries, the resulting type is the Any type`
+
+However, if a circular path of type queries includes at least one ObjectType, FunctionType or ConstructorType, the construct denotes a recursive type
+```
+
+to add to that, constructor types and function types are really just object types
+
+ah, here you go:
+https://javascript.xgqfrms.xyz/pdfs/TypeScript%20Language%20Specification.pdf#page=66
+this explains assignability (in other words "how to produce a red squiggle")
