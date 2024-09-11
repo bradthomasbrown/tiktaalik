@@ -3624,3 +3624,6 @@ type Foo<A, B, C> = A extends B ? C : A
 type Literal<T> = Foo<PropertyKey, T, Plenum>
 ```
 
+we're stuck right now because we want to have typescript throw errors if a number is given to a function that isn't in the correct range, but the number and the range can be quite huge, typescript doesn't support doing that natively so we'd have to whip up something peculiar
+
+ask claude
