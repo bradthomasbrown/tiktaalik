@@ -3603,3 +3603,24 @@ type Literal<T, U = Literalable, R = void> = U extends T ? R : U
 ```
 
 slight further generalization allows us to swap the value out for anything we want
+
+```
+A extends B ? C : D
+  = A is union
+    ? Union(for each a in A: extends<a, B>)
+	: A \ B = ∅ ? { A = A; C } : { A = A \ B; D }
+```
+
+denotes the context shift in the latter branch
+
+```
+A extends B
+  = A \ B = ∅ ? OK : ERROR
+```
+
+```ts
+type Plenum = { [K in PropertyKey]: Plenum }
+type Foo<A, B, C> = A extends B ? C : A
+type Literal<T> = Foo<PropertyKey, T, Plenum>
+```
+
