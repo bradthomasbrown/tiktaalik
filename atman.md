@@ -3552,3 +3552,54 @@ to add to that, constructor types and function types are really just object type
 ah, here you go:
 https://javascript.xgqfrms.xyz/pdfs/TypeScript%20Language%20Specification.pdf#page=66
 this explains assignability (in other words "how to produce a red squiggle")
+
+https://devblogs.microsoft.com/typescript/announcing-typescript-2-8-2/#conditional-types
+
+we think we might know why
+`type LiteralNumber<T> = number extends T ? never : number`
+causes the circular constraint error (but now why `extends T` doesn't):
+
+if typescript literally treats branches of type never as branches that should never be reached, then infers from that that the expression evaluates to the type of the other branch, then the type is "decided". since the type is decided, there is no indirection. without indirection, `T extends LiteralNumber<T>` is seen as circular
+
+but if we give two possible branches, then the type isn't "decided" and is then indirected, breaking the circular reference check
+
+`type LiteralNumber<T> = number extends T ? void : number`
+where void we believe is just treated as undefined, breaks the indirection. void/undefined/null are pretty good choices here because they are treated as real unit objects with no properties. as the right side of a constraint, anything with any property or properties would not be assignable
+
+since we preface the branch with `number extends T` first, then null/void/undefined can't match with the void branch
+
+```ts
+type LiteralNumber<T> = number extends T ? void : number
+type LiteralString<T> = string extends T ? void : string
+type Literal<T> = LiteralNumber<T> | LiteralString<T>
+
+type Foo<T extends Literal(Number|String)<T>> = T
+```
+
+appears to then correctly work as a constraint for parameters despite it "seeming" like it's circular
+
+```ts
+type Literalable
+    = string
+    | number
+    | symbol
+
+type Literal<T, U = Literalable> = U extends T ? void : U
+
+type Foo<T extends Literal<T>> = T
+```
+
+this works awesome
+`Literal` by default does what it did before, but now with a union that can do multiple things via distribution
+
+with the default `string | number | symbol` this appears to work perfectly for strings, numbers, and symbols, only allowing literals of the first two and unique of the third
+
+you can then also overwrite the union to check against so you can check only numbers, only strings, only symbols, or two of those
+
+it seems to, in general, take a type and a union, and if any member of the union is assignable to the type, that member gets "swapped" out for void
+
+```ts
+type Literal<T, U = Literalable, R = void> = U extends T ? R : U
+```
+
+slight further generalization allows us to swap the value out for anything we want
