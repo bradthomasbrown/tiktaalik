@@ -3529,3 +3529,15 @@ maybe a summary of the above is that a red squiggle exists when a type is assert
 
 https://javascript.xgqfrms.xyz/pdfs/TypeScript%20Language%20Specification.pdf#page=43
 explains type parameter lists and where they may be found (class, interface, type alias, and function declarations)
+
+we can also get a red squiggle from `implements` and `satisfies`, if an object or some thing doesn't properly implement or satisfy some other thing
+
+the first instance of implements is mentioned
+https://javascript.xgqfrms.xyz/pdfs/TypeScript%20Language%20Specification.pdf#page=15
+
+bottom-up and top-down inference:
+inference of a function is bottom-up because the parameters are looked at, then the return type is inferred, then the function type can be inferred. smaller parts working towards a larger part
+
+sometimes this'll work the other way:
+if we have an object with a defined method type and we're writing that type, the types of the parameters of the function can be inferred from the defined method type, in this case starting from a larger part and inferring the smaller parts
+
