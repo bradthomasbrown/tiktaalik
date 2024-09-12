@@ -3645,8 +3645,35 @@ mapped type mapping to property keys
 use that as control flow structure
 
 so
-`{ [K in Whitespace]: 0 }`
-`{ [K in TokenType & string]: 1 }`
+`{ [K in Whitespace]: string }`
+`{ [K in TokenType & string]: string }`
 `{ [default: string]: number }`
 
 we can make an interface that extends all of those, then we can index it with a string and get any property key
+
+we wonder if there's a more robust way to do switch case with a default, this way seems to have a major problem in that the returns of each string key have to match the string index signature
+
+question then:
+if we have one of these mapped types, then index it with something that doesn't match anything, what do we get?
+
+right, you can't, it's an error
+
+so mapped types are nice for concisely making repetitive things one would put in an interface
+
+so if we make mapped types that return subtypes and a default that returns a supertype (not equal) of all the subtypes, then couldn't we use that to "branch" somewhere else?
+
+```ts
+type Bar = { [K in "a" | "b"]: { _: 0 } }
+type Foo = { [d: string]: { _: 0 | 1 } }
+
+interface Baz
+extends
+  Bar,
+  Foo
+{}
+
+Baz["a"] // 0
+Baz["b"] // 0
+Baz["c"] // 0 | 1
+```
+
