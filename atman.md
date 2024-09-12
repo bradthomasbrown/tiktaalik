@@ -3677,3 +3677,15 @@ Baz["b"] // 0
 Baz["c"] // 0 | 1
 ```
 
+```ts
+type Bar = { [K in "a" | "b"]: 0 }
+type Foo = { [K in string]: number }
+
+type Faz_a = Baz["a"] // 0
+type Faz_b = Baz["b"] // 0
+type Faz_c = Baz["c"] // number
+type Faz_1and_a = 1 & Baz["a"] // never
+type Faz_1and_b = 1 & Baz["b"] // never
+type Faz_1and_c = 1 & Baz["c"] // 1
+```
+
