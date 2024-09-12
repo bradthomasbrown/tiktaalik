@@ -3689,3 +3689,4 @@ type Faz_1and_b = 1 & Baz["b"] // never
 type Faz_1and_c = 1 & Baz["c"] // 1
 ```
 
+specializations need to be assignable to default
