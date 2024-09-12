@@ -3690,3 +3690,29 @@ type Faz_1and_c = 1 & Baz["c"] // 1
 ```
 
 specializations need to be assignable to default
+
+what are we trying to do now?
+
+we want a generic type where one parameter is a value `A` and one parameter is a "computer" that can "operate" on some value `X` to return another value `Y`
+
+like a parameterized parameter type
+
+that shouldn't be necessary, we think. 
+
+need to find a way to format github comments into bare minimal XML to feed to claude
+
+```xml
+<Comments>
+	<CommentHeader>
+	<CommentBody/>
+</Comments>
+```
+
+```ts
+const comments = document.getElementsByClassName("ml-n3 timeline-comment unminimized-comment comment previewable-edit js-task-list-container js-comment timeline-comment--caret reorderable-task-lists")
+const descend = (element, path) => path.reduce((p, c) => p.children[c], element)
+const author = descend(comment, [0, 2, 0, 0]).innerText.trim()
+const date = descend(comment, [0, 2, 0, 1, 0]).innerHTML
+const chunkified = Array.from(descend(comment, [1, 0, 0, 0, 0, 0]).children).map(e => `<Chunk>\n  ${e.innerText}\n</Chunk>`).join('\n')
+```
+
