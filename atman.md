@@ -3629,3 +3629,24 @@ we're stuck right now because we want to have typescript throw errors if a numbe
 ask claude
 
 https://www.youtube.com/playlist?list=PLPj7sobTcK3Uqx513262l3o-vc9U01Ym7
+
+scanTokens: while !isAtEnd: (start = current) scan token; return tokens
+
+scanToken: c = advance; switch c: cases like case X addToken(Y) break;
+
+default:
+( if (isAlpha(c)) )? identifier()
+
+identifer(): while (isAlpha(peek()) advance();
+addToken(IDENTIFIER)
+
+idea:
+mapped type mapping to property keys
+use that as control flow structure
+
+so
+`{ [K in Whitespace]: 0 }`
+`{ [K in TokenType & string]: 1 }`
+`{ [default: string]: number }`
+
+we can make an interface that extends all of those, then we can index it with a string and get any property key
