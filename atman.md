@@ -3716,3 +3716,10 @@ const date = descend(comment, [0, 2, 0, 1, 0]).innerHTML
 const chunkified = Array.from(descend(comment, [1, 0, 0, 0, 0, 0]).children).map(e => `<Chunk>\n  ${e.innerText}\n</Chunk>`).join('\n')
 ```
 
+we want to generalize the generic type used for the satisfies check. if we can do so, then it shouldn't be too troublesome to implement 
+
+instead of `known` and `sig` interfaces, one interface with `known` and `sig` properties representing `known` and `sig` interfaces
+
+alright, much more generalized
+
+now can we create a function that removes a lot of the boilerplate?
