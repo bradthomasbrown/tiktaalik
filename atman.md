@@ -3723,3 +3723,74 @@ instead of `known` and `sig` interfaces, one interface with `known` and `sig` pr
 alright, much more generalized
 
 now can we create a function that removes a lot of the boilerplate?
+
+we can't actually use these objects in built functions, but validating does work nicely
+
+the issue seems to be that we definitely shouldn't be treating the object as both things, so for now we're treating it as neither within a function, but validation at least tells us that it works
+
+so what we might want instead of the object in the function is some "thing" or "things" that let us interact with the object in a way where we aren't ever assuming that the underlying hybrid object is both at the same time
+
+kind of rehashing, but we see that if we look at just the function signature, it almost makes no sense. we're taking a type and checking that each key of the type is valid. but it's generic in the signature, so in the signature and in the function body, "each key" is or may as well be a noop.
+
+but, when we go to actually use the function by passing a variable into it, suddenly the signature becomes "alive" and the keys are actually checked, because this time they're actually there
+
+that made us think of another way to do things
+
+there should be a builder function that builds a builder function
+the first should take the hybrid type
+the second should take the hybrid value
+the return should be a function where we can now work with validated hybrid value
+
+we may be able to combine these
+actually, we may not be able to because if we want to specify the interface pair but also generically constrain the type of the hybrid value to the hybrid type, we'll be forced to try to specify the type of the hybrid value
+
+we keep getting stuck in a trap of having a function that takes a hybrid value and a function that takes a hybrid value and other values and applying the value from the first value to the second function
+
+we think the idea is that there should be hinting even if we absolutely don't know the hybrid value, only its hybrid type
+
+so if we define default hybrid getters and setters, we have to have the interface pair be generic, but definitely not the key
+
+then we can "implement" the type by just doing `get<I[0], I[1]>` (we use nontuples here because otherwise the signatures for the generic/default hybrid getters/setters becomes much larger)
+
+you definitely cannot spread into type parameters when instantiating. lame. would've been cool if we could `get<...I>` but that breaks everything
+
+so the getters look really nice *right now* (typewise), but there's some major issues:
+- the default implementations assert that they work but they aren't actually implemented. main problem is that we feed it interfaces and it needs to work on a value. where does the value come from? we can make the `this` the value
+- even with default implementations working, the `get` and `set` in the `this` of our built function is not actually there.  there needs to be some sort of binding
+
+if we assert that `this` is the hybrid type, then that breaks the `this` in our attempt to use it, since the `this`'s don't match
+
+we can't make overloads outside of top level, but we get the strong impression that's what we should be doing for the hybrid get/set
+oooho, that's not true! we just can't make overloads the "typical way", but we can make them the real way, where we use an interface
+
+we are lost:
+does it make sense?: "a function where we want to do something with a hybrid type value but we don't know what it is?"
+
+it doesn't just make sense, we've done it several times
+looking at that again, it seems clear what we should do, and that the function doesn't really make too much sense
+
+we have a function that takes a T, validates it's of the right type, then immediately starts trying to work on it.
+
+instead of that, we should almost certainly have a function that takes a T and another function, with "another function" working on the T, right?
+
+we get the idea we might want to tag our hybrid objects with information regarding the "hybridness"
+
+maybe we should go through the issue and see what we find:
+- `aaronjensen` we can't declare the type and that's frustrating. he seems to **want to assign to it**. he has an unsound workaround since he can assign "the wrong values". so:
+	- assigning and validating? definitely a focus on assigning one big object to a type
+- `ryancavanaugh` says if we have obj like `{ x: string, [string]: number }`, then one can can dynamically assign a number to x unsoundly, `let y = "x" + ""; obj = { [y]: 32 }; if (obj.x) j.x.substring(0)`
+	- **make sure we don't introduce unsoundness**. with our getters and setters we think we actually avoid this
+- [20597](https://github.com/microsoft/TypeScript/issues/20597), "we would like to model an interface on this schema". **tried assigning to intersection**, same failure kind. notably not a fan of a "property bag" for the additional properties
+- [23927](https://github.com/microsoft/TypeScript/issues/23927) just seems to want the interface, no examples. someone else suggested just making a property bag
+- [24185](https://github.com/microsoft/TypeScript/issues/24185) type information lost after using Pick on a type with known keys and an overlapping signature. specifically **wanted to make one of many required known fields optional without mangling the structure**
+- `kohlmannj` wants an object that extends **an object** OR **any** **other string** not part of the object should be **another** one of the **object**. ultimately fell to the "trying to assign to intersection"
+- `promontis` **assigning object**, doesn't seem to want to assign **line by line (is our way any better**?)
+- `StephenHaney` doesn't trust since assignment doesn't work
+- `dkuhnert` can't **extend type (how** would we do that?)
+- `kiwdahc` wants a **limit on how many non declared keys are allowed** (define: "some object with two known keys and *exactly* one unknown key that's a generic array)
+- lots of people using intersections and getting errors from that
+- `tolu` Node IncomingHttpHeaders is 66 strings and set-cookie which is a `string[]`. apparently **Node defined** it **incorrectly** as `**Record**<string, **string | string[]**` so one can assign string arrays to the wrong things **causing runtime exceptions**
+- `ericbf` wants to define a hybrid, **assign a hybrid**, simple **get props via access** from a hybrid **and assign to vars, with correct types**, see **errors when trying to assign via index** (in their perception, even if it's correct since they think it should restrict due to hybridness). they posit a **type guard** saying "value **isn't a known key**" would allow **them to assign** then. odd. **assigning via prop access shouldn't error if done correctly** (difference is index is string which could be a known string prop? convoluted). **accessing via string index should be union of everything** (we kinda get it now). stepped into the intersection punji pit
+- `mindplay-dk` wants a **function that can take a hybrid type** and wants to use that function **with a literal object matching the hybrid**. noticed fuckery with symbols
+- `amartin-wbd` **wants assignment**, object with header object property and unknown strings are other object properties. wants a hybrid type of both and then to assign to it
+- more intersection stepping.
