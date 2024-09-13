@@ -3794,3 +3794,34 @@ maybe we should go through the issue and see what we find:
 - `mindplay-dk` wants a **function that can take a hybrid type** and wants to use that function **with a literal object matching the hybrid**. noticed fuckery with symbols
 - `amartin-wbd` **wants assignment**, object with header object property and unknown strings are other object properties. wants a hybrid type of both and then to assign to it
 - more intersection stepping.
+
+ah
+we got stumped, but not from our own fault
+a lot of complaining back and forth had to do with "what if one known key is `"marginLeft"`" and you try to access the object like `"margin" + "Left"`?"
+
+when one does that, the key is now dynamic and can possibly go outside the confines of what you may have been hoping for
+
+now they might be able to "get" using that key and typescript will tell them they have the fallback value instead of the known key value, easily leading to a runtime failure
+
+or, worse, if they "set" with that, one might change a known key to an invalid fallback value
+
+one idea is that getting should return a union of everything for the fallback and setting should return an intersection of everything for the fallback
+
+that way, setting can never put an invalid value in and getting will never falsely lead you to believe you have a certain type of value
+
+that makes the objects quite hard to work with, however, since, if we understand correctly, that means you can never set a value for an unknown key
+
+actually
+what if there was a set method that just returned boolean?
+
+if it would have overwritten a known key, then it should instead refuse to do so and return false, otherwise it should set whatever and return true
+
+then one can just throw an error from the result
+
+we keep having the idea to create a proxy for this, where every index access basically goes through and does these checks and interactions with the underlying map objects
+
+we've become very distracted though
+
+back up one distraction step, to your odd new naming machine
+
+could we simply scan chars and switch into and out of other recursive types?
