@@ -3825,3 +3825,690 @@ we've become very distracted though
 back up one distraction step, to your odd new naming machine
 
 could we simply scan chars and switch into and out of other recursive types?
+apparently, yes
+
+not sure what changed but the pattern we ended up with seems extremely strong:
+```ts
+type ParseExamples<S, E extends string[] = []>
+  = S extends `${infer W} ${infer Tail}`
+    ? ParseExamples<Tail, [...E, W]>
+  : [...E, S]
+
+type ParseGram<S>
+  = S extends `${infer G} ${string}`
+    ? G
+  : S
+
+type ParseLine<S, K extends string = "c", Acc extends unknown[] = []>
+  = S extends `${infer C extends " " | "c" | "v"}|${infer G}|${infer E}\n${infer Tail}`
+    ? ParseLine<
+      Tail,
+      { " ": K, c: "c", v: "v" }[C],
+      [...Acc, { k: { " ": K, c: "c", v: "v" }[C], g: ParseGram<G>, e: ParseExamples<E> }]>
+  : Acc
+
+type ToDiaphonemes<S>
+  = S extends `\n${infer Tail}`
+    ? ParseLine<Tail>
+  : never
+
+type Foo = ToDiaphonemes<typeof fixedEnglish>
+```
+
+much, much, much simpler than whatever we were trying to do before
+
+o1 has some suggestions on our syllable generator and we also have some new questions:
+- o1 - some syllables involve complex or uncommon consonant clusters. these *can* be simplified or adjusted to be more "easy" on a typical general american english consumer. can also weight clusters
+- o1 - some of the mappings of IPA chars to english usage examples are odd or confusing and might lead to mispronounciation. we're not too surprised by this, since we're picking them at random (d̥jʊər -> DDYOUR) (we think it'd be pronounced almost like "duh-yoor")
+- us - we still aren't completely sure of our diaphoneme to examples map. are we missing anything significant? do we have things in there that are extraneous or could be removed? are the examples comprehensive (almost certainly not)? how can we be more sure of our source of truth for constructing syllables?
+- us - it would be extremely helpful if we could construct something that could at least attempt to pronounce some of these strings. how (in)feasible would that be?
+- o1 - some mappings of IPA chars to english examples should probably be weighted and/or contextually chosen. IPA chars for "K" sounds mapping to "Q" are probably always going to be very weird
+- us - how should we even start approaching, in a general and compasable way, contextual considerations when building a syllable (like not putting `DD` at the the start of a word (note, not "at the start of a syllable", since it can be)). from that thought also: where would we start with rules regarding word production? clearly there are more rules there.
+
+256735599
+
+IPA handbook is proably the best source of truth one could ever get
+phoible.org
+http://www.speech.cs.cmu.edu/cgi-bin/cmudict
+
+o1 suggested open source speech synthesis eSpeak and Festival, but the small examples i quickly found where... quite unsatisfying
+we wonder if o1 knows about neurosama or other smarter speech synthesis systems (all those tiktok text to speech systems that are easily recognizable but admittedly impressive)
+
+Neural TTS
+deep learning-based TTS
+TensorFlowTTS
+Tacotron 2
+WaveNet
+FastSpeech and FastSpeech 2
+Building and Training Your Own TTS System
+Datasets (hugging face has some, like LJSpeech)
+
+tacotron2 demo on huggingface is extremely slow, not sure if that's limiting by huggingface or a service from the tacotron2 people. the result is also uncanny and mildly terrifying, taking 68s for a short phrase
+
+us
+```
+I think it's very intriguing that you pointed out the modern and advanced systems and how they relate to neural networks and deep learning.
+
+I've been wanting to make my own "bare-metal" minimal LLM for a while, and I'm now wondering something...
+
+I feel like it would make more sense if I wanted a small, minimal AI of sorts of my own if i created smaller, more specialized AIs and then had some way for them to communicate, rather than trying to make one large and complex AI that can do a lot but probably not very well. The idea is a bit like microservices architecture.
+
+If I wanted my own LLM I could type to and send it my words and it would respond in words, i think that could be one thing or broken up into many things, and it seems interesting that the data here is english characters.
+
+If I wanted a neural TTS system that can take data and turn it into sound, I _could_ feed it english characters, like a lot of current systems do, but in the context of me using the IPA to really dig in to how pronunciation works, it seems like it would make more sense to break things down into a neural TTS system that takes IPA-centric data and produces sound, and then probably auxiliary neural systems that can take english text and produce sound (more direct but probably less accurate) or can take english text and produce IPA-centric data (can then be fed into the IPA -> sound system, which should be more accurate and detailed).
+
+Would it make more sense to create more, smaller, specialized neural systems that interact with one another? Has that been done in general? Has there been an attempt to create an english text -> IPA data neural system before, or an attempt to create an IPA data -> sound/speech neural system before? 
+```
+
+o1
+```
+### **Proposed Modular TTS Architecture**
+
+Based on your description, a potential modular TTS architecture leveraging IPA could include:
+
+1. **English Text to IPA Neural Module**
+    
+    - **Function**: Converts English orthographic text into IPA transcription.
+    - **Benefit**: Ensures accurate and nuanced pronunciation, accounting for irregularities in English spelling.
+2. **IPA to Phonetic Features Neural Module**
+    
+    - **Function**: Transforms IPA transcriptions into phonetic features or representations suitable for acoustic modeling.
+    - **Benefit**: Provides a standardized input for acoustic models, enhancing consistency and accuracy.
+3. **Phonetic Features to Spectrogram Neural Module**
+    
+    - **Function**: Generates spectrograms from phonetic features.
+    - **Benefit**: Enables high-quality, detailed acoustic representations for the vocoder.
+4. **Vocoder Neural Module**
+    
+    - **Function**: Converts spectrograms into audible speech waveforms.
+    - **Benefit**: Produces natural-sounding audio output.
+5. **Auxiliary Modules (Optional)**
+    
+    - **Prosody Generation**: Adds natural intonation, rhythm, and stress patterns.
+    - **Emotion Control**: Modulates emotional tone in speech synthesis.
+```
+
+mel-spectrograms are used by most TTS systems as an intermediate representation
+
+(math A, binary B, IPA C, ortho D, mel-spec E, prosody F, emotion G)
+
+<table>
+	<tr>
+		 <th></th>
+		 <th>A</th>
+		 <th>B</th>
+		 <th>C</th>
+		 <th>D</th>
+		 <th>E</th>
+		 <th>F</th>
+		 <th>G</th>
+	</tr>
+	<tr>
+		<th>A</th>
+		<td></td>
+		<td>AB</td>
+		<td>AC</td>
+		<td>AD</td>
+		<td>AE</td>
+		<td>AF</td>
+		<td>AG<td>
+	</tr>
+	<tr>
+		<th>B</th>
+		<td>BA</td>
+		<td></td>
+		<td>BC</td>
+		<td>BD</td>
+		<td>BE</td>
+		<td>BF</td>
+		<td>BG<td>
+	</tr>
+	<tr>
+		<th>C</th>
+		<td>CA</td>
+		<td>CB</td>
+		<td></td>
+		<td>CD</td>
+		<td>CE</td>
+		<td>CF</td>
+		<td>CG<td>
+	</tr>
+	<tr>
+		<th>D</th>
+		<td>DA</td>
+		<td>DB</td>
+		<td>DC</td>
+		<td></td>
+		<td>DE</td>
+		<td>DF</td>
+		<td>DG<td>
+	</tr>
+	<tr>
+		<th>E</th>
+		<td>EA</td>
+		<td>EB</td>
+		<td>EC</td>
+		<td>ED</td>
+		<td></td>
+		<td>EF</td>
+		<td>EG<td>
+	</tr>
+	<tr>
+		<th>F</th>
+		<td>FA</td>
+		<td>FB</td>
+		<td>FC</td>
+		<td>FD</td>
+		<td>FE</td>
+		<td></td>
+		<td>FG<td>
+	</tr>
+	<tr>
+		<th>G</th>
+		<td>GA</td>
+		<td>GB</td>
+		<td>GC</td>
+		<td>GD</td>
+		<td>GE</td>
+		<td>GF</td>
+		<td><td>
+	</tr>
+</table>
+
+42 functions possibly representable by neuro system equivalents
+neuro systems as functors?
+
+```
+i've made some more notes regarding the information you've provided so far. it seems i'm converging on thinking of the concepts similar to "functors", where neural systems map data from one category to another and the categories are things like, math (math symbols, set theory, category theory, logic), binary data, IPA coded data, orthographic data, mel-spec, prosody information, and emotion information.
+
+I've made a table that shows how the forms so far can be mapped to 42 distinct neuro system functors.
+
+I'm sure there's more intermediaries and auxiliary forms (you said "phonetic features" and that seems to be another category)
+
+```
+
+mel-spectrograms are used by most TTS systems as an intermediate representation
+
+(math A, binary B, IPA C, ortho D, mel-spec E, prosody F, emotion G)
+
+<table>
+
+<tr>
+
+<th></th>
+
+<th>A</th>
+
+<th>B</th>
+
+<th>C</th>
+
+<th>D</th>
+
+<th>E</th>
+
+<th>F</th>
+
+<th>G</th>
+
+</tr>
+
+<tr>
+
+<th>A</th>
+
+<td></td>
+
+<td>AB</td>
+
+<td>AC</td>
+
+<td>AD</td>
+
+<td>AE</td>
+
+<td>AF</td>
+
+<td>AG<td>
+
+</tr>
+
+<tr>
+
+<th>B</th>
+
+<td>BA</td>
+
+<td></td>
+
+<td>BC</td>
+
+<td>BD</td>
+
+<td>BE</td>
+
+<td>BF</td>
+
+<td>BG<td>
+
+</tr>
+
+<tr>
+
+<th>C</th>
+
+<td>CA</td>
+
+<td>CB</td>
+
+<td></td>
+
+<td>CD</td>
+
+<td>CE</td>
+
+<td>CF</td>
+
+<td>CG<td>
+
+</tr>
+
+<tr>
+
+<th>D</th>
+
+<td>DA</td>
+
+<td>DB</td>
+
+<td>DC</td>
+
+<td></td>
+
+<td>DE</td>
+
+<td>DF</td>
+
+<td>DG<td>
+
+</tr>
+
+<tr>
+
+<th>E</th>
+
+<td>EA</td>
+
+<td>EB</td>
+
+<td>EC</td>
+
+<td>ED</td>
+
+<td></td>
+
+<td>EF</td>
+
+<td>EG<td>
+
+</tr>
+
+<tr>
+
+<th>F</th>
+
+<td>FA</td>
+
+<td>FB</td>
+
+<td>FC</td>
+
+<td>FD</td>
+
+<td>FE</td>
+
+<td></td>
+
+<td>FG<td>
+
+</tr>
+
+<tr>
+
+<th>G</th>
+
+<td>GA</td>
+
+<td>GB</td>
+
+<td>GC</td>
+
+<td>GD</td>
+
+<td>GE</td>
+
+<td>GF</td>
+
+<td><td>
+
+</tr>
+
+</table>
+
+42 functions possibly representable by neuro system equivalents
+
+neuro systems as functors?
+
+```
+
+my system that i've made so far then seems to be a non-neuro-system representation of the BC variety (IPA -> Ortho) since it takes IPA strings and attempts to produce Ortho strings (although one could view that there's more representations involved and that that given representation could be defined differently and more "functionally". for instance, an IPA string is just a list of IPA characters and an Ortho string is a list of Ortho characters, so the "functor" isn't working with strings but with characters and we're just employing some functional sugar to make it appear to work with strings. one could also state that we've already made some of the BC functor since, in order to generate IPA characters, we take random numbers and map those to IPA characters (binary -> IPA)).
+
+I may need help organizing then what I want to do now that I see just how encompassing this all is.
+```
+
+o1:
+1. **Avoid Redundancy**: Eliminate or deprioritize transformations that overlap in functionality or are less critical.
+
+**Refined Example Table:**
+
+|**From \ To**|**A (Math)**|**B (Binary)**|**C (IPA)**|**D (Ortho)**|**E (Mel-Spectrogram)**|**F (Prosody)**|**G (Emotion)**|
+|---|---|---|---|---|---|---|---|
+|**A (Math)**||||||||
+|**B (Binary)**|||C ← B|||||
+|**C (IPA)**||C → B||C → D|C → E|C → F||
+|**D (Ortho)**|||D → C||D → C → E|D → C → F|D → G|
+|**E (Mel-Spectrogram)**||||||E → F|E → G|
+|**F (Prosody)**||||||||
+|**G (Emotion)**||||||||
+(we like this concept a lot, D->E isn't exactly necessary if we have D->C and C->E. this can be used systematically to save a lot of resources and redundancy, but also we understand that the more steps from one category to another, when dealing with neuro-functors, the more messy the outcome may be).
+
+input data format - data type and structure
+output data format - data type and structure
+processing logic - transformation steps and neural architecture (we know nothing here)
+api specifications - how do modules communicate? REST? gRPC? endpoints, formats, protocols, etc.
+
+we're now running headlong into our other far-reaching concept, aren't we?
+defining abstract machines with capabilities and communication.
+
+we're thinking things like "AB neuro-functor can take REST, BC non-neuro-functor can take REST, at some point we make some X that can be used in REST's place. at some point, we update AB so it can take X and REST. as we update others, we can have them prioritize, so if a system takes REST it'll use REST and if it can take X then we prefer X".
+
+consequence of that idea was that we discussed "machines that have every capability of another can virtualize the other machine". we're now wondering "why would any machine ever have more than one capability?". answer is fairly intuitive, a personal computer has thousands of capabilities (processor instructions), and many people can easily get and use a personal computer. it would be comically unreasonable to expect a person to use thousands of machines (or even dozens if they didn't need the full capabilities). 
+
+even if you break down to the component-level of a computer all or most of the capabilities are in the CPU. if you break down the CPU then there might be clusters contributing to capabilities and it's just drastically more convenient to have them all in one spot. imagine if you needed to build a computer and you needed to buy one component so it could add, and another so it could subtract. it'd suck.
+
+even if you thought of the components as individual capabilities, there's a potential huge benefit to communication speeds between components by clustering them or "treating them as one".
+if your multiplier component was far from your adder component, that'd probably not be great.
+
+we do also see the benefits of separating the components. it'd make it a lot easier to debug and see how they interact if they're split apart.
+
+so we could compress X and Y into one "thing" and anything needing to communciate with either would have to talk to the combined "XY" thing, but if there's problems arising from that, like "W"<->"XY" isn't working great, then it could be very beneficial to _also_ have W<->X, W<->Y, X<->Y, since that may help (possibly even necessarily) narrow things down to one specific functor-ish.
+
+o1 also suggested encapsulating each thing within docker containers, which is ***extremely*** satisfying since that was one of our concepts for the far-reaching idea: treat everything as a machine. practically, the best way to do that nowadays is to containerize. ideally and ultimately, things could be made into real, physically independent machines, but containerize and virtualize isn't a bad step for now.
+
+It seems that I now have a nice framework that can be used to "solve" basically any issue, I just need to determine what issues I want to solve and how to prioritize them.
+
+puoi
+
+https://developer.hashicorp.com/consul/docs
+
+**Centralized Documentation**: Use tools like **MkDocs**, **Sphinx**, or **Notion**
+
+an interesting point seems to be that, at least right now to me, non-neuro systems are superior to neuro systems for things like programming, and that might even be something that's necessarily true. i couldn't conceive of writing a program and giving it to a neuro-system for "interpretation"  to results or having a neuro-system parse code and giving me an AST since I (right now) think that there's no way a neuro-system could beat the "rules"-based approach of generating an AST.
+
+Possibly generating an incorrect AST, seems like it would be "lethally undesirable". A bug or flaw might generate an incorrect AST in a non-neuro parser but we imagine (right now) that the error rate is going to be magnitudes lower for a long time compared compared to a neuro parser.
+
+ask o1 to summarize your concept of neuro and non-neuro systems into a small summary that can be used to feed into LLMs as context. we wonder about the implications of that as a general "thing".
+
+actually, this feeds back into itself ouroboros style pretty hard:
+we're making a system to name things concisely because whatever i'm thinking the system is at the moment is certainly not distillable to something concise. 
+
+but, even if we perfectly understand and remember our concise term (akin to creating a new word for a "self-language"), certainly others will not understand the word used unless we provide context. The context necessary, then, depends on what the target is.
+
+If I said "functor" to a regular person on the street, they'd almost certainly have no idea what that is or what it means, and I myself barely understand it. The context I'd need to explain it to a regular person on the street could be massive, since it packs in a lot of oddball math and theory. Or, maybe there's a way to explain it metaphorically that could be shorter.
+
+An LLM isn't a person, and it does have access to a massive amount of data, so the context needed might be very small and/or unintelligible to myself. An LLM doesn't necessarily require context be given in a way intelligible to a person (a mildly concerning/exciting thought).
+
+We wonder then if there's another language or some formalization of how to "deliver" ideas to/from an LLM.
+
+https://protege.stanford.edu/
+what?
+what the fuck is an ontology editor?
+this is blowing my fucking mind
+what an extraordinarily fascinating concept
+```
+An **ontology** formally represents knowledge as a set of concepts within a domain and the relationships between those concepts.
+```
+what a nuts concept. it is what we were struggling with: a recursive concept since it deals in concepts
+
+https://en.wikipedia.org/wiki/Ontology
+jesus christ, we fell headfirst into philosophy after avoiding it for so long
+
+let's have fun with that, is there a set where Ontology is one element among equally (subjective, but hopefully you get the point) significant elements?
+
+```
+Yes, **ontology** can be considered as one crucial element within a broader set of foundational concepts that underpin knowledge representation and AI systems. Here's a conceptual framework to illustrate this:
+
+### **a. Foundational Set of Concepts**
+
+1. **Ontology**
+    - **Role**: Defines the structure of knowledge within a domain, including the concepts, relationships, and rules.
+2. **Epistemology**
+    - **Role**: Concerns the nature and scope of knowledge, addressing how knowledge is acquired and validated.
+3. **Semantics**
+    - **Role**: Deals with the meaning of words, phrases, and symbols, ensuring that data and communication are meaningful.
+4. **Syntax**
+    - **Role**: Focuses on the structure and format of expressions, ensuring that data is organized correctly.
+5. **Pragmatics**
+    - **Role**: Pertains to the use of language in context, addressing how meaning is constructed in specific situations.
+6. **Inference Mechanisms**
+    - **Role**: Methods and processes by which systems derive new knowledge from existing data and rules.
+7. **Data Structures**
+    - **Role**: Organizational formats for storing and managing data efficiently.
+8. **Algorithms**
+    - **Role**: Step-by-step procedures for performing computations and solving problems.
+
+### **b. Visualization of the Conceptual Set**
+
+Imagine a **Venn diagram** where each circle represents one of these foundational concepts. **Ontology** intersects with **Semantics**, **Epistemology**, and **Inference Mechanisms**, highlighting its integrative role in defining meaning, knowledge acquisition, and reasoning processes.
+```
+
+```
+I have some new ideas from the information you've given me:
+I keep wanting to generalize and abstract things, which is what I've done so far and now I can see that there's a few phrases that I used and can use to almost exactly "move in a direction aligned with increased generalization and abstraction".
+
+I find this very interesting.
+
+The phrases are:
+- Is X part of a Set with equally significant elements?
+- If so, what are some of the other elements?
+- If so, what is the name of the Set?
+- Now, take the name of the Set as Y, and repeat these phrases substituting X with Y.
+  
+sort of the adult version of a kid repeatedly asking "why?" to a parent. If we consider the phrases as a mechanism of travel in some abstract space, is the direction of travel straight? Could one travel forever? Is the space and direction such that one may find themselves "looping" back to a point? Is the space and direction such that one may find an "end"?
+```
+
+we can also go the opposite way: how can i modularize this?
+
+we feel a sudden and intense feeling:
+to take the above to its logical extreme towards generalization, lets say we get to a point where there is just one point. that point would then represent everything. the sudden and intense feeling we believe stems from the realization of such concepts of "everything possible", to which we can then find more concepts "everything we know possible", "everything we will know possible", "everything impossible", etc., "everything possible or impossible", "surely there's not just a binary for possibility, say 'everything likely possible'"
+
+we feel as if we've heard the phrase "everything possible" before but it didn't really "stick" like it sticks now. before, if we heard it, it was just a passing phrase, but now it's more like i'm staring at something and my eyes cannot focus or its size is genuinely too large for me to see it all at once. the feeling would then be one of insignificance in the face of some thing far more significant, like what an ant would feel if suddenly understood on a deeper level what a human being was, then realizing that the difference isn't between an ant and a human, but a finite thing and a potentially infinite thing (the issue being that the finite thing cannot even determine the "finiticty" of the other thing or really any aspect of the other thing. it is alien)
+
+see 20240914_3, specifically
+
+```
+1. **X**: "Neuro-Machine"
+2. **Set**: "Machines"
+3. **Y**: "Machines"
+4. **Next Iteration**: Is "Machines" part of a broader set? → "Entities"
+```
+
+we were wondering if we could "mutually contextualize" something with an LLM, and we said that the mutual contextualization need not be human intelligible, but only self + LLM intelligible. What o1 posted right there is exactly that. I can see what it was doing from my "abstract ->" phrases like I'm looking at directions on google maps.
+
+and if it can produce that, it can understand that. then one would only need to provide the context needed for the LLM to understand that, where that is a sort of encoded contextualization. roughly, we were wondering if there was an LLM language that we could learn, and we are potentially approaching that, although we naively didn't realize that since LLMs are built from our language, what I'm learning is manipulations of our own language.
+
+like we're building math or any of the previous ideas like functors, but for our own language and understanding.
+
+we'd like to explore the opposite direction of travel "<- abstract": modularization, and see if we can come up with the same set of "phrases" that can produce a method of travel in that direction similar to and as concise as our previous one "abstract ->". even right here we've apparently found a way to compact the abstraction and travel into an extremely concise form, which unsurprisingly opens a lot of questions "why is right an increase and left a decrease? why left and right? why not up and down? (1-d to 2-d). why not 3d? euclidian? non-euclidian?"
+
+christ, o1 is picking up on even the more compact terms.
+on a side note that probably should be a primary note, we definitely get more intense ideas when our sleep schedule is inverted, for better or for worse.
+
+turns out our phrase "mutual contextualization" seems fairly accurate to the phrase "shared ontology". we are a bit pleased that we found our way to the same meaning on our own
+
+```
+**Holism vs. Reductionism**: Balancing the view of systems as wholes versus the analysis of their parts.
+```
+
+we find this interesting and amusing, since we didn't pick one or the other and fairly quickly came to the conclusion that there is a "space" and one can simply travel "one way or the opposite way" and left room for "maybe there's some other directions, too"
+
+`abstract ->`
+1. Is X part of a Set with equally significant elements?
+2. If so, what are some of the other elements?
+3. If so, what is the name of the Set?
+4. Now, take the name of the Set as Y, and repeat these phrases substituting X with Y.
+
+`<- abstract`
+1. What are the primary components or characteristics of X?
+2. Can these components be categorized into distinct modules or functions?
+3. What are the relationships and interactions between these modules?
+4. Can each module operate independently, or do they require integration?
+5. What is the name of each module?
+6. How do these modules communicate and collaborate to form the cohesive system X?
+
+this seems an important thing to take away
+### **d. Leveraging Tools and Technologies**
+
+1. **Ontology Editors**:
+    - **Protégé**: For creating and managing your ontology.
+2. **Containerization**:
+    - **Docker**: To encapsulate each module for consistency and ease of deployment.
+3. **Orchestration**:
+    - **Kubernetes**: For managing, scaling, and orchestrating containerized modules.
+4. **Communication Frameworks**:
+    - **gRPC**: For efficient, high-performance communication between modules.
+    - **REST APIs**: For simpler, more flexible communication needs.
+
+```
+Given the operator abstract -> which can be used to move towards a layer of higher abstraction in the following steps:
+abstract ->
+1. Is X part of a Set with equally significant elements?
+2. If so, what are some of the other elements?
+3. If so, what is the name of the Set?
+4. Now, take the name of the Set as Y, and repeat these phrases substituting X with Y.
+
+If I ask you to perform these steps starting at X = "machine" and proceed repetitively until you come across a loop (you end up back at X = "machine") or an endpoint Y does not or cannot equal anything, what happens?
+```
+
+o1 actually thought for 9 seconds this time when i've seen it think for only 1. amusing
+
+google ngram viewer
+USPTO Trademark Search and WHOIS Domain Lookup
+
+"vuau"
+
+```
+I wonder if you recall in our conversation that I had an idea for a formalization that could be used to define machines so that they can determine if they can communicate with one another or virtualize one another. You also suggested looking at protege for help organizing ontologies.
+
+In protoge, it seems there's a fake "IRI" (looks like a website link) for a default "untitled-ontology-2".
+
+That IRI contained the host "semanticweb.org" which doesn't seem to be real website host but on searching I ran into a wiki article about the "Semantic Web" concept and have noted that it appears to be extremely similar in some aspects to the idea I had.
+
+It's also very similar to another idea I had relating to how file systems could be "logically organized" by concepts (soft and hard links can allow 'reuse' of a concept in different and unrelated contexts), except instead of file paths it's an HTTP URL scheme path.
+
+One of the ideas I had very specifically involved a thought that sort of linked that last idea with cryptography and the nature of current cryptographic systems:
+
+I envisioned that there could exist an "ultimate root path `/`, such that everything could logically be placed into groups under that". The practicality of that concept would be that one could create a system like github, but instead of being limited to "repos", a single layer to logical organization, one should be able to infinitely organize things, optionally providing a "metadata manifest" that could help those find their way within your structure, so that your structure could exist in a way that was the best for yourself. Parts of the metadata manifest could be exported or imported or standardized and reused, allowing the creation of shared formats.
+
+How this relates to cryptographic systems is that each person might want their own "folder" somewhere, and, interestingly, protoge's default IRI has the same problem I immediately thought of:
+it picked my personal computer's username as the username path, like `semanticweb.org/{me}`, but obviously those usernames aren't going to be unique for everyone, and it seems rough and incorrect for things to work that way.
+
+So I thought: "what about public addresses derived from private keys?". if that was `semanticweb.org/{64 byte hex string}`, where the hex was the public key derived from a private key i had, and such addressing functions well enough to (currently) uphold trustless cryptographic systems like blockchains and cryptocurrencies, then that should be how people identify themselves in `/`.
+
+I find it extremely interesting how all of these ideas I had in the past and things I'm learning now have continuously been "colliding" with one another.
+```
+
+o1's response is greatly fascinating, it provided an example of what I believe is a turtle format for our machine capability and communication framework
+
+BUT
+
+we noticed that the rdf syntax has some pecularities, like how a machine has a "range" of capabilities.
+
+we think "range" is not an appropriate syntax for this sort of a system and we'd much rather prefer the syntax be more "math-y". a machine's capabilities should be a Set of capabilities
+
+the moment we start thinking like that, there should be a revision or extension or replacement of rdf syntax focused on more mathematical and programmatical structures rather than the current syntax.
+
+but before we do that, we need to know: "is the current rdf syntax deficient in that regard?"
+
+i guess then we want to know, before we start using rdf syntax, are we going to run into issues modeling higher concepts that one might find in things like Set theory or Haskell or other programmatic structures, like Sets, Lists, Functors, Applicatives, Maps, etc.
+
+in protege, owl:Thing is the root class. that seems to be hardcoded and not up for debate. I guess then, our concept of `/` as the root should be treated as equivalent to `owl:Thing`
+
+in other words, there is no `/` under `owl:Thing`, the two are equivalent (we find it exciting that our concept seems to not just have an equivalent in a "real" system like protege but that our intention for our concept seems to align exactly with the equivalent).
+
+this is awesome, we think this this is what we were looking for
+https://www.w3.org/TR/owl2-syntax/#Introduction
+
+so we're in protege messing with the IRI, wondering why it defaults to a dead host, why does it use http (not https? why that scheme at all? why not some made up scheme? or ftp?)
+
+and we were reading the specifications and noted that after `//` and until the next `/` comes the "authority"
+that sounds like a great place to put a public key.
+
+but that also would then look like a really weird domain name. so we wondered, "if we went to squarespace and tried to get a domain name equal to a public key, would that work?"
+
+and sure enough, yes! in fact, since a public key is so much of a good identifier and so "not particularly interesting", it's extremely cheap and probably guaranteed to be available as a domain name
+
+you could always look for other more interesting domain names to point to your public key domain, but it's an interesting concept:
+
+if one was to make an ERC20 token on ethereum, they could get a domain name for their token's public address, which would be unmistakably a good identifier. if telegram allowed long channel names, we could make the channel name the token's contract address. then, people don't really need to be like "oh, cool project XYZ, what's the address?" because the channel they're in IS the address.
+
+interesting how viewing things from the ontology perspective already is offering simplifications and new ideas
+
+http://ipa-reader.xyz/
+
+now we need a name for our ontology
+
+OUMN ("oom")
+
+hmm, can't seem to register a case sensitive domain, so checksum information and importantly baseX encoded information gets mangled
+
+base32 seems to be a good compromise
+except it has that `=` padding the end
+oh, actually, it works fine. the `=` is at the end of the encoding of the pubkey hex, presumably because the length isn't an integral of 5
+if we use the encoding of the evm address hex (40 bytes), that's an integral of 5, so no `=`
+a nice little "authority" identifier, and case insensitive
+
+here then is our ontology IRI:
+http://ehajlr32odge7cetcpmr5qthzo43eju4/ontologies/oumn
+
+we're not entirely sure why one would want separate ontologies, yet, so this shall be our "primary" one for the time being
+
+thoughts:
+- Functor and, Set, might be able to go into one class, not sure what
+- we feel like adding `Set` in our ontology, a property `hasElement` of domain `Set` and range `Thing` is a ballsy move and necessarily requires that we "accept" that set theory can contain everything. we also feel it may not accurately represent how in Set Theory that a `Set` contains unique things. We think right now it is accurate to say `hasElement` is correct, if we interpret domain and range as simply stating the types. Ah, I see there are "Individuals". If my intuition is correct, we can use this to create "a Set of all natural numbers" without necessarily needing to make that its own class.
+- we want to add our abstraction and modularization processes. we're not sure how those should be categorized, but they are very important.
+- PublicKey is a part of something that we want to further refine. It is derived from a private key using a hashing algorithm, of which there are many (keccak256 is very common for what i'm doing). We're not sure if it "belongs to" `PrivateKey` or how to accurately say "isDerivedFrom.
+
+- now we don't know if we want to call it Set or Category. a Functor maps between categories, so should we add Category and separate that from Set? Or are we going to collide Set Theory and Category theory (are those incompatible)?
+- for capabilities, instead of "TextToSpeech", and inevitably a whole lot of "X" to "Y", could this be generalized such that we have `thing`s (given), either `function`/`functor` (pick one, probably function, determine the difference), with property `maps` where domain is either `thing`/`mappable`, (if domain is `thing`, perhaps `mappable` is an object property). then, `hasCapability`'s domain would be `Machine` and its range should be `function`, and instead of `TextToSpeech`, we could create `Text` (probably refine to something specific like our concept of `Orthograph` (not sure if that's real or accurate)) and `Speech` (similarly refine to something like `Waveform` or `MelSpec`) things which we can either put under a `Mappable` class or give the object property `mappable` or we could simply assert that functions can map anything, but that may not make sense. It seems generally that we think of `function` as something that maps data, so perhaps `Text` and `Speech` could be datatypes?
+- practically, from poking around, an individual can be given a class type with an optional data restriction, which appears to require you pick one or more and some other settings or options, like existential or universal
+
+so before, we had classes `Machine` and `Capability` and property `hasCapability` domain `M` and range `C` and we subclassed each capability like `TextToSpeech` as subtype of `Capability`, but we know that we don't want to repeat `X` to `Y` repeatedly since that means we aren't doing things correctly
+
+before, we figured that it makes sense for a many capabilities to be bundled
+a machine is/has one or more capabilities
+text and speech may be things or they may be data
+
+we wonder:
+
+for each data type, a function maps it to another or itself
+a capability is equivalent to a function
+a machine is/has one or more capabilities
+instruction set
+instruction. individuals ADD SUB MUL DIV MOD etc.
+hasCapability d Machine r Instruction
+individual EVM type Machine hasCapability { ADD, SUB, MUL, DIV, MOD, etc. }
+
+so TextToSpeech is an individual capability
+
+why not model data as a class?
