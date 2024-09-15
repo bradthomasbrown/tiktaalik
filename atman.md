@@ -4536,4 +4536,8 @@ so you can get the overload of a type by saying it extends an object with functi
 
 if you put too many signatures in the object, it will still always work, it'll just start reusing the last overload it traverses repeatedly
 
-we think we can make a recursive type for this then
+we think we can make a recursive type for this then.
+nope.
+
+how to determine if an iterator's length is longer than a given number m?
+init a counter at 0, start iterating and incrementing the counter, stop if iterator is done, throw if counter is > m
