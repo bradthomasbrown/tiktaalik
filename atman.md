@@ -4543,3 +4543,12 @@ how to determine if an iterator's length is longer than a given number m?
 init a counter at 0, start iterating and incrementing the counter, stop if iterator is done, throw if counter is > m
 
 we can either pad some multiple of 64 or we can find the right amount and add "0".repeat
+
+- need array to assert check that elements are the same as underlying for arrays.
+	- bools and addresses are easy
+	- ints less so; sign, bit width, decimal places need to be checked.
+		- ### we get the idea to put in each class a "get / serialize id"
+		- for ints, this would produce something that would `===` another something produced by another int with the same signed, bitWidth, and decimalPlaces. sort of like a hash of the type, and we're wondering about objects and symbols and maps. (some Kv-ish with KvKey `["_Int", signed, bitWidth, decimalPlaces]` would point to one unique object
+probably want some types (like Int) to be allowed to be constructed with no args as a sort of "unit" instance. probably good for all static types, not good for dynamic types (thinking about how an array would not be useful without the underlying type).
+instead of constructors with no args, more like "constructors with the absolute minimal args needed to satisfy headLen"
+
