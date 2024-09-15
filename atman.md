@@ -4512,3 +4512,28 @@ individual EVM type Machine hasCapability { ADD, SUB, MUL, DIV, MOD, etc. }
 so TextToSpeech is an individual capability
 
 why not model data as a class?
+
+RECALL:
+
+```
+write down exactly which inputs and their types you are using in your pipeline, and the way you think you would write those inputs in the pipeline:
+- contract address, currently coded as string returning compute, encode as address
+- uv3 pool fee in centibips, as number, encode as uint24
+- sqrtPriceX96 as computed bigint, encode as uint160
+- tick bounds, currently coded as number, possibly bigint, *negative* possible, encode as int24
+- amounts desired, currently coded as bigint, encode as uint256
+- wallet address, currently coded as string returning compute, encode as address
+- function selector array, currently creating the encoded array by hand from string computing functions, encode as uint32
+	- even more complex really: a tuple array consisting of tuple (address, uint32\[])
+```
+
+we wonder now why we represented function selectors as uint32s and not bytes4.
+sure enough, your Resolver contract does use uint32s for setting. odd choice.
+
+well selectors should be bytes4, and what we should do then is just map bytes4s to uint32s then encode those
+
+so you can get the overload of a type by saying it extends an object with function signatures, inferring the args and return of the signatures. the more signatures you put, the more overloads you can capture
+
+if you put too many signatures in the object, it will still always work, it'll just start reusing the last overload it traverses repeatedly
+
+we think we can make a recursive type for this then
