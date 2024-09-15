@@ -4552,3 +4552,8 @@ we can either pad some multiple of 64 or we can find the right amount and add "0
 probably want some types (like Int) to be allowed to be constructed with no args as a sort of "unit" instance. probably good for all static types, not good for dynamic types (thinking about how an array would not be useful without the underlying type).
 instead of constructors with no args, more like "constructors with the absolute minimal args needed to satisfy headLen"
 
+x = map.get(k) if not x x = y map.set(k, y)
+x = map.get(k) ?? ((m) => (map.set(k, m), m)(new m)
+
+for each key part not last, traverse or build maps
+
