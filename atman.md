@@ -4541,3 +4541,5 @@ nope.
 
 how to determine if an iterator's length is longer than a given number m?
 init a counter at 0, start iterating and incrementing the counter, stop if iterator is done, throw if counter is > m
+
+we can either pad some multiple of 64 or we can find the right amount and add "0".repeat
