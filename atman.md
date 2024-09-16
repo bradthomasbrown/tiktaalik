@@ -4583,3 +4583,5 @@ debug time
 	- is dynamic so enc uint arr.len. stepping over crashes
 		- new uint, good
 		- enc as new tuple. ah, we didn't spread the array into the tuple. that seems to have stopped the crashing but probably indicates a tuple with an array in it will crash
+
+still need to have arrays assert their contents (length and type)
