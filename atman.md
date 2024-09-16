@@ -4557,3 +4557,29 @@ x = map.get(k) ?? ((m) => (map.set(k, m), m)(new m)
 
 for each key part not last, traverse or build maps
 
+for array, change underlying to the symbol of the underlying
+for tuples, the path should be the component types mapped to their symbols and spread past `_Tuple`
+so empty tuples are `["_Tuple"]`,  a tuple with one uint8 is `["_Tuple", sym]` where `sym` represents `["_Int", false, 8, 0]`
+honestly feel pretty clever for that
+
+agree with earlier sentiment that an array can't have a "unit" representation with no constructor args, since it needs an underlying type. interestingly, a tuple natively can have no constructor args. arrays seem to be the _only_ type that requires at least some constructor arg.
+it is peculiar that arrays are unique in this regard
+
+enc tuple, what a bitch
+
+we're going to want to start with a js tuple of two strings, left is head, right is tail
+we're going to want to reduce the tuple such that each type is split into its head and tail and those are appended to the acc `[head, tail]` (mentioned before as js tuple of two strings).
+after this is done, we reduce one more with a simple p + c
+
+that split and append to a tuple is necessarily a wonky, haskelly thing where we were messing with zips and lists and whatnot.
+`[a, b] + [c, d] = [ac, bd]; reduce -> acbd`
+
+we got our zip method from a bit back
+we now have
+`[a, b] + [c, d] = [[a, c], [b, d]]` (we think)
+
+debug time
+- enc arr
+	- is dynamic so enc uint arr.len. stepping over crashes
+		- new uint, good
+		- enc as new tuple. ah, we didn't spread the array into the tuple. that seems to have stopped the crashing but probably indicates a tuple with an array in it will crash
