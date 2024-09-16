@@ -4585,3 +4585,71 @@ debug time
 		- enc as new tuple. ah, we didn't spread the array into the tuple. that seems to have stopped the crashing but probably indicates a tuple with an array in it will crash
 
 still need to have arrays assert their contents (length and type)
+
+food preppin math:
+cevice and chips recipe is 57g grains, 90g protein, 128g veg, roughly 6:9:12 or 2:3:4 * 30g
+it was low in fiber, iron, calcium, vit a, folate, K, high in vit C, b12
+
+carrots have vit a
+squash is hilarious, has almost no nutrients for its weight. a big plate of squash is a big plate of nothing.
+broccoli has vit C and vit K
+black beans have fiber and folate, but are a fodmap so go easy at first and be careful, 40g per serve?
+
+for a random day of the last cycle we seem to get good iron, of all things popcorn has significant fiber and iron
+a lot points to spinach being great
+
+cronometer shows a hypothetical oatmeal + banana, orange, turkey/bean/spinach/carrot/broccoli/quiona day as being quite good, but shockingly low calorie
+we're still on a downward weight trend and also very nearly underweight, so low calorie is a bit of a bitch
+maybe add cheese and bread somewhere?
+
+actually, we can add a whole lot to lunch:
+bread, cheese, yogurt, almonds
+
+add chia seeds to oatmeal as a fiber supplement
+
+bread approx 600g, 10 days worth at 60g / serve. getting exact servings and weights may be interesting. remeber we _can_ always make our own bread, we've done it before. once we're able to regularly meal plan with little effort maybe we'll venture into that. for now, i spend hours figuring out one week's worth, so one step at a time
+swiss cheese maybe in 255g packages, x2 is 510, /10 gives 10 days of 57g
+can get all sorts of weights for almonds, 290g, 544g. we're shooting for maybe only 15g per serve, but those keep well. in the fridge, almonds last "more than 2 years", room temp 3 months. 290g is good for 20 days, if we want to double the serve size we can easily do so
+oranges last a long time in the fridge, we'd want 10 oranges, maybe a bag or two would do
+
+oh shit, we forgot about hardboiled eggs for brek. we usually do that, good boost for iron, huge b12, all around good source of vits, lot of protein and fat.
+large 18 carton is 9 days worth, so maybe we adjust everything for 9 days and drop a lot of the lunch weights. although not sure how how to drop weights of other things, especially bread, since dropping serve weight means one package of bread now lasts too long
+
+we do have bagels
+
+what the hell is the diff between meal and recipe? apparently meals are always 1 serve, a recipe can create many serves
+
+bagel is 85g, easily halved to 43g. 4 pack means one 43g serve lasting 8 days. could honestly just keep a rotation of bagel 4 packs, but those aren't whole wheat so harvard health wouldn't approve.
+bread can be frozen for a while, so there's that
+
+**brek** (9 days)
+- oatmeal
+- chia seeds
+- banana (9? might be hard to get exactly 9) (damn, we could buy frozen here as well, but only in ***1.36kg*** bags and mixed with straweberries. we can also freeze our own)
+- hardboiled eggs (2/serve, 18 carton)
+- 0.5g milk
+
+**lunch** (9 days)
+- orange (9? might be hard to get exactly 9)
+- bread (we have 340g bagels, so half bagel each day skip one is roughly 38g/serve for 9 serves)
+- cheese (one 255g package is 28g/serve for 9 serves, but other packages and weights can be used here, lot of wiggle room)
+- almonds (290g is 32g/serve for 9 serves, but this lasts forever and there's many weights, so flexible)
+
+**dinner** (9 days)
+- 16 oz ground turkey is 450g or 50g / serve 9 serves, should definitely freeze some or each serve. very close to estimated "right amount"
+- 1lb bag of black beans also 450g / 50g/serve@9serves. we can presoak these, possibly freeze?
+- 652g quinoa bag 72g/serve@9 serves, keeps well dried, i've always been able to cook a lot of servings at once and refrigerate and just pull a serving out from the fridge without issue. google says 3-5 days for keeping cooked quinoa in the fridge, so we've definitely been pushing and going past that. whoops
+- we can get 2 284g (568g) of chopped frozen spinach which would give us what we want, 63g spinach per meal @ 9 serves, although we get the feeling that is a lot of fucking spinach. cronometer says it's very good for you (so does popeye)
+- google says typical head of broccoli is 9oz, 255g, /9 is is 28g which is what we want, but we think we should just buy this frozen (although frozen bags are **907g**, which is a lot. we could blanch, dry, and freeze a fresh head ourselves so we don't have to have such a huge bag. more work, but more flexible weight so we can avoid "locking" ourselves to broccoli for too long).
+- we can get a 1lb bag of carrots, carrots last long enough in the fridge. 1lb is double what we wanted though, but carrots are good enough that doubling the size doesn't bother us too much
+
+we can ask o1 what it thinks
+
+it seems to think fully cooking everything then freezing portions is commendable
+
+milk makes things more interesting, we might actually want to do two trips, one first major trip and a minor second trip
+
+so we only need 4-5 bananas/oranges
+
+we want herbs/spices most likely
+we'll get some dried herbs/spices, but we won't be surprised if we throw them away if we end up moving just to not have to deal with them
