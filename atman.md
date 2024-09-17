@@ -4653,3 +4653,119 @@ so we only need 4-5 bananas/oranges
 
 we want herbs/spices most likely
 we'll get some dried herbs/spices, but we won't be surprised if we throw them away if we end up moving just to not have to deal with them
+
+
+
+back to programming, meal prep and recipe choosing went fairly smoothly this time we think
+
+- arrays should assert their contents
+	- should be done now
+- also, instead of trying to map in a constructor extending an array and causing an explosion, couldn't we just loop over an iterator? map creates an array, iterator looping doesn't
+	- no shit, works great
+- instead of uintX like helpers that are just functions calling a class instantiation with certain variables, what if they were classes that extended the larger classes, then super'd with certain variables? that way, we're not making an entire `_Int` when we use `uint`, but a bare minimum object that simply refers to the existing `_Int` when needed
+	- we think that's probably an overoptimization attempt, don't bother for now
+- instead of enc switching on instance, make an interface so each type has its own enc. then we can remove the existing enc entirely, where anything wanting to enc a type would just call the type's enc. we can do the same with headLen is isDynamic
+	- done
+- once we put things like headLen and enc on these classes, they should be able to cache the results and not need to compute them again
+	- done, fairly simple, private member `_x` and public getter member `x`, contents of `x` are `return this._x ??= someCalculation`. 
+
+mixins?
+they sound interesting and possibly applicable, but the definition is hard for us to read:
+
+"a mixin constructor type refers to a type that has a single construct signature with a single rest argument of type `any[]` and an object-like return type"
+
+"for example, given an object-like type `X`, `new (...args: any[]) => X` is a mixin constructor type with an instance type `X`"
+
+"a mixin class is a class declaration or expression that extends an expression of a type parameter type. the following rules apply to mixin class declarations:
+- the type parameter type of the extends expression must be constrained to a mixin constructor type
+- the constructor of a mixin class (if any) must have a single rest parameter of type `any[]` and must use the spread operator to pass those parameters as arguments in a `super(...args)` call."
+
+this is confusing because it only says what a mixin constructor type is, but requires an extends expression, which requires another class. so in the definition, there's a "missing" class that we need to fill in, it seems. the class needs to have a type parameter
+
+specifically "that extends an expression of a type parameter type" is a really confusing way to say "that extends a class with a type parameter"
+
+then, there's more confusion: since we have a "missing" class with a type parameter, and a class that extends that class, are we to constrain the type parameter on the class extending the other, or on the parameter of the missing class?
+
+```ts
+type MixinConstructor = new (...args: any[]) => { foo: "bar" }
+
+class Bar<T> {
+    bar: string = "baz"
+}
+
+class SomeMixin<T extends MixinConstructor> extends Bar<T> {
+    baz: string = "boo"
+}
+```
+
+or
+
+```ts
+type MixinConstructor = new (...args: any[]) => { foo: "bar" }
+
+class Bar<T extends MixinConstructor> {
+    bar: string = "baz"
+}
+
+class SomeMixin<T extends MixinConstructor> extends Bar<T> {
+    baz: string = "boo"
+}
+```
+
+in either case, the type parameter of the "missing" class isn't being used for anything, which seems odd. the MixinConstructor type also isn't being used for anything
+
+it's also stated that a constructor on the extending class isn't exactly necessary
+
+their example has way different things in it, like a function that returns a class
+
+even more strange is the use of `any`, which pops warnings in strict mode, and definitely still pops warnings when used in this pattern defined by them
+
+the modern documentation doesn't even call super, but the documentation that introduced it does, which is also strange
+
+https://stackoverflow.com/a/67605348
+suggests what i suspect, which is that mixins are outdated or not properly supported (and thus we should probably not be using them at all)
+
+we're gonna make the judgement call that we just shouldn't use "mixins" as they are described by typescript since they go against their own strict rules
+
+we'll try to proceed pretending we never heard of the term "mixin" at all.
+
+note that neither ethers nor viem mention jsr on their respective homepages. if we want to be a serious alternative, we *must* do so
+
+even more odd is that viem is on JSR (supposedly), but their homepage shows npm, pnpm, and bun imports. is the one on JSR compromised or dangerous?
+
+both main github repos also don't mention jsr at all
+we also thought it was extremely odd how the jsr page for viem has a badge for npm
+maybe don't use the viem on JSR
+
+viem doesn't seem to support or allow importing of more specific modules
+
+ethers/abi is 12.04 MB
+viem us 12.16 MB
+mod9 is 13.53 KB
+web3 is 388.72 KB
+
+let's start dead simple: encoding a bool
+
+good results, although we just remembered to loop web3js into things, and noticed that the first npm result is a _different_ repo than the first github result when searching, which is mildly alarming
+
+oh, it looks like the old repo somehow redirects to the new one? not sure how that works
+quick search indicates that is definitely a thing one is allowed to do
+
+bool encode (100x):
+
+web3 3.9 u (418.9 u)
+ethers 45.3 u (3.6 m)
+viem 631.8 n (61.9 u)
+mod9 755 n (59.1 u)
+
+our tuple encoding seems off, headLen shouldn't be a reduction addition of item headLens, since a tuple can have a headLen of 60 but a tuple containing that tuple shouldn't also have a headLen of 60, but instead 20
+
+we're just gonna steal the array's headLen calc, assuming 32 for each item. the encoding value assertion for tuples of 3 strings seems to be all good across the 4 libraries with that change, we'll see how that holds up
+
+tuple encode (100x):
+
+web3 134.9 u (13.3 m)
+ethers 212.5 u (28.5 m)
+viem 15.9 u (1.8 m)
+mod9 28.7 u (3.7 m)
+
