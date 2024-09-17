@@ -4769,3 +4769,5 @@ ethers 212.5 u (28.5 m)
 viem 15.9 u (1.8 m)
 mod9 28.7 u (3.7 m)
 
+- we can change our array type constructor so that if we pass items we don't need to specify an underlying type. the underlying will just be assumed from the first item (then compared to all other items)
+- also, probably said it before, but we can probably change underlying type to a symbol. then we can just blaze the symbol and not worry about "unit" constructors and other such nonsense, and the result is intuitively "the most correct", which is satisfying
