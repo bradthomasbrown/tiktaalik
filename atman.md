@@ -4844,3 +4844,5 @@ the idea of mixins is what we want, but those seem to be extremely dirty in type
 https://medium.com/@saif.adnan/typescript-mixin-ee962be3224d
 
 it does bother us that the "official" way to do this triggers a type safety warning (no any), but we can always just tell the type checker to fuck off for one line, and what better place to do that than when we're following the official rules
+
+1 bit fixed or dynamic, then 5 options, none, string, iterable, array like, array buffer like
