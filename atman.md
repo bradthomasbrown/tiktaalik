@@ -4771,3 +4771,65 @@ mod9 28.7 u (3.7 m)
 
 - we can change our array type constructor so that if we pass items we don't need to specify an underlying type. the underlying will just be assumed from the first item (then compared to all other items)
 - also, probably said it before, but we can probably change underlying type to a symbol. then we can just blaze the symbol and not worry about "unit" constructors and other such nonsense, and the result is intuitively "the most correct", which is satisfying
+
+trying to do something weird here, using our zipping stuff to build these tuples of fixed int arrays of unique values
+
+we can easily make an array range of some values
+
+```ts
+const x = 5
+
+const zlcounter = () => new ZipList(function* () {
+    let i = 0
+    while (true) yield i++
+}())
+
+const foo = zlcounter().take(x)
+
+console.log([...foo]) // [0, 1, 2, 3, 4]
+```
+
+that'd be our int array,
+but to make a tuple of these, we want the return to be an array of those arrays, where each starts where the last left off
+
+we had to change ZipList take, apparently `for of iter` with a break in it seems to "mark" the iter as done, so when we "took" what we wanted from an iter, we could never take again, even if the iter was infinite.
+
+this is changed, so now if we take 5 from an infinite counter iter, we get 0-4, if we do it again, we get 5-9
+
+could be useful and/or frustrating if done more than once asynchronously
+
+we now notice that taking twice is exactly the pattern we want,
+
+oh shit, we did it
+
+```ts
+const x = 100
+const y = 100
+
+const foo = new ZipList((function* () {
+    let i = 0; while (true) yield new _Int(false, i++, 256)
+})())
+
+const bar = new ZipList((function* () {
+    while (true) yield new _Array(false, new _Int(false, 0, 256), ...foo.take(x))
+})())
+
+console.log(new _Tuple(...bar.take(y)))
+```
+
+this logs a mod9 tuple of 100 fixed uint256 arrays each of length 100, all populated by unique uint256 values. above is just a slight modification of the equivalent that would work for the other libraries, which is 
+
+```ts
+const x = 100
+const y = 100
+
+const foo = new ZipList((function* () {
+    let i = 0; while (true) yield i++
+})())
+
+const bar = new ZipList((function* () {
+    while (true) yield [...foo.take(x)]
+})())
+
+console.log([...bar.take(y)])
+```
