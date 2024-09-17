@@ -4833,3 +4833,14 @@ const bar = new ZipList((function* () {
 
 console.log([...bar.take(y)])
 ```
+
+simplify existing classes by taking some of the major commonalities and putting those into their own class, then extending the common class.
+think it'd only apply for two things, but those are:
+- isDynamic true | false
+- headLen 32
+a lot of the more primitive values can extend from a single class that just has `headLen 32` to avoid including that getter
+
+the idea of mixins is what we want, but those seem to be extremely dirty in typescript
+https://medium.com/@saif.adnan/typescript-mixin-ee962be3224d
+
+it does bother us that the "official" way to do this triggers a type safety warning (no any), but we can always just tell the type checker to fuck off for one line, and what better place to do that than when we're following the official rules
