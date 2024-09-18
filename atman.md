@@ -4846,3 +4846,49 @@ https://medium.com/@saif.adnan/typescript-mixin-ee962be3224d
 it does bother us that the "official" way to do this triggers a type safety warning (no any), but we can always just tell the type checker to fuck off for one line, and what better place to do that than when we're following the official rules
 
 1 bit fixed or dynamic, then 5 options, none, string, iterable, array like, array buffer like
+
+back into the rabbit hole we go
+
+we wonder if we can dynamically create a class with an overloaded constructor
+there's no reason we shouldn't be able to do this, since all that is really is an object with `new callable` signatures, and constructing an object is fairly trivial
+
+we went from 
+- conditionally "whittling down" the arguments into a single overload paramset, then supering with that
+- to creating overloads with enums that specify exactly what arguments are used and simply type asserting the argument types (in theory assertions should be safe-ish since they're "guarded" by the overloads), where we get the "whittled down" intermediate paramset from a switch case operating on the enums
+- to indexing an object whose keys are the enum values which should function more like a jump table, more concise and should be faster than switch
+- to now realizing that each construction is creating the jump table object despite the object always being the same, and now wondering if we can dynamically create the overloads and/or the entire class to avoid even more boilerplate
+
+we think we know why, sort of, the other libraries work the way they do, with a function that takes "types" and "values".
+it's closer to the idea of functional programming (in a way, but all then venture off that path completely) and it's potentially a faster/more efficient idea because one can avoid intermediate objects if they just instead compose functions (we think)
+
+take, for example, the psuedo encode expression `encode("int", 3)`. there's no "solidity int object" being created and then an encode function being evaluated
+
+presumably, there's some `encodeInt` function that already exists and `encode` will pass 3 to it.
+however, this isn't entirely efficient because `encode` is given a string, not an `encodeInt` function. there's an extra step there where `encode` has to figure out that it should be using the `encodeInt` function, which could be done slowly (regexs, conditionals matching the type string) or possibly quickly (some object with key `int` and value `encodeInt` as a jump table-ish)
+
+where the other ones all go wrong though is in how they "parse" the type string, specifically if we think about the type `int[100]`. every other library is going to have to parse that string to get that `100` and then do something with that (or maybe they don't).
+
+all the other ones except viem have the same problem with tuples, in that they'll need to parse the type string for the tuple contents. viem avoids this by using the abi notation, so instead of a type string they'll have an object of type tuple with an array of components. so they don't need to parse the tuple type string, they just index components and have an array of types.
+
+the ideal system then should be one that never uses a type string, but also never creates an object (to the fullest extent possible), and presumably only operates in functions
+
+we also want to note that we may want to consider a web of tradeoffs and why we're making this in the first place:
+
+obviously, if we want the "fastest" encoders, we'd do what we already did, which is writing the encodings by hand
+those fixed primitive values are infinitely faster since there's no computation required, but we really didn't like it
+
+why?
+from that perspective, we traded something for calculation speed, where that something can be thought of as either "complexity" and/or "conciseness". our handwritten encodings are always going to be faster than an abi encoder's produced encodings, but they're also more complex and less concise.
+
+we now wonder all the ways we can bridge that gap between what we have just made (odd abi encoder using solidity-typed objects), what we're thinking of making (extremely fast abi encoder using function composition), the other things that exist (other libraries), and what we already had (partially handwritten with some helpers, like `BigInt toString16 padStart 64 0`. 
+
+the parts that made me want to make my own encoder were writing array and struct encodings, which by hand is horrible.
+
+we jumped the shark and made a complete abi encoder, when we could've just walked one step towards "slower but less complex and more concise" by just making one or more extra helper functions to alleviate exactly what caused us pain.
+
+very specifically, we're thinking about the length encodings, offset encodings, and padding rules
+
+there's also the more classic tradeoffs, like how generators use less memory but can be slower compared to arrays in a for of loop, since arrays just index by number (but need to exist as a whole) and generators need to create an iterator object and repeatedly call the next function 
+
+we may benefit greatly from going to the pipeline script and iteratively "expanding a library" in such a way that the library can be used to make the script more desirable in some way, shape, or form
+https://en.wikipedia.org/wiki/Space%E2%80%93time_tradeoff
