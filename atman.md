@@ -4892,3 +4892,223 @@ there's also the more classic tradeoffs, like how generators use less memory but
 
 we may benefit greatly from going to the pipeline script and iteratively "expanding a library" in such a way that the library can be used to make the script more desirable in some way, shape, or form
 https://en.wikipedia.org/wiki/Space%E2%80%93time_tradeoff
+
+would concurrency not be equivalent to scalability?
+o1 suggested "tooling support" as a capability, example of availability and quality of tools supporting a system. that gives us a definite new QPQ tradeoff concept, where even if there was some system otherwise superior in every single other way, what if nobody uses or supports it?
+one could create a new computer processor that's faster, more efficient, more durable, less complex, all around better in every way, right? but no existing compiler targets it. everything made around it will have to be built from scratch, and that is a significant tradeoff.
+
+hm. we like this new "tradeoffs" approach, o1 and us have created quite a few.
+
+let's start from the top. we want to bridge our token. 
+let's start with some search phrases someone in our position might put into a search engine:
+- how do i make my ERC20 token bridgeable
+- make a bridge for my ERC20 token
+- bridge ERC20 token
+
+one of the first things we saw was metamask claiming you can bridge any token from one network to any other token on another network. neat, right?
+
+we want to see what it can do, so we specify 100 DZHV on ETH as the input and DZHV on AVAX as the output.
+
+we immediately see an error: "please transfer a value of at least $10".
+there's a tradeoff there, isn't there? probably more than one.
+ideally, one should be able to bridge any amount. we've already theorized how this could be done.
+a really naive implementation would just always subtract tokens to pay for the fee, where "too few tokens" just results in an output of 0 tokens. 
+
+in that system, instead of "for maximum reliability, please transfer a value of at least $10", our system would say "not enough input to cover operation costs" or something like that which more accurately expresses why it won't process it, plus maybe a huge warning and "are you sure" at different thresholds, like your output being worth 50% or less of your input (YOU ARE LIKELY GOING TO LOSE HALF THE INPUT VALUE. ARE YOU SURE YOU WANT TO DO THIS?)
+
+we also theorized a way where bridge transactions that can't cover operation costs could still be processed without a loss to the system, by way of bundling for massive efficiency increases (but trading off with time), or by way of taxing other trades which specify a slippage that allows us to "take" from those trades up to the slippage threshold (trading off with time and efficiency).
+
+such a system may then allow someone to bridge 1 DZHV even if it's worth one one-hundredth of a penny and a bridge transaction's operation cost is say $5 by possibly combining bundling and taxing. the user would then possibly have to wait longer for their transaction to be processed and other users would then possibly receive less output than they otherwise would (but not so much less that we violate their slippage constraints).
+
+Let's bump the input to 10k DZHV, worth $11.20. we're told we'll get $18.35 worth of DZHV on AVAX, which is a bit odd, but let's roll with it. 
+
+We're told that the stargate bridge will be used (indicating metamask is just an aggregator here) and the fee will be $23.60 (0.009 ETH uer gas, 0.0007 ETH relayer fee).
+
+that's a huge fee in general, and doubly bad since it's over 200% the value of our input. even if we get more value out of our input, that's a large loss.
+
+so there's another tradeoff there.
+
+there's also the large tradeoff where one needs to trust metamask to aggregate honest bridges. i have no idea what stargate is, what it does, what it's track record is, how it operates, etc.
+this is probably sufficient for most users, but certainly not sufficient for some.
+
+https://medium.com/coinmonks/a-detailed-guide-for-building-a-decentralized-token-bridge-between-ethereum-and-bnb-smart-chain-c9439e08d61b
+this is not very scalable, not very intuitive, quite tedious, requires a lot of expertise, and isn't extensible. we'll add "expertise" as a tradeoff
+
+https://docs.optimism.io/builders/app-developers/tutorials/standard-bridge-custom-token
+this requires adherence to a strict standard. is that an existing tradeoff? we'll say it's "less agile" and/or "more alien" (less flexible, less responding to change, less supported by existing tooling, less community)
+
+https://docs.linea.build/developers/guides/bridge
+this one's interesting. "Build a dedicated token bridge - If you are interested by this option, please get in touch with us so that we can help you"
+maybe open/closed source / proprietary is a tradeoff as well. "transparent"? is that an existing tradeoff? if it isn't, it's a huge one to add because every bridge we've seen so far is not fully open source. they may make certain protocols open source, but all bridges have authority-chosen operators and their implementations of those protocols is concealed. for instance, i have *never* been able to determine the exact method by which a bridge operator scans a blockchain (and by extent, how do they make sure they don't double-scan or miss transactions?). it's not "secure", one can be secure and transparent or secure and opaque, or insecure and transparent or insecure and opaque. transparency just allows others to determine security for themselves, and should be considered independent. transparent systems are more extensible, but it's a different concept. we're not trying to build upon something, but verify its contents. an opaque system is by definition not intuitive, but a transparent one could be more or less intuitive. it seems transparency can "block" a lot of the tradeoffs from being learned, for better or worse.
+
+trust is fairly close to or equivalent to integrous in my opinion right now, specifically a negative correlation. more trust is less integrous. trustless is very integrous. but like the others, trust cannot be determined when looking at an opaque object (one should probably default to trust is required fully for an opaque object).
+
+gatekeeping use of a system by requiring one to "contact us for an arrangement" can be seen as a combination of less transparency, less integrity, and a greater toll (here toll is not financial, but represented by the required correspondence and mutual cooperation and any rules required to be followed to that effect).
+
+now let's look back at our pipeline script with our expanded mindset
+or rather, let's look at what we're doing and what we're aiming for
+
+ethers.js and basically every other web3 thing that exists is Minus Extensible, due to the language of [EIP1193](https://eips.ethereum.org/EIPS/eip-1193).  
+
+this is one of the worst offenders:
+
+```
+#### [](https://eips.ethereum.org/EIPS/eip-1193#chainchanged) chainChanged
+
+If the chain the Provider is connected to changes, the Provider **MUST** emit the event named `chainChanged` with value `chainId: string`, specifying the integer ID of the new chain as a hexadecimal string, per the [`eth_chainId`](https://eips.ethereum.org/EIPS/eip-695) Ethereum RPC method.
+```
+
+this implies that a provider is connected to one chain. it's a **MUST** follow rule. 
+also this
+
+```
+## Rationale
+
+The purpose of a Provider is to _provide_ a consumer with access to Ethereum. In general, a Provider must enable an Ethereum web application to do two things:
+```
+
+note "Ethereum", not "a chain/EVM-like/etc." we imagine that the above block was written with respect to Ethereum test networks and the Ethereum main network, where it would indeed not make sense to be connected to more than one chain.
+
+Because of this language, every "provider" object in every existing web3 thing is tied and constrained to a single chain.
+
+we _could_ wrap the standard so that we simply have one provider per chain, but it seems fairly clear that the standard was not made to support multiple _main networks_, and so we should probably not use it.
+
+this causes us to question everything in regards to every web3 thing and consider building something from scratch that at the very least keeps these questions in mind.
+
+it's also bizarre to us that i can't use any existing js/ts web3 library to test smart contracts locally. some other thing like anvil or forge or whatever, it changes like the fucking seasons
+
+jsr is, to us, the bleeding edge of js/ts and there's literally nothing with "evm", "ethereum", "web3" in it that seems to be made and openly supported by the people who made it. there are what appears to be _two_ things, one of which (viem) was made by someone but was simply ported from node.js and isn't openly supported on their github or website, and another that appears to be a clone of walletconnect.
+
+keep reiterating until we're back on the right path:
+
+existing bridge implementations are unsatisfying becuse they
+- are not at all transparent
+- have a high toll, financial and otherwise
+- have a high expertise requirement
+- are tedious to implement
+- are unmaintainable and undebuggable
+- have huge space and memory requirements
+- have low integrity and low availability
+- are not at all extensible
+- are not at all intuitive
+- inconsistently perform
+- are weakly concurrent at best
+- are not at all concise
+- lack any reasonable automation features besides simply "running"
+- are alien and unsupported
+- are not at all agile nor flexible
+- do not at all scale, in any way
+- have huge processing power requirements
+
+basically, i've only seen one open source bridge implementation (bsc <-> eth) and it was horrible garbage, and every other implementation is entirely opaque
+
+if we can make a bridge that does even one of these things, then technically we've succeeded where nobody else could or has bothered
+
+What do you see in the pipeline script?
+We see the imports and we don't like them. 
+- assert from @std doesn't allow custom errors to be thrown, just custom messages and a general error
+- we don't like ExitHandlers' existence at all, and we can probably do away with it by having libraries that require handling things on exit having some immediate global invocation that registers something akin to an event listener and a function that will fire on exit. the effect should be that all exit-handler-requiring libraries will know immediately who each other are and whoever gets the exit handling callback execution first can then execute the other libraries' handlers for them.
+	- that or we we go balls to the wall and implement a minimal evm execution client entirely in typescript and augment it with webassembly incantations wherever needed for performance gains, eliminating the need for docker and containers entirely from the pipeline.
+		- we'd still want to keep it so that we can test that our implementation behaves the same as a "real" execution client like geth (given the same interactions, is the state the same, etc.)
+- importing the library components Node, Signer, and selector seems fairly necessary and reasonable, but the import link is too long
+	- there's an opportunity for selector to not be a general library component, but something provided by the "contract" modules
+- the contract module imports have a very big presence, which we might be able to reduce with `* as C` or `* as Contracts`
+- `* as steps` strikes us as something obscuring a problem in tediousness and a lack of abstraction. most steps are very similar, and an expressive library should eliminate that similar repetition.
+
+beyond imports, the first thing we notice is the awful signer creation line and bundling as well as the clumsy node creation (which looks like it could be used to make more than one node, but we know it cannot).
+
+if we want to be functional, we can probably make something weird to replace `session`, like a function `f` that takes a function `g` as an argument where `g` takes a node and a signer, then `session` could be renamed to `foo` and expressed as `const foo = (g) => g(node, signer)`.
+now we aren't creating an odd object but rather simply expressing that we may have functions that need a node and a signer to operate and that `foo` can be used to apply one specific `node and signer` combination to those functions.
+
+initFundOpts is also quite tedious and not concise or pleasing.
+
+let's start working from a different perspective:
+why is the test called "universalRouter"?
+
+fairly reasonable, this test spins up a test network, creates our ERC20ish, creates everything required for a working universal router, then creates, initializes, and mints a liquidity position, refunding ETH via a multicall, just like how it would happen if you use uniswap's UI.
+
+the test succeeds if that works, where we seem to determine that simply by visually inspecting that our ERC20 balance changed, indicating the router took our tokens to mint a position.
+
+we can probably do a more thorough test there.
+ah, we do also test throughout, things like "after deploying a contract getting the code at that address does actually give us code", "after linking ERC20 implementation to DZHV, total supply isn't null", "after minting, total supply isn't null and also is greater than zero", "after allowing, allowance isn't null and is greater than zero"
+
+damn near half the pipeline is that comically atrocious encoding (granted a lot is hidden via "steps")
+
+- when we said we can go balls to the wall and implement our own EVM, we can tie in our previous idea of an "intermediate" EVM-like that only contains exactly what's needed for our specific scenario, possibly in such a compositional way that we can extend it with more features if we need more utility/capabilities out of it.
+
+we can break this test up massively we think. why are we deploying what appears to be 5+ contracts all in once and not compoosing?
+
+our contract module generator is also jumping the shark then, isn't it? in the same way as our abi encoder?
+
+lets start with a test consisting of just the first or first few things:
+- create a node, fund wallets, test that the wallets are funded (why not prefund the wallets in the genesis instead of funding separately?)
+- deploy WETH9, test that the code at the correct address isn't null
+
+these tests are currently under vertigo, which requires a uniswap v3 position (let's not think about trader joe for a bit)
+
+(let's also not think about arbitrum or EVM-like differences for a bit)
+
+https://github.com/ethereumjs/ethereumjs-monorepo
+this exists but it's old, js, not on jsr, not deno, etc.
+
+we also remember that the compiler might be able to produce an output that lets us break a contract up into functions, which could have interesting consequences.
+
+we're really interested in the idea of something that can compile typescript into EVM bytecode, but that sounds incredibly dangerous without extensive proof solving shenanigans
+
+https://ethereum.github.io/yellowpaper/paper.pdf
+
+we get the idea of a minimal ts evm implementation that can "simulate" against a live chain by not reading the entire chain and simulating everything, but by using a set of nodes to question and only asking what's necessary, optionally using some consensus function or functions against the set of nodes for some added redundancy
+
+we wonder if the next thought is valid, and if so, the thought:
+why are there contract accounts and non-contract accounts?
+why can only contract accounts contain code and storage?
+our first thought is that it would compromise the idea of a "smart-contract" (szabo vending-machine interpretation) if a person could control one by knowing the private key that derives its address.
+for example, one can trust to a greater extent a smart contract to be approved to move their tokens and not expect it to suddenly move them in an unexpected or unacceptable way.
+but if a person knew the private key deriving that smart contract address, they could, at any time, sign a message to move contract-approved tokens wherever they pleased.
+if anyone was allowed to make smart contracts in such a way that they knew the private key deriving its address, the integrity of smart contracts would be fairly void.
+
+the EVM client is incredibly not modular. 
+
+```
+The state database won’t be forced to maintain all past state trie structures into the future. It should maintain an age for each node and eventually discard nodes that are neither recent enough nor checkpoints. Checkpoints, or a set of nodes in the database that allow a particular block’s state trie to be traversed, could be used to place a maximum limit on the amount of computation needed in order to retrieve any state throughout the blockchain.
+```
+
+what the fuck am i reading?
+
+```
+Finally, blockchain compression could perhaps be conducted: nodes in state trie that haven’t sent/received a transaction in some constant amount of blocks could be thrown out, reducing both Ether-leakage and the growth of the state database.
+```
+
+we have the idea of having one of the boys (o1-mini/claude X) helping us with a minimal implementation of the EVM in Deno TS (maybe a web-ready version)
+https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
+if we want a web-ready version, then that's probably the best option we have
+https://github.com/denoland/deno/issues/18962
+https://webkit.org/blog/12257/the-file-system-access-api-with-origin-private-file-system/
+*** https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
+https://developer.mozilla.org/en-US/docs/Web/API/File_System_API
+
+navigator storage doesn't exist in Deno, but does in the browser
+we can abstract a system that works with a storage provider and then just switch which one is used based on what's available, or throw if none are available
+
+now, how crazy do we want to get?
+total machine unification?
+first draft of the EVM yellow paper?
+current draft of the EVM yellow paper?
+
+total machine unification theory would have us create a new virtual machine (jsr shows no results for, VM, 'virtual' relating to machine, containerd, some docker wrappers, 
+
+https://github.com/denoland/deno/discussions/12626
+
+https://deno.com/blog/anatomy-isolate-cloud
+"Instead of deploying VMs or containers, we decided on [V8 isolates](https://chromium.googlesource.com/chromium/src/+/master/third_party/blink/renderer/bindings/core/v8/V8BindingDesign.md#Isolate), which allows us to securely run untrusted code with significantly less overhead."
+
+so. deno deploy is what we seem to be hurtling towards. it's a runtime, but "instead of VMs or containers, it's V8 isolates"
+
+the deno runtime _is_ the local version, there is no "local deno deploy"
+if we want alternatives to the "offered" deno deploy we just pick any cloud machine and stick the deno runtime on it
+
+we're getting tired and losing focus
+
+we want a modular and abstract pile of things that can be composed to simulate the EVM or more or less
+
+https://en.wikipedia.org/wiki/Finite-state_machine
