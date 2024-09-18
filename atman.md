@@ -5112,3 +5112,10 @@ we're getting tired and losing focus
 we want a modular and abstract pile of things that can be composed to simulate the EVM or more or less
 
 https://en.wikipedia.org/wiki/Finite-state_machine
+
+GRASP
+
+graph-based random-access stored-program machine
+
+- take the example implementation and recreate the first few steps of your pipeline where you create signers and fund them
+- then, certainly there will be some simplifications to be made along the lines of "create evm world storage with initializing nodes and edges" and some helper functions so we can make nodes and edges less tediously
