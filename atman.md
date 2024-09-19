@@ -5119,3 +5119,10 @@ graph-based random-access stored-program machine
 
 - take the example implementation and recreate the first few steps of your pipeline where you create signers and fund them
 - then, certainly there will be some simplifications to be made along the lines of "create evm world storage with initializing nodes and edges" and some helper functions so we can make nodes and edges less tediously
+
+actually, let's not even fuck with the graphs yet, but keep in mind. we'll start dead simple.
+
+we want two new utilities:
+- we want `new Signer()` called repeatedly for many signers
+- we want to create the world state with the signers' addresses mapped in an object to an object with a single balance property. we have a nice utility for exponential notation and bigints.
+- we think we can do both with zipping
