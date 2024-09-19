@@ -5126,3 +5126,13 @@ we want two new utilities:
 - we want `new Signer()` called repeatedly for many signers
 - we want to create the world state with the signers' addresses mapped in an object to an object with a single balance property. we have a nice utility for exponential notation and bigints.
 - we think we can do both with zipping
+
+took a weird amount of effort to figure out, but we now have a dedicated area for weird lift / repeat / take stuff and among that we have a utility that can construct repeatedly
+
+now we have a generator of instances, how should we build the world state?
+
+we want to wrap iterables with something fancier.
+we think the idea is to create an automaton
+really the EVM could be simulated by an iterable/iterator/generator
+
+let's actually go back to our Signer class and use generators with it
