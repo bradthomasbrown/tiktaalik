@@ -5136,3 +5136,119 @@ we think the idea is to create an automaton
 really the EVM could be simulated by an iterable/iterator/generator
 
 let's actually go back to our Signer class and use generators with it
+
+applyA1 is the most nuts thing we think we've made in a while.
+it seems to be typescript-specifically useful.
+
+a major problem is that if you lift a simple arrow function, then apply it to some arguments, you'll get type errors because typescript doesn't/can't infer the simple arrow function parameters from the arguments being applied to it
+
+applyA1 simply takes a function, a single argument, then applies the function to the argument
+this magically now makes typescript able to resolve that
+
+with liftA1 and applyA1 we can trivially implement liftA2, simply by taking an A2 function (we just realized the A stands for 'arity') and making a simple arrow function with tuple deconstructed parameters that applies those to some A2 function
+
+in fact, we can't think of a more concise way to do what we're doing besides tupling some parameters then using applyA1 and a liftA1'd tuple deconstruction arrow fn to apply the tupled parameters to the A2
+
+we could make liftA2, but we had difficulties with the repeat generator repeating the reference to an object instead of creating a new object, and not being able to concisely express an object factory
+
+alright
+we're not entirely sure what we made but it works and it's blending our brain
+
+if we take a function
+then repeat it
+we get an infinite generator of that function
+makes sense
+
+this is the blender part:
+`liftA1(applyA0)`
+
+applyA0 takes a nullary function and executes it
+liftA1 takes a function and "lifts it over iterables". we are not intuitively understanding how that applies to applyA0
+
+liftA1 specifically takes an unary function then returns a new function that takes an iterable of parameters and returns a generator that yields the application of the unary function to each parameter
+makes sense
+
+so applyA0 is itself an unary function. liftA1 then returns a new function that takes an iterable of (functions) and returns a generator that yields the application of (applyA0) to each (function)
+that's fucking wild
+
+actually, we think we can make it more intuitive via our apply reduction of lift. nevermind, we've just created two very weird looking things instead of just one:
+
+```ts
+const foo = liftA1(applyA0)(repeat(() => new EvmSigner().address, 5))
+const bar = applyA1(liftA1(c => new c().address), repeat(EvmSigner, 5))
+```
+
+both have the same effect, but bar seems more intuitive, so maybe we were correct
+we can't do the same thing with the object though, or we could but not as concisely. we'd have to use `structuredClone` instead of `new`
+for that, we end up with these two incantations:
+
+```ts
+const foo = liftA1(applyA0)(repeat(() => ({ balance: bᴇ(1n, 18n) })))
+const bar = applyA1(liftA1(structuredClone), repeat({ balance: bᴇ(1n, 18n) }))
+```
+
+bar is more intuitive, but foo is quite a bit more concise.
+we can now build state like this:
+
+```ts
+const baz = liftA2(state.setAccount.bind(state))(
+    applyA1(liftA1(c => new c().address), repeat(EvmSigner, 5)),
+    liftA1(applyA0)(repeat(() => ({ balance: bᴇ(1n, 18n) })))
+)
+```
+
+aha, this might be the most concise, and is fairly intuitive:
+
+```ts
+// start with `f`, an A1 arrow function that takes an EvmSigner constructor and applies state.setAccount to a tuple of a new signer instance's address and a starting account state of just a balance
+// lift this so we can give it a generator of EvmSigner constructors
+// repeat the EvmSigner constructor 5 times
+// now apply lifted `f` to the EvmSigner constructor generator
+const boo = applyA1(liftA1(c =>
+	state.setAccount(
+		new c().address,
+		{ balance: bᴇ(1n, 18n) }
+	)
+), repeat(EvmSigner, 5))
+```
+
+a peculiarity is that `boo` is a generator that essentially is encoded with what we want to do.
+except, it won't do it unless we iterate over the generator
+
+```ts
+for (const _ of boo);
+```
+
+we should probably make a utility that can do this for such effectful generators
+amusingly, applyA0 with an arrow function using the above peculiarity works great
+
+we can shorten that with:
+
+```ts
+function iterate(i: Iterable<unknown>): void {
+    for (const _ of i);
+}
+```
+
+so now we have, in total
+
+```ts
+const state = new EvmState
+
+iterate(applyA1(liftA1(c => state.setAccount(new c().address, { balance: bᴇ(1n, 18n) })), repeat(EvmSigner, 5)))
+
+console.log(state)
+/*
+EvmState {
+  accounts: {
+    "0x592...929": { balance: 1000000000000000000n },
+    "0xc05...a06": { balance: 1000000000000000000n },
+    "0xea6...8d7": { balance: 1000000000000000000n },
+    "0xc19...301": { balance: 1000000000000000000n },
+    "0xa4d...56e": { balance: 1000000000000000000n }
+  }
+}
+*/
+```
+
+alright, we created an "initializeAccounts"
