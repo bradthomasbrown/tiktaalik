@@ -5253,3 +5253,20 @@ EvmState {
 
 alright, we created an "initializeAccounts"
 
+we want to make a "classic" overload from our more insane variety.
+the pros/cons would be that it is easier to work with and use and has less boilerplate, the cons would be that, in order to make sure we're targeting the right implementation, we need to implement potentially expensive checking 
+
+we can't skip a function arg and have that put undefined in. well, sort of. we can, but we need to destructure a tuple into the arguments.
+
+```ts
+foo(1,, 3) // ERROR
+foo(1, undefined, 3) // OK
+foo(...[1,, 3]) // OK
+```
+
+we keep running towards the idea of a class that represents a generator and a state
+
+more things to consider with our FooA1:
+- the value of an iterator result is T or TReturn, if not done or if done, respectively
+- the next function of an iterator *can* take args of type TNext
+- an iterator also *can* have a return function that takes an optional TReturn value or a throw function that takes an optional any value
