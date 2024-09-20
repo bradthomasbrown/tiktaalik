@@ -5376,3 +5376,8 @@ enum FooA1Mode {
 
 we think one of the final pieces to this puzzle we're on right now is that we aren't using TNext in our generator-thing.
 we're not sure yet if it's naive or intuitive or both (or how much of one or the other) to just `a = yield a`
+
+claude:
+"It might be particularly useful in scenarios requiring complex state management, like game development, simulations, or sophisticated UI interactions."
+
+oh shit, could we use this to make the web3 UI stuff less ass? that'd be a godsend
