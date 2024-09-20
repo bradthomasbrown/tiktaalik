@@ -5506,3 +5506,28 @@ if we change the regex to `((.)(.{0,2}\2)+)+`, we can glob all of the matches, t
 from that, we can envision that words with a valid character can "invade" into the matched space, so we should only remove characters from matches that cannot be reached by an "invading" word with a valid character
 
 for our 5-char, this means (n - 1) from each side cannot be touched
+
+looks good so far
+
+```
+# greedy
+  0 3125
+456 1142
+
+# pinFirstSignificant > repeatSimple
+  0 3125
+156  539
+
+# repeatSimple > pinFirstSignificant
+  0 3125
+586 1446
+```
+
+ah, rules were all wrong again
+this time we're verifying against permutations
+
+```
+# pinFirstSig > repeat
+500 1636 121/121
+
+```
