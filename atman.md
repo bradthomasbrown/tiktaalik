@@ -5272,3 +5272,107 @@ more things to consider with our FooA1:
 - an iterator also *can* have a return function that takes an optional TReturn value or a throw function that takes an optional any value
 
 https://mathworld.wolfram.com/topics
+
+B(k = 3, n = 3)
+FFFPPPTPP X
+1. FFF
+2. FFP
+3. FPP
+4. PPP
+5. PPT
+6. PTP
+7. TPP
+8. PPF
+9. PFF
+
+it seems to have found itself stuck
+after a lot of staring at it and not being able to determine why it got stuck, we decided to go and look for our earlier implementation,
+it's basically the same idea, except we initialize with "one end" of the alphabet, then "prioritize" the other end. somehow, that seems to work:
+
+TTTFFFPFFTFPPFPTFTPFTTPPPTP
+
+<table>
+	<tr> <td>01. TTT</td> <td>02. TTF</td> <td>03. TFF</td> </tr>
+	<tr> <td>04. FFF</td> <td>05. FFP</td> <td>06. FPF</td> </tr>
+	<tr> <td>07. PFF</td> <td>08. FFT</td> <td>09. FTF</td> </tr>
+	<tr> <td>10. TFP</td> <td>11. FPP</td> <td>12. PPF</td> </tr>
+	<tr> <td>13. PFP</td> <td>14. FPT</td> <td>15. PTF</td> </tr>
+	<tr> <td>16. TFT</td> <td>17. FTP</td> <td>18. TPF</td> </tr>
+	<tr> <td>19. PFT</td> <td>20. FTT</td> <td>21. TTP</td> </tr>
+	<tr> <td>22. TPP</td> <td>23. PPP</td> <td>24. PPT</td> </tr>
+	<tr> <td>25. PTP</td> <td>26. TPT</td> <td>27. PTT</td> </tr>
+</table>
+
+it is actually extremely entertaining to see how one can use these sequences to build an enum of "function modes"
+consider we have a function `g` that takes three parameters, some of which are optional, which we shorthand as `f`, `p`, and `t`. we don't need every possible combination of parameters, but we create a fascinating way to "align" the enum options with a debruijn sequence:
+
+```ts
+enum FooA1Mode {
+    NULL,
+//  FFFPPPTPPFPTTPTFPFTPFFTTTFTFF
+    F                          ,
+       P                       ,
+          T                    ,
+      FP                       ,
+         PT                    ,
+                             FT,
+             FPT
+}
+```
+
+since the debruijn contains every possible substring of our "alphabet" `{f, p, t}`, we can align any possible enum option.
+
+we are interested in the idea that some parts of the string are "nonsensical", such as the beginning `FFF`
+we wonder...
+if we search simply and deterministically for the regex `/(.)\1/`, we can find "nonsensical" parts and reduce them to a single character.
+then, we can do `/(.{x}).*\1/` to find any repeats the previous step may have cause to appear, and we can remove the repeats. we imagine that last step would break the "de bruijn-ness" of the string
+
+reducing the "nonsensical" parts shortens
+`FFFPPPTPPFPTTPTFPFTPFFTTTFTFF`
+to
+`FPTPFPTPTFPFTPFTFTF`
+
+more reasonably, we can only remove an n(3)-lenght substring if it _and its context_ is repeated
+we think that _if_ that ever occurred, it'd be rare and possibly could be obscured by the boundary where the string is intended to "wrap"
+we can determine if this is the case by making a lazy regex like `/(.)(.{x})(.).*?\1\2\3/`, then something that we may not describe well:
+- duplicate the string
+- the regex should match, and it should ONLY produce a match the length of the string
+	- if the match is longer than the string, then that indicates contextual duplication
+- one can then iteratively shift values off the string, checking as they go, until the duplicated string's length is x + 2, at which point shifting one more value should break the match (since now the duplicated string is shorter than x + context)
+
+so now our enum should be just as capable, but is more consise:
+
+```ts
+enum FooA1Mode {
+    NULL,
+//  FPTPFPTPTFPFTPFTFTF
+    F               ,
+     P              ,
+      T             ,
+    FP              ,
+     PT             ,
+                  FT,
+    FPT
+}
+```
+
+if we make separate debruijn strings and collapse them for the different possible lengths of parameters, we get (note, we take the first char and duplicate it to the end for n > 1, just in case a possibility is obscured by the wrapping boundary):
+
+```ts
+enum FooA1Mode {
+    NULL,
+//1 FPT
+    F  ,
+     P ,
+      T,
+//2 FPTPFTF
+    FP    ,
+     PT   ,
+        FT,
+//3 FPTPFPTPTFPFTPFTFTF
+    FPT
+}
+```
+
+we think one of the final pieces to this puzzle we're on right now is that we aren't using TNext in our generator-thing.
+we're not sure yet if it's naive or intuitive or both (or how much of one or the other) to just `a = yield a`
