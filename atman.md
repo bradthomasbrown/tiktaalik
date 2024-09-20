@@ -5270,3 +5270,5 @@ more things to consider with our FooA1:
 - the value of an iterator result is T or TReturn, if not done or if done, respectively
 - the next function of an iterator *can* take args of type TNext
 - an iterator also *can* have a return function that takes an optional TReturn value or a throw function that takes an optional any value
+
+https://mathworld.wolfram.com/topics
