@@ -5381,3 +5381,128 @@ claude:
 "It might be particularly useful in scenarios requiring complex state management, like game development, simulations, or sophisticated UI interactions."
 
 oh shit, could we use this to make the web3 UI stuff less ass? that'd be a godsend
+
+glA1:FPT mutates the value you give it, which isn't always ideal
+if i want to wrap an iterator result in a generator that yields the value only if not done
+right now we have: `if (done) return; else yield value` in a single, dedicated function.
+there's a thought, instead of going for for loops, why not a simple if-then?
+
+when we have larger de bruijn param strings, there's an additional thing we think we can use to whittle things down, sort of an extension of the "double-letter" rule:
+- if we have x params, every single substring of length x containing some param p more than once can be reduced or collapsed in some way, since that substring is not ever going to be used
+
+let's look at it a certain way, for the 3-param `FPT` substring `FFP`:
+
+```
+xxxF|FPxxx
+SSS	|	   maybe
+ SSS|	   maybe
+  SS|S	   no
+   S|SS	   no
+    |SSS   maybe
+    | SSS  maybe
+    |  SSS maybe
+```
+
+let's try to see that with the 5-param `CRIYE` substring `ICYCY`
+the last maybe of the first group ends on Y and the first maybe of the second group starts on the next letter C
+
+```
+xxxxxICY|CYxxxxx
+SSSSS	|  	     maybe
+ SSSSS  |        maybe
+  SSSSS |        maybe
+   SSSSS|        maybe
+    SSSS|S       no
+     SSS|SS      no
+      SS|SSS     no
+       S|SSSS    no
+        |SSSSS   maybe
+        | SSSSS  maybe
+        |  SSSSS maybe
+```
+
+we've added a pipe that starts before the last character of the first no and after the first character of the last no. in both cases, this is the same pipe
+
+new thoughts:
+- if the pipes weren't the same pipe, but had a "middle area", we should be able to delete the middle area. 
+- otherwise, we delete nothing,
+- but the double-letter rule can still always be used separately
+
+```
+xxxFPFxxx
+SSS       maybe
+ SSS      maybe
+  SSS     maybe
+   SSS    no
+    SSS   maybe
+     SSS  maybe
+      SSS maybe
+``` 
+
+`/(.)\1{1,}/` is a more general double-letter rule regex, probably better called the more-than-one-letter-rule? double-plus-letter-rule?
+
+let's take our original massive 5-param string and pick something we think may prove interesting: a match of `/(.)\1...\1\1/`
+we see double letters as a sort of "damaging" thing, and any arrangement that "prevents" a string from being "undamaged" over a certain distance might show new areas that can be removed.
+we think (n - 2) might be the max distance in between two of those, which we want to call "forks" for some reason, where the distance between may be able to be rendered removable.
+actually, we can think of another scenario which we want to call "pins":
+`/(.)(.{x}\1){1,}/`, where `x` is `(n - 1) // 2 - 1` (and `//` is integer division).
+we think the idea is that if you think of a point one char wide and a string of chars, and you position the string so that the point is as close to the middle as you can get:
+
+```
+S SS SSS SSSS SSSSS SSSSSS SSSSSSS
+P P   P   P     P     P       P
+```
+
+then you "can't" allow points to be "under both ends":
+
+```
+SSSSS OK
+  P P
+
+SSSSS ERR
+P P P
+```
+
+which means our regex might be a bit more complicated for even-length strings, since we shouldn't be flooring the halved distance, but realistically and expressively "one shorter distance and one longer distance"
+
+so how about: `l = (n - 1) // 2 - 1, r = (n - 1) - l`
+then `(.)(.{0,l}\1.{0,r}){1,} | (.)(.{0,r}\1.{0,l}){1,}`
+or more simply, if `d = l == r`
+then `(.)(.{0,d}\1){1,}
+
+huh. if that works the way we think then in the large string there's a 123-length string that can wiped out in one pass. that regex also finds all of the double letters as well, so that may be our generalized special thing we wanted
+
+let's look at our earlier analysis but with an 8-length match `RERYCRCR` against the 5-param `CRIYE`
+
+```
+xxxxxRE|RYCR|CRxxxxx
+SSSSS  |    |        maybe
+ SSSSS |    |        maybe
+  SSSSS|    |        maybe
+   SSSS|S   |        no
+    SSS|SS  |        no
+     SS|SSS |        no
+      S|SSSS|        no
+       |SSSS|S       no
+       | SSS|SS      no
+       |  SS|SSS     no
+       |   S|SSSS    no
+       |    |SSSSS   maybe
+       |    | SSSSS  maybe
+       |    |  SSSSS maybe
+```
+
+hypothetically then we should be able to remove that entire middle segment without a loss in the usefulness of the underlying string
+
+hot damn, this new thing + removing doubles has already shrank the string we got by 40%-ish
+but now we have some interesting dilemmas:
+- after removing doubles, the first rules apply again
+- do we double rule first, then pin rule? pin then double? weave them?
+- we can try a greedy approach. do a repeat (calling it repeat now instead of double) rule, then a pin rule, then act against whichever is longest repeatedly until neither rule matches
+
+hm, seems some of our logic is wrong, since the pin rule destroys a word
+if we change the regex to `((.)(.{0,2}\2)+)+`, we can glob all of the matches, then we can view it as "everything not matched should be considered a valid character on any index of a string
+
+from that, we can envision that words with a valid character can "invade" into the matched space, so we should only remove characters from matches that cannot be reached by an "invading" word with a valid character
+
+for our 5-char, this means (n - 1) from each side cannot be touched
