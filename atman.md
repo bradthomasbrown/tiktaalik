@@ -5610,3 +5610,60 @@ else ((): never => { throw new Error("NeverIIFE") })()
 
 boo // let boo: true
 ```
+
+destructuring with no unchecked index access is annoying, especially if we want to generate a handful of things and destructure them into variables
+
+however, there's two ways about it:
+- a generator function that takes a length and typescript computing function that takes the length and returns an appropriate tuple
+- a generator function that takes a tuple and returns a transformed tuple, where we could pass in a tuple defining length like `[]` for one or `[,,,,]` for five
+
+we need to deploy a contract, or at least pretend we have done that
+here's a weird thought: selfdestruct still works, doesn't it? (just in cases where the contract is destructed in the same transaction it is made)
+
+we do want to really deploy the contract the same way it would work on a "real" EVM, being able to do that would/should mean that we can do most other things
+
+interesting thought: we were messing around for a while with the idea of generalizing different control flow structures into a function
+an opcode is just a function, really, the bits that come immediately after are the parameters
+why not have opcodes that generalize control flow structures?
+IF C T E
+where C is a conditional value, T is a value that goes on the stack if the condition is truthy, E is a value that goes on the stack if the condition is falsy, where the opcode gets those by popping the top three values of the stack.
+
+so far, we've only ever seen or heard of jumps, and in the EVM you'd jump around and PUSH instead of the above
+
+you could implement all sorts of wild things with various control structures and values that represent values or function pointers
+
+luckily for us, "deploy a contract" is already broken into many steps for us to work on, since we have a `deploy` function in our mini-library. it takes a signer, bytecode, and an optional arg string
+
+```ts
+async deploy(signer:Signer, bytecode:string, args:string='') {
+        const from = signer.address
+        const input = `0x${bytecode}${args}`
+        const nonce = await this.nonce(signer.address, 'latest')
+        const gasLimit = await this.estimateGas({ from, input }, 'latest')
+        const gasPrice = await this.gasPrice()
+        const data = input
+        const chainId = await this.chainId()
+        const signedTx = signer.signTx({ gasLimit, gasPrice, data, nonce, chainId })
+        const address = `0x${keccak256(encode([signer.address, nonce])).slice(-40)}`
+        const hash = `0x${keccak256(hexToBytes(signedTx.slice(2)))}`
+        const contract = { address, hash }
+        this.sendRawTx(signedTx)
+        await this.wait(contract.hash)
+        return contract
+    }
+```
+
+first real thing done here is `await this.nonce(signer.address, "latest")`
+
+we don't need to simulate EJRA at all for this since it's just a local testing thing (right now), and that can always be added on top of whatever this ends up being later, if needed
+
+so what remains is that we need to get the nonce.
+for us, that should be extremely easy
+
+we're now thinking about separating the whole accounts structure into something more specific to that purpose, where it would be extending a map and overriding the get/set methods so that getting/setting account information makes sure the account exists in full
+
+that way, we can "get the nonce" of a signer and if they don't exist, they can just be created on the fly
+
+we think that we may then want to abstract Signers into Real and NotReal, since this would allow us to store account state information additionally for "real" accounts that we don't have the full key-pair for
+
+we seem to be wanting or liking situations where many things need to be done to be handled by having one function that does one thing, then functionally using some utilities to do the thing many times, rather than implementing another function next to the original that's just "above, but many times"
