@@ -5531,3 +5531,82 @@ this time we're verifying against permutations
 500 1636 121/121
 
 ```
+
+we found a new rule, which we can see as a pattern and have yet to put into words, even in our own mind, which we want to call the "pin with twists"
+
+- the pin rule roughly works with the idea that for a string of length `n` that must contain unique symbols, we can't match it to another string of the same length that does not contain unique symbols. this makes sense.
+- if we imagine the other string is of infinite length, and we "line" up our string to a substring of that string, the same rule applies: if the substring does not contain unique symbols, then we cannot match any string of length `n` requiring unique symbols to that substring.
+- if we then "shift" the infinite length string once to the left (one can also imagine we "shift" our string right-ward against the infinite string), then we can check again.
+- we can mark symbols of the infinite string where we were unable to line up our string.
+- if there are enough successive marks, then we can remove some of the symbols of the infinite string without "losing" any ability or occurrences to match up our string, thus we can "reduce" the length of the infinite string (that might not make a lot of sense, reducing the length of an infinite string. really it's not "infinite" as much as it "loops", but that probably opens another can of worms so we want to start with the simpler conceptual notion of an infinite string)
+- there is a problem with the above rule, which we loosely believe contains the concept of the "pin" rule, which is that it appears the "marks" are contextually sensitive to the symbol(s) used to determine whether or not we "mark". for instance, if we have a string of length 4 that must be unique, and an infinite string like `...abababababa...`, then there is no way to line up our string against any substring of the infinite such that the substring will be unique.
+- actually, that's an interesting example, since a string of length 3 won't match either, and to try and show why we chose that for 4 we'd need to do something odd, like:
+  `...abababcbababa...`
+  here, you can see that `abc` and `cba` would be valid unique length 3 substrings, but otherwise one cannot find any unique length 4 substring. we call this the pin rule because the way we saw it at first is that if we take away everything but `b`, we get the below configuration, where you imagine that if our string is some "board" or "plank", there will always be two "pins" holding it up, which can be thought of as "if it's impossible for the board or plank to be anywhere and not held up by two pins, that's the same as there being no substring of length n with unique symbols"
+
+```
+      ssss ssss ssss ssss          bbbb bbbb bbbb bbbb    
+  ... b b b b b b b b b b ...  ... b b b b b b b b b b ...
+```
+
+- but what we didn't do was imagine the the "boards" that cannot be held up are "made of" the same such symbols as the pins holding them. to the right in the above we've added a duplication of the concept except indicating that our "boards" are made up of the same material as the "pins"
+- before, we imagined that marked areas can be "removed" but only parts of those marked areas: a string of length n may "invade" the marked area such that one symbol is matched against an unmarked symbol and all others are matched against a marked symbol:
+  
+```
+              bbbb
+	... b b b   b b b b b b ...
+✗	   bbbbbbb bbbbbbbbbbbbb
+✓          bbbbbbb
+```
+
+- in the above, we have our infinite string with only b-flavored pins shown, our plank of b's, and below we've marked the areas under the pins such that if we imagined overlapping planks placed at every possible position, the areas marked are the planks that cannot exist
+- we then think it would make some sense, but to do the same in the reverse, showing where planks can exist. we use the "[ballot x](https://www.compart.com/en/unicode/U+2717)" and "[check mark](https://www.compart.com/en/unicode/U+2713)" to prefix the lines, such that ballot x shows areas of impossibility and check mark shows areas of possibility.
+- one can then see this and interpret a rule, such that "areas of not possibility can be removed", which is oddly different and not compatible with "areas of impossibility", since the two can overlap. there's probably a better way to name these areas then, such that we don't say "areas of impossibility" as it's not precisely the opposite of "areas of possibility".
+- we then think we can extend this for strings of any number of symbols so that the rule is "substrings where there are no possibilities for ANY symbol can be removed"
+- we then think we can make an algorithm more efficient if we consider the string as a de bruijn one that isn't exactly infinite, but as one that loops.
+- we have a visual concept of what the operation would look like, that may be difficult for us to describe, but we'll try to do so:
+  imagine a loop. imagine some arcs of the loop are red and some arcs are green. you can cut out any red arc, pulling the now free green ends together to close the loop again. you can do this for all red arcs, and end up with a fully green loop.
+- we want some way to algorithmically represent a looping string or structure, such that we can operate on the structure without needing to bring it "back and forth" from the conceptual world of looping and nonlooping objects. to make an operation that operates on "the whole loop", one would need to be able to identify their location on the loop.
+- we can think of one reasonable way to do that right now with javascript and a more general but difficult direction:
+  if the loop consists of linked objects, we can very simply take note of the object we start on and just proceed in one direction, checking if the object we're on now or the one we'll be at next is the one we started with.
+  if the loop consists of primitives, like strings (characters for a de bruijn sequence string), however, then that doesn't work, and we don't like that which doesn't work generally.
+	- one could take a section from the beginning of the string, add it to the end, then perform some operation on substrings that stops once it would become out of index, although this is more of a conceptual facade and any operation that might "delete" would then have to be aware of this and if the end needs to be deleted, that would need to be replicated at the beginning, then the end would need to be removed. tracking all of those parts sounds messy
+	- we could create linked objects for every character, but that sounds expensive
+	- we could create a map of indicies to indicies, this could be done very quickly for most of the string and some special handling for just the end character of the string (map indice to indice + 1, except the last which would map to 0).
+		- from this, there's two ways to operate, each with pros and cons:
+		-  1. we "load" a substring symbol by symbol. always works, very simple, but symbol by symbol is slow
+		- 2. we "load" a substring by simply using substring, if the indicies don't cross the looping boundary, or by connecting two substrings if the indicies do cross the looping boundary. this is probably much faster, but isn't as simple
+		- we'd probably then want to be able to operate against the substring, such that the operations are reflected by the map. then, there should be some operation to get a string representation (or some variants of possible representations) of the map, much like how we sometimes added a bit of the beginning of the string towards the end so that we could align things
+
+https://www.compart.com/en/unicode/U+2713
+
+all sorts of logical leaps now:
+https://en.wikipedia.org/wiki/Automata_theory
+the first level in the graphic there is combinational logic
+we tried to generally implement for-loops, then backed down to the humble `if-then`, but really we could generalize to `a() || b()`, `a() && b()`. but one thing we noticed is that typescript didn't follow us when we made our for loop, such that the types in the statement/body didn't reflect the implications of the condition
+(if the statement worked on some initial x | undefined, and the condition was x !== undefined, our "functional for loop" did not identify that the condition applied to the initial value and that the statement function should only be x, never undefined)
+
+another idea: you can tell if a number is even or odd just by the number that it ends with. you can also tell what the least significant bit is in a number just by knowing if the number is even or odd.
+so even typescript could trivially determine the first bit in a bit representation of a number by converting the number to a string and checking if the last decimal belongs to "evens" or "odds"
+
+we wonder if this could be extended to create a bit string in general
+
+we wonder if one could determine if a number was greater than or equal to some power of two by simply working out the bit string of the number in that way, where one may not even need to store the contents of the bit string
+
+with that, one may be able to make typescript type check inputs to a function encoding `uint256`
+
+```ts
+function foo<X>(x: X) {
+    if (x) return x
+    return ((): never => { throw new Error("NeverIIFE") })()
+}
+
+declare const baz: boolean
+const bar = foo(baz) // const bar: boolean
+
+let boo
+if (baz) boo = baz
+else ((): never => { throw new Error("NeverIIFE") })()
+
+boo // let boo: true
+```
