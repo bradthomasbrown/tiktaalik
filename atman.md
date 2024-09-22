@@ -5667,3 +5667,8 @@ that way, we can "get the nonce" of a signer and if they don't exist, they can j
 we think that we may then want to abstract Signers into Real and NotReal, since this would allow us to store account state information additionally for "real" accounts that we don't have the full key-pair for
 
 we seem to be wanting or liking situations where many things need to be done to be handled by having one function that does one thing, then functionally using some utilities to do the thing many times, rather than implementing another function next to the original that's just "above, but many times"
+
+estimate gas.
+actually, we think we won't want to do what the EVM did, since they handle gas estimation stupidly.
+specifically, gas estimates are returned after including the refund awarded at the end of the transaction, so one may get a gas estimate, then use that estimate and get a failing transaction, since the transaction will run out of gas before it reaches the end, where the refund is awarded
+
