@@ -5672,3 +5672,10 @@ estimate gas.
 actually, we think we won't want to do what the EVM did, since they handle gas estimation stupidly.
 specifically, gas estimates are returned after including the refund awarded at the end of the transaction, so one may get a gas estimate, then use that estimate and get a failing transaction, since the transaction will run out of gas before it reaches the end, where the refund is awarded
 
+first, we should start with the basics
+1. "intrinsic" gas paid prior to execution
+	1. add the sum of the cost of calldata bytes
+	2. add the tx creation cost + "R(||T_i||)" if the to address is 0
+		1. seems ||x|| means size, R is the initcode cost function R(x) = G_initcodeword * x/32, so "R(||T_i||)" is the init code word cost (currently 2 per word)
+	3. add G_transaction
+	4. add the sum of the costs of warming up the access list (G_accesslistaddress + number of storage access * G_accessliststorage
