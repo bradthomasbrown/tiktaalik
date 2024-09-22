@@ -5679,3 +5679,4 @@ first, we should start with the basics
 		1. seems ||x|| means size, R is the initcode cost function R(x) = G_initcodeword * x/32, so "R(||T_i||)" is the init code word cost (currently 2 per word)
 	3. add G_transaction
 	4. add the sum of the costs of warming up the access list (G_accesslistaddress + number of storage access * G_accessliststorage
+2. if contract-creation occurs and is successful, add G_codedeposit * ||o||
