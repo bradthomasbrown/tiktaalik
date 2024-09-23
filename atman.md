@@ -5703,3 +5703,87 @@ on the other hand, *perhaps* some door or combination of doors could be more eff
 
 perhaps going through any door guarantees we won't reach our goal on the horizon, since they change which direction we're going.
 if we knew that was true, we'd *have* to go through the snakes.
+
+oh shit
+
+we've been wanting to hierarchically, logically organize our folders all this time, and we've also been building an ontology, oumn, which is a hierachical, logical organization of our concepts
+
+they should be the same
+
+suddenly, what we're building then has a place: under machine, under symbolic
+
+since we aren't technically very financially stable (we'd say that would only be true if we have something like 5-10 years worth of assets for our current costs, not thinking about volatility), we think we shouldn't do some "big move", but we shouldn't discount doing a smaller move.
+(why)
+if we're optimistically burning $3k a month, we've got 4.5 years, if nothing changes.
+however, not too long ago, we checked and we should've had 5 years, with a $15k difference in value of something i haven't touched, so that value decreased.
+we may want to try and act on that, sort of hedge what we have
+if we nuke our loan and optimize a bit, we should be down to $2.5k a month minus $20k, putting us at... the exact same amount of time, interestingly, except we nuke the loan. ironically we might want to keep the loan then, since *cough* some people give me good g-- boy points for being in debt, and those points can be useful in the future, maybe (our no income stream kinda throws it all out of wack).
+
+claude has nice suggestions, I could pay a partial chunk of the loan off so that it isn't such a huge part of my expenses. average debt-to-income ratio is 10%, so our 16% is quite high. if we can math that out so that we can tank it down to something like 7.5% then that'd probably be an all-around good thing. oh wait, we don't have an income, we have expenses.
+
+we can also then just keep enough cash *next* to the loan (in a sense) so that we can pay it off at any time in case things get a bit sour, so i always should have a panic button to make that not an issue, so i can focus on other things
+
+let's expand on two paragraphs up: "50-20-30 rule, 50% of income to necessary expenses (living, food, essentials), 20% to debt and savings, 30% towards whatever makes us happy"
+
+$500 to debt would be roughly equivalent to a $2.5k income, $1250 necessary expenses, $750 discretionary expenses, monthly
+
+$3.2k to necessary expenses, but that is a slight bit high due to medical
+that's way fucking high compared to the estimate. why is that so high?
+https://www.bls.gov/regions/southeast/news-release/consumerexpenditures_tampa.htm
+https://www.bls.gov/opub/reports/consumer-expenditures/2022/
+we'll use this as a rough guide, although it is old data and tampa
+- 35% on housing
+	- ours is 43%. (rent, utilities, internet, phone)
+- 17.5% on transportation
+	- ours is 4.5%. (includes auto insurance, really the only expenditure)
+- 12.5% on food
+	- ours is 10%. 
+- 12.5% on personal insurance
+	- ours is 9.5%
+- 7.5% on healthcare
+	- ours is 8.5%, but it was very high for the selected time period specifically
+- 5% on entertainment
+	- i'm wildly guessing here that ours is 1%
+- 2.5% on apparel and services
+	- we're guessing around 4%
+- 5% uncategorized
+	- 20%! although this includes my expenditures on my projects, and my loan, and some other uncategorized things (random shit like bug bait and traps from amazon). to break things down further here:
+		- 8% on projects. again, further
+			- 4.5% on X gold checkmark, we can probably remove this or knock it down to blue
+			- 1% on digital ocean (VMs, dev box), definitely want to keep this
+			- 0.4% on gsuite (email addresses basically)
+			- 0.5% on github enterprise. not really sure if necessary right now, but at this point i don't want to have the company name squatted on and this might be worth the cost
+			- 0.7% on the domain name
+			- 0.4% to microsoft. we think this is just for visio, which we don't really have a replacement for
+			- 0.5% to deno, they're hosting the main website
+		- 11% on debts. all one loan
+		- 1% on miscellaneous
+
+"50% of income to necessary expenses, 30% discretionary, 20% to debt and savings"
+if, in the above, we say housing, transportation, food, insurance, healthcare are necessary,
+entertainment, apparel, and services are discretionary,
+uncategorized can either be discretionary or debt/savings
+that's a minimum of 85% of expenditures to necessary expenses, and a max of 15% of expenditures to anything else
+
+am i misunderstanding something here, or is that "50-20-30" rule absurdly outside of reality?
+claude says that it's for specific groups of people of which we definitely don't fall under (those with subsidized housing or similar advantages, dual income no kids middle class, people earning a high income relative to the cost of living where they are, people who've paid off their mortgage, etc.)
+as "one person in an apartment" i'm pretty much immediately excluded from attaining that
+
+we should almost certainly knock the gold checkmark down to a blue one, then chunk the loan a good bit.
+then, with the expected reduction in medical expenses (knock on wood there, christ),
+our only above average expenditure is cost of living, which, given 
+
+by the way
+https://data.census.gov/
+is fucking dope, if you can use it
+DP05
+kentucky
+corbin
+
+oh fuck
+we found a place for rent that's also for sale
+a newly built manufactured home
+it's a fucking preserve lot
+the appliances inside look brand new
+why is that oh fuck?
+because we could feasibly afford the entire price tag
