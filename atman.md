@@ -5788,3 +5788,5 @@ the appliances inside look brand new
 why is that oh fuck?
 because we could feasibly afford the entire price tag
 
+TALEUREI
+name of the new machine
