@@ -5790,3 +5790,12 @@ because we could feasibly afford the entire price tag
 
 TALEUREI
 name of the new machine
+
+riddle me this, sleep-deprived manic other-me:
+where would we be the most productive?
+- a slapped together manufactured home in rural nowhere 10 hours away from anywhere familiar, for 11 years?
+- or somewhere close and familiar, but just simply far nicer, for 7 years?
+give the close and familiar but nicer option a try, if you truly hate having nice things, then wait a year in miserable luxury before exiling yourself amongst the hill people
+now go pass out so you can be closer to enjoying another peanut oil fried egg and cheese bagel
+
+tomorrow, we work on `Oumn/Machine/Taleurei`
