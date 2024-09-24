@@ -5999,3 +5999,61 @@ at the above ##FOO marker, it looks like we were trying to make each statement n
 
 so machine perspective would say: we want a machine that can be given an object and then can be used to lazy load versions of that object's methods with the object bound to be the `this` of the method
 
+done, and now we got all the way to producing a random 256 bit key with a single randKey256 function call with no args
+
+had to do some weird shit to get there
+- overloaded functions probably have to have the strictest applicable overload ripped out of them, or else they are useless (since TS infers the last (presumed most general) overload always, you basically cannot use overloaded functions except for directly calling (no composition, application, etc.))
+	- example of this is Reflect.apply, which is goofy as fuck because it has a perfectly nice signature, then is overloaded with a signature that effectively disables the type checker. so we create `strictReflectApply`, a function that is just the first signature. We also partially apply it, since that ended up being useful later
+- lazyBindingProxy
+	- if you pull a method out of an object and that method uses a `this` value, you will most likely crash trying to use the method. if you want to cut down on member access / function call chaining, that sucks. we create a function that takes an object, then returns a proxy, where every get we try to pull from a map the value using the property as a key. if it's not in the map, we check if it's a function, if it is, we add the bound function to the map with the property as the key. if it isn't we just return the value
+- compose
+	- compose two functions. this isn't as simple as one may think, because typescript inference comes to the rescue and wrecks everything in some scenarios. namely, one cannot partially apply a generic function without the partial application being ALL of the generics (we conjecture), since the generics will then be inferred as unknown when the partial application is evaluated. This breaks type checking when we try to use the evaluated partial application.
+	  We guess then that if you ever want to compose two arity-1 functions, where one is a generic and the other isn't, that you must start with the one that isn't generic. This means you'll probably end up with two composition functions, or some switch structured thing.
+	  We also guess then that if you ever want to compose two generic arity-1 functions, you can't. We guess that what you'll have to do is some third composition function option that is an arity-2 composer that takes both of those at the same time
+	  ### amendment
+	  we may want to amend the above to specify that the "issue" occurs if the first function given is generic and is also the one we want the return value from.
+	  like overloads, we can probably fix this by ripping out a single type from the constraint.
+	  we specifically saw an issue trying to make a composable "getRandomValues" function that could take a length and produce a random Uint8Array of length `n`.
+	  since "getRandomValues" is generic, if we make a composition function that takes it first, it appears that the return type is inferred as the union of the constrained type, but the argument is inferred as unknown
+
+you can sort of work around it by instantiating the generic (ripping out a single type like we said), but this almost certainly indicates that you cannot compose a generic like that at all such that the composition is also generic
+
+```ts
+type FnB<
+    T = unknown,
+    A extends unknown[] = unknown[],
+    R = unknown
+  > =
+    (this: T, ...a: A) => R
+
+const composeB:
+  <B, R>(f: FnB<unknown, [B], R>) =>
+  <A extends unknown[]>(g: Fn<unknown, A, B>) =>
+  (...a: A) =>
+  R =
+    f =>
+    g =>
+    (...a) =>
+    f(g(...a))
+
+const randomizeUint8Array = composeB(getRandomValues<Uint8Array>)
+const randBytesNB = randomizeUint8Array(bytesN)
+const baz = randBytesNB(32)
+console.log(baz) // Works!
+```
+
+that is, unless we give up on the attempt to make everything one function call plus one argument, which is a bit unrealistic (but would be neat as it would represent our concept of "machine" is "function" and everything that can be done digitally is a "machine" and everything any complex "machine" can do can just be broken up into smaller and smaller "machines" until you end up with a big pile of "capabilities" (same as "function", same as "machine") that can be assorted like legos to achieve your task.
+
+```ts
+const composeC:
+  <A extends unknown[], B, R>(f: Fn<unknown, [B], R>, g: Fn<unknown, A, B>) =>
+  (...a: A) =>
+  R =
+    (f, g) =>
+    (...a) =>
+    f(g(...a))
+
+const randBytesNC = composeC(getRandomValues, bytesN)
+const boo = randBytesNC(32)
+console.log("boo", boo) // Works! and quite concise
+```
