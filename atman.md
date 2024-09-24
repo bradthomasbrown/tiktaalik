@@ -5944,6 +5944,8 @@ so, let's go back to the universal router test pipeline and start again, from st
 
 we can probably be more thorough and exact with the testing, but the idea is that this means we have an environment very similar to most of our chains, with V3 position tokens (necessary if we want to accurately test (semi)automation of funding the bridge wallet via minting and exchanging with native tokens when low on funds
 
+##FOO
+
 typescript will infer the last overload for a function always. in one case, we want it to infer an overload not the last. in order for it to do that, it needs to know the argument type. so we either have to prep some weird function `f` that bakes the argument type in and takes a function `g`, then we can `f(g)` and it'll get the right overload, but everything's a bit out of order,
 or, we can have the argument and the function be sibling arguments, but then we lose a whole permutation dimension on the total function
 
@@ -5992,3 +5994,8 @@ const unboundGetRandomValues = crypto.getRandomValues
 // const foo = strictReflectApply(unboundGetRandomValues, crypto, [3]) // Type checker specifically underlines 3 as a problem. Good!
 const bar = strictReflectApply(unboundGetRandomValues, crypto, [new Uint8Array(3)]) // OK. Good!
 ```
+
+at the above ##FOO marker, it looks like we were trying to make each statement nice and compressed, but ran into a problem where we couldn't use the `getRandomValues` method from crypto on its own since it uses a `this` value and whoever wrote it didn't specify that.
+
+so machine perspective would say: we want a machine that can be given an object and then can be used to lazy load versions of that object's methods with the object bound to be the `this` of the method
+
