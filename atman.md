@@ -5799,3 +5799,148 @@ give the close and familiar but nicer option a try, if you truly hate having nic
 now go pass out so you can be closer to enjoying another peanut oil fried egg and cheese bagel
 
 tomorrow, we work on `Oumn/Machine/Taleurei`
+
+Taleurei then is a machine that must have capabilities that we want, so we'll define them, with the end goal being that it can replace geth in my testing pipeline, where ideally it is easier to work with, faster, and simple to understand. also ideally, others can use it for similar purposes. it should be a functional replacement to all previous "testing" frameworks like ganache, hardhat, truffle, anvil, foundry, forge, whatever names they've shared, specifically for typescript, more specifically with the Deno engine, but should work in a browser. Those are all ideal goals.
+
+We should probably write those all down, let's look at some of those projects and see if we can "take inspiration" (steal) their descriptions
+
+- ([Ganache](https://github.com/trufflesuite/ganache)) An Ethereum simulator that makes developing Ethereum applications faster, easier, and safer. It includes all popular RPC functions and features (like events) and can be run deterministically to make development a breeze.
+	- this sounds quite like what we want, they list more specific features as well
+		- `console.log` in Solidity
+		- Zero-config Mainnet Forking
+		- Fork any Ethereum network without waiting to sync
+		- Ethereum JSON-RPC support
+		- Snapshot/revert state
+		- Mine blocks instantly, on demand, or at an interval
+		- Fast-forward time
+		- Impersonate any account (no private keys required!)
+		- Listens for JSON-RPC 2.0 requests over HTTP/WebSockets
+		- Programmatic use in Node.js
+		- Pending Transactions
+		- [Flavors](https://github.com/trufflesuite/ganache/tree/develop/packages/flavor#readme) (aka Plugins), like [Filecoin](https://github.com/trufflesuite/ganache-plugin-filecoin/tree/main/packages/filecoin#readme)
+		- As an ethers.js provider
+		- As a viem transport
+		- You can also use Ganache in the browser
+	- why is ganache insufficient? mainly, it's no longer supported and was archived in favor of hardhat. really the only answer needed
+- ([Hardhat](https://github.com/NomicFoundation/hardhat)) Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
+	- also similar to we what want, but a bit more vague and some features we aren't initially wanting (checking code for mistakes sounds a bit subjective, doesn't it? i'm sure they mean using invariants or the such, though, and we haven't ventured into that field). some of the features not explicitly provided but in the form of guide titles:
+		- Setting up a project
+		- Compiling your contractscontracts
+		- Testing contracts
+		- Deploying your contracts
+		- Verifying your contracts
+		- Writing tasks
+		- Using the Hardhat console
+		- Using TypeScript
+		- Command-line completion
+		- Configuration variables
+		- Getting help
+		- Hardhat Runtime Environment (HRE)
+		- Compilation artifacts
+		- Multiple Solidity versions
+		- Creating a task
+		- Writing scripts with Hardhat
+		- Building plugins
+		- Integrating with Foundry
+		- Flattening your contracts
+		- Running tests in VS Code
+		- Using ES modules
+		- Using Viem
+		- Migrating away from hardhat-waffle
+	- why is hardhat insufficient? uses node.js and not deno. the founder of node.js is now working on deno as a successor and evolution. fairly straightforward.
+	  the basic tutorial provided also involves a whole lot of CLI use, which isn't conducive to being a web application and is also annoying and makes automation and testing unpleasant, tedious, and prone to error. everything should be able to be done in a single script without needing to spin up another program (which requires permissions and cannot be done in a browser). for testing locally, it should be unnecessary to require these things, but we also believe that a fully functioning EVM node can exist as a browser application using existing and newer technology (WASM, WebGPU, storage APIs, fetch, etc.).
+- ([Foundry](https://github.com/foundry-rs/foundry)) Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.
+	- basically just hardhat and ganache
+		- Forge: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+		- Cast: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+		- Anvil: Local Ethereum node, akin to Ganache, Hardhat Network.
+		- Chisel: Fast, utilitarian, and verbose solidity REPL.
+	- insufficient for the same reasons as hardhat. a small testing node can and should be the most minimal thing runnable in even a browser. trying to automate when CLI commands are necessary is an unbelievably massive pain in the ass, especially if one is trying to do complex things, like simulate bridge contracts between two simulated chains
+- ([ethers.js](https://github.com/ethers-io/ethers.js)) A complete, compact and simple library for Ethereum and ilk, written in TypeScript
+	-  Acutally a straight up lie, a significant and massive part of it was written in javascript and just has typescript declaration files. some has been rewritten, but this is untruthful. I've used this the most and found that it cannot support multi-chain/cross-chain use. Specifically, switching chains can throw things into an infinite loop and the dev's response was basically "well you shouldn't be doing that". Features:
+		- Keep your private keys in your client, safe and sound
+		- Import and export JSON wallets (Geth, Parity and crowdsale)
+		- Import and export BIP 39 mnemonic phrases (12 word backup phrases) and HD Wallets (English as well as Czech, French, Italian, Japanese, Korean, Simplified Chinese, Spanish, Traditional Chinese)
+		- Meta-classes create JavaScript objects from any contract ABI, including ABIv2 and Human-Readable ABI
+		- Connect to Ethereum nodes over JSON-RPC, INFURA, Etherscan, Alchemy, Ankr or MetaMask
+		- ENS names are first-class citizens; they can be used anywhere an Ethereum addresses can be used
+		- Small (~144kb compressed; 460kb uncompressed)
+		- Tree-shaking focused; include only what you need during bundling
+		- Complete functionality for all your Ethereum desires
+		- Extensive documentation (lol)
+		- Large collection of test cases which are maintained and added to
+		- Fully written in TypeScript, with strict types for security and safety (lmao even)
+		- MIT License (including ALL dependencies); completely open source to do with as you please
+	- see above for insufficency
+- ([viem](https://github.com/wevm/viem)) TypeScript Interface for Ethereum
+	- actually written in typescript it seems, but not made for Deno, made for Node.js
+		- Abstractions over the JSON-RPC API to make your life easier
+		- First-class APIs for interacting with Smart Contracts
+		- Language closely aligned to official Ethereum terminology
+		- Import your Browser Extension, WalletConnect or Private Key Wallet
+		- Browser native BigInt, instead of large BigNumber libraries
+		- Utilities for working with ABIs (encoding/decoding/inspection)
+		- TypeScript ready (infer types from ABIs and EIP-712 Typed Data)
+		- First-class support for Anvil, Hardhat & Ganache
+		- Test suite running against forked Ethereum network
+
+notably, there is not a single library where one can programmatically spin up even a minimal test node in typescript without invoking some external binary, then interact with said node.
+
+likewise, there is not a single library that makes frontend dev for web3 not horrible, or the ones that exist are JS, dead, barely started, messy, all of the above, etc.
+
+what we then want is a collection of things that can solve all of these issues in just one place, simply (minimally), in Typescript, using Deno.
+would be nice.
+
+so, let's go back to the universal router test pipeline and start again, from step one, this time instead of randomly throwing shit at the wall, consider the ontology you've built and add to it.
+
+1. (PARTIALLY DONE) create signers
+	1. (PARTIALLY DONE) machine to generate a signer
+		1. (DONE) machine to generarate a secret (just a Uint8Array of length 32). will call a Key256 (KeyN where N is bits)
+2. create a node
+	1. what is a node? wait until use in order to define function and machine
+3. combine a signer and a node to be used more conveniently
+	1. same as above, wait until use in order to define function and machine (may need to abstract this)
+4. fund the signers (currently done with a known prefunded account, if state is a simple object we can just change the balances directly and instantly)
+5. deploy WETH9
+	1. build a tx
+		1. from
+		2. input
+		3. get nonce
+			1. machine that maps some function output taking a Key256 to a bigint
+				1. machine that maps Key256
+		4. get gas limit (estimate gas)
+		5. get gas price
+		6. (data also input, could make this more convenient)
+		7. get the chain id (shouldn't need to be done every transaction)
+	2. sign the transaction
+	3. precalculate contract address
+	4. calculate transaction hash
+	5. combine the address and hash for convenience (currently used to make a minimal "contract" object, so we can do `contract.address` to get its address or trace, debug, get the receipt of the deployment hash)
+	6. send the transaction
+	7. currently wait for it to complete, probably shouldn't be done by default
+	8. return the contract object
+6. test that the code at the address isn't empty
+7. repeat deployment steps with Uniswap V2 Factory
+8. again with Uniswap V3 Factory
+9. again with Universal Router
+10. again with NFT Descriptor
+11. again with Nonfungible Token Position Descriptor
+12. again with Nonfungible Position Manager
+13. again with the DZHV contracts
+	1. create2
+	2. resolver
+	3. ERC20
+	4. DZHV (the main proxy)
+	5. link ERC20 functions in the resolver (gives ERC20 functionality to DZHV proxy)
+		1. test that the total supply isn't null
+			1. requires a call
+	6. mint some DZHV
+		1. test that the total supply isn't null or zero
+14. approve the Nonfungible Position Manager to spend DZHV
+	1. test the allowance isn't null or zero
+15. use a helper function to determine from intuitive inputs the intermediates required to mint a V3 liquidity position
+16. use multicall on the Nonfungible Position Manager to create and initialize a pool, mint a position, then refund ETH as needed in one tx
+17. test that our balance we minted to decreased
+
+we can probably be more thorough and exact with the testing, but the idea is that this means we have an environment very similar to most of our chains, with V3 position tokens (necessary if we want to accurately test (semi)automation of funding the bridge wallet via minting and exchanging with native tokens when low on funds
+
