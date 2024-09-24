@@ -5944,3 +5944,51 @@ so, let's go back to the universal router test pipeline and start again, from st
 
 we can probably be more thorough and exact with the testing, but the idea is that this means we have an environment very similar to most of our chains, with V3 position tokens (necessary if we want to accurately test (semi)automation of funding the bridge wallet via minting and exchanging with native tokens when low on funds
 
+typescript will infer the last overload for a function always. in one case, we want it to infer an overload not the last. in order for it to do that, it needs to know the argument type. so we either have to prep some weird function `f` that bakes the argument type in and takes a function `g`, then we can `f(g)` and it'll get the right overload, but everything's a bit out of order,
+or, we can have the argument and the function be sibling arguments, but then we lose a whole permutation dimension on the total function
+
+this construction will allow one to take a function, modify it (we can change the return, etc.), and keep the parameter name the same
+
+```ts
+const foo = (x: number): void => undefined
+const bar = <A extends unknown[], R>(f: (...a: A) => R) => (...a: A) => f(...a)
+const baz = bar(foo) // const baz: (x: number) => void
+```
+
+however, with an overloaded function that takes a function and args, like Reflect.apply, which is overloaded so that the generic last signature no longer correlates the function and the args, we get unsound results (and hamstring'd type hinting):
+
+```ts
+const bar = <A extends unknown[], R>(f: (...a: A) => R) => (...a: A) => f(...a)
+const boo = bar(Reflect.apply)
+const far = boo(crypto.getRandomValues, crypto, [3]) // TypeError crash, but type checks OK
+```
+
+what's going on here?
+bar takes a function whose parameters are generic and return type is generic, then it returns a function that just takes parameters, then it applies the function to those parameters
+boo applies bar to Reflect.apply, which itself is a generic function
+far then tries to apply boo to the parameters of Reflect.apply, but it crashes.
+
+in fact, this crashes too, because Reflect.apply's last overload signature basically turns off type safety altogether. we wonder why the hell it's there
+
+```ts
+const unboundGetRandomValues = crypto.getRandomValues
+const foo = Reflect.apply(unboundGetRandomValues, crypto, [3]) // TypeError crash, but type checks OK
+```
+
+this works great, but what we did was basically rip the overload out. is the solution really to remove overloads?
+
+```ts
+const strictReflectApply: <
+    T,
+    A extends readonly unknown[],
+    R
+>(
+    target: (this: T, ...args: A) => R,
+    thisArgument: T,
+    argumentsList: Readonly<A>
+) => R = Reflect.apply
+
+const unboundGetRandomValues = crypto.getRandomValues
+// const foo = strictReflectApply(unboundGetRandomValues, crypto, [3]) // Type checker specifically underlines 3 as a problem. Good!
+const bar = strictReflectApply(unboundGetRandomValues, crypto, [new Uint8Array(3)]) // OK. Good!
+```
