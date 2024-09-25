@@ -6071,3 +6071,7 @@ surprise, surprise, it's been an open issue for over 4 years.
 One thing we may want to try is to avoid the exact cause of this, since this error has come up many times. An idea for how to achieve that is knowing that whatever implementation for `m` we come up with **_cannot_** contain the following text: `function m<F extends <T extends any>(arg: T) => T>(f: F) {`_,_ the reasoning being that `T extends any`​ is being interpreted by TypeScript as `T extends unknown`, and a function argument in this position is contravariant, so any function passed has to be "less specific" than `<T extends unknown>(arg: T)`​, which may be impossible since `unknown` is already one of, if not, the least specific types. We may want to formalize that into some conjecture.
 
 We wonder what we can come up with without writing that forbidden line as long as we think our conjecture is true, but feel free to correct me if you think it is not.
+
+This is similar to the "we shouldn't write this line" suggestion, but now with this line: `function createConstrainedFunction<C, R>(f: (arg: C) => R): ConstrainedFunction<C, R> {`​.
+
+To generalize: `function someOuterFunction<SomeTypeParameter>(someInnerFunction: (someParameter: SomeTypeParameter) =>`​ is a pattern that will almost always result in that error.
