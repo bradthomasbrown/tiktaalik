@@ -6075,3 +6075,7 @@ We wonder what we can come up with without writing that forbidden line as long a
 This is similar to the "we shouldn't write this line" suggestion, but now with this line: `function createConstrainedFunction<C, R>(f: (arg: C) => R): ConstrainedFunction<C, R> {`​.
 
 To generalize: `function someOuterFunction<SomeTypeParameter>(someInnerFunction: (someParameter: SomeTypeParameter) =>`​ is a pattern that will almost always result in that error.
+
+we somewhat did it without running into the trifecta of bullshit:
+1. can't apply outer function to inner function because outer constraint on param can't be assigned to inner param
+2. 
