@@ -6059,3 +6059,4 @@ console.log("boo", boo) // Works! and quite concise
 ```
 
 we want a TS machine that can take an arity-1 function type, in the type world, then get the return type of that function *as if we passed a specific parameter type*
+
