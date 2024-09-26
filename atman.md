@@ -6127,3 +6127,56 @@ namespace Riddle {
   const result16 = randomUint16Array(16); // INFER const result16: Uint16Array # VALUE like Uint16Array(16) [55458, 46372, 24796, ...
 }
 ```
+
+had to modify the riddle so that we make sure an invalid second function doesn't sneak through. also a much more organized and simple
+
+```ts
+namespace Solution0 {
+  // solve without referring to types number, Uint8Array, Uint16Array, ArrayBufferView, Array, any other Array-like object
+  // solve without referring to property `length` of any object
+  // solve by only modifying the `any` in the `declare const compose: any` line (can add utility types and functions)
+  // make sure that invalidFn type checks as an error
+
+  declare const BOMB: unique symbol
+  type GCond<A, B, C> = A extends B ? C : A
+  type Literal<T, P extends PropertyKey = PropertyKey> = GCond<P, T, typeof BOMB>
+  type PI<F extends (...a: never) => unknown, I extends number & Literal<I, number>> = Parameters<F>[I]
+  const compose:
+    <
+      F extends <P extends [PI<F, 0>]>(...p: P) => P[0],
+      Z extends PI<F, 0>
+    >(f: F) =>
+    <
+      G extends <P extends [...Parameters<G>]>(...p: P) => Q,
+      Q extends ReturnType<
+        Extract<
+          Z extends unknown ? typeof f<[Z]> : never,
+          (...p: [ReturnType<G>]) => unknown
+        >
+      >
+    >(g: G) =>
+    (...p: Parameters<G>) =>
+    Q =
+      f => g => (...p) => f(g(...p))
+
+  const randomize:
+    <A extends Uint8Array | Uint16Array>(array: A) => A =
+      a => crypto.getRandomValues(a);
+
+  const withRandomize = compose(randomize);
+
+  const uint8N = (length: number) => new Uint8Array(length);
+  const uint8NB = (x: number, y: number) => new Uint8Array(x + y);
+  const uint16N = (length: number) => new Uint16Array(length);
+
+  const randomUint8Array = withRandomize(uint8N);
+  const randomUint8ArrayB = withRandomize(uint8NB);
+  const randomUint16Array = withRandomize(uint16N);
+  // @ts-expect-error _
+  const _invalidFn = withRandomize(() => "foo")
+
+  export const result8 = randomUint8Array(32); // INFER const result8: Uint8Array # VALUE like Uint8Array(32) [1, 49, 102, ...
+  export const result8B = randomUint8ArrayB(3, 3); // INFER const result8B: Uint8Array # VALUE like Uint8Array(6) [1, 49, 102, ...
+  export const result16 = randomUint16Array(16); // INFER const result16: Uint16Array # VALUE like Uint16Array(16) [55458, 46372, 24796, ...
+}
+```
