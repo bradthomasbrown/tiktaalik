@@ -6091,6 +6091,7 @@ our issue seems to be going towards a horizon resulting in the ability to genera
 4. return type is the extraction from T those types that are assignable to U, where U is a synthetic function that takes the return type of G and returns unknown, and T is the union of all possible function representations of F (such that if the parameter of F is constrained to union T with N members, we have a union with N members where each member is a function with no type parameter and a parameter whose type is one of the members of T).
 
 what in tarnation
+
 ```ts
 const composeGenericA1Id:
   <F extends <P extends [P0<F>]>(...p: P) => P[0], Z extends P0<F> = P0<F>>(f: F) =>
@@ -6101,4 +6102,28 @@ const composeGenericA1Id:
     g =>
     (...p) =>
     <ReturnType<Extract<P0<typeof f> extends unknown ? typeof f<[P0<typeof f>]> : never, (p: ReturnType<typeof g>) => unknown>>>f(<P0<typeof f>>g(...<never>p))
+```
+
+a riddle that can be solved by the above. so far, GPT 4o, o1-mini, o1-preview, Claude Opus, Sonnet cannot solve this. i also cannot find anything indicating that it is or isn't possible.
+
+```ts
+namespace Riddle {
+  // solve without referring to types number, Uint8Array, Uint16Array, ArrayBufferView, Array, any other Array-like object
+  // solve without referring to property `length` of any object
+  // solve by only modifying the `any` in the `declare const compose: any` line
+  declare const compose: any;
+
+  const randomize = <A extends Uint8Array | Uint16Array>(array: A) => crypto.getRandomValues(array);
+
+  const withRandomize = compose(randomize);
+
+  const uint8N = (length: number) => new Uint8Array(length);
+  const uint16N = (length: number) => new Uint16Array(length);
+
+  const randomUint8Array = withRandomize(uint8N);
+  const randomUint16Array = withRandomize(uint16N);
+
+  const result8 = randomUint8Array(32); // INFER const result8: Uint8Array # VALUE like Uint8Array(32) [1, 49, 102, ...
+  const result16 = randomUint16Array(16); // INFER const result16: Uint16Array # VALUE like Uint16Array(16) [55458, 46372, 24796, ...
+}
 ```
