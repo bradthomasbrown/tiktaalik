@@ -6089,3 +6089,16 @@ our issue seems to be going towards a horizon resulting in the ability to genera
 2. take a function G with a type parameter and a parameter equal to the type parameter, returning unknown
 3. take the parameters of G as a rest (to preserve parameter name of G)
 4. return type is the extraction from T those types that are assignable to U, where U is a synthetic function that takes the return type of G and returns unknown, and T is the union of all possible function representations of F (such that if the parameter of F is constrained to union T with N members, we have a union with N members where each member is a function with no type parameter and a parameter whose type is one of the members of T).
+
+what in tarnation
+```ts
+const composeGenericA1Id:
+  <F extends <P extends [P0<F>]>(...p: P) => P[0], Z extends P0<F> = P0<F>>(f: F) =>
+  <G extends <P extends never>(...p: P) => ReturnType<G>>(g: G) =>
+  (...p: Parameters<G>) =>
+  ReturnType<Extract<Z extends unknown ? typeof f<[Z]> : never, (...p: [ReturnType<G>]) => unknown>> =
+    f =>
+    g =>
+    (...p) =>
+    <ReturnType<Extract<P0<typeof f> extends unknown ? typeof f<[P0<typeof f>]> : never, (p: ReturnType<typeof g>) => unknown>>>f(<P0<typeof f>>g(...<never>p))
+```
