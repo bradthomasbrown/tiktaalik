@@ -6077,5 +6077,11 @@ This is similar to the "we shouldn't write this line" suggestion, but now with t
 To generalize: `function someOuterFunction<SomeTypeParameter>(someInnerFunction: (someParameter: SomeTypeParameter) =>`​ is a pattern that will almost always result in that error.
 
 we somewhat did it without running into the trifecta of bullshit:
-1. can't apply outer function to inner function because outer constraint on param can't be assigned to inner param
-2. 
+1. can't apply outer function 1 to inner function 1 because outer constraint on param can't be assigned to inner param
+2. can't apply outer function 2 to inner function 2 for same as previous
+3. results are ambiguous
+
+although we did some odd things to achieve it and there's some more odd behaviors we can run into along the way
+
+our issue seems to be going towards a horizon resulting in the ability to generalize composition of functions with type parameters
+
