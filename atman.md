@@ -6181,3 +6181,52 @@ namespace Solution0 {
 }
 ```
 
+compare
+
+```ts
+const bar:
+  <
+    F extends <P extends [Parameters<F>[0]]>(...p: P) => P[0]
+  >(f: F) =>
+  <
+    G extends <P extends [...Parameters<G>]>(...p: P) => Extract<Parameters<F>[0], ReturnType<G>>
+  >(g: G) =>
+  (...p: Parameters<G>) =>
+  Extract<Parameters<F>[0], ReturnType<G>> =
+    f => g => (...p) => f(g(...p))
+```
+
+with
+
+```ts
+const bar:
+  <
+    F extends <P extends [Parameters<F>[0]]>(...p: P) => Parameters<F>[0]
+  >(f: F) =>
+  <
+    G extends <P extends [...Parameters<G>]>(...p: P) => Extract<Parameters<F>[0], ReturnType<G>>
+  >(g: G) =>
+  (...p: Parameters<G>) =>
+  Extract<Parameters<F>[0], ReturnType<G>> =
+    f => g => (...p) => f(g(...p)) // Type 'Parameters<F>[0]' is not assignable to type 'Extract<Parameters<F>[0], ReturnType<G>>'.
+```
+
+When we change that `Parameters<F>[0]` to `P[0]` something slightly magical happens: `f`'s return type in the implementation goes from `Parameters<F>[0]` to the value of *whatever* we pass to it. 
+
+**Claude**
+These concepts form the building blocks of functional programming. The formal study of these concepts falls under several areas:
+
+1. Lambda Calculus: The theoretical foundation of functional programming.
+2. Category Theory: A branch of mathematics that provides a formal framework for composition and other functional concepts.
+3. Combinatory Logic: A notation to eliminate the need for variables in mathematical logic.
+
+To learn more about these concepts formally, you might want to explore:
+
+1. "Introduction to Functional Programming" by Bird and Wadler
+2. "Category Theory for Programmers" by Bartosz Milewski
+3. "Structure and Interpretation of Computer Programs" by Abelson and Sussman
+
+For a TypeScript-specific approach:
+
+1. "Programming TypeScript" by Boris Cherny (has a chapter on functional programming)
+2. "Functional Programming in TypeScript" by Remo H. Jansen
