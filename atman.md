@@ -6230,3 +6230,105 @@ For a TypeScript-specific approach:
 
 1. "Programming TypeScript" by Boris Cherny (has a chapter on functional programming)
 2. "Functional Programming in TypeScript" by Remo H. Jansen
+
+https://github.com/microsoft/TypeScript/pull/26063
+
+what's the goal right now?
+we're not sure, but we're making something *weird* and cool.
+
+```ts
+declare const getRandomValuesA1: <T extends TypedArray>(array: T) => T
+  declare const getRandomValuesA2: <T extends TypedArray>(array: T, x: number) => T
+
+  declare const f0:
+    <F extends <P extends [...Parameters<F>]>(...p: P) => P[0]>(f: F) =>
+    <G extends <P extends [...Parameters<G>]>(...p: P) => { [K in keyof Parameters<F> & keyof ReturnType<G>]: Extract<Parameters<F>[K], ReturnType<G>[K]> }>(g: G) => // Extract<Parameters<F>[0], ReturnType<G>>>(g: G) =>
+    (...p: Parameters<G>) =>
+    ReturnType<G>
+    
+  const withRandA1 = f0(getRandomValuesA1)
+  const withRandA2 = f0(getRandomValuesA2)
+
+  type Uint48Array = { a16: Uint16Array, a32: Uint32Array }
+  declare const Uint48Array: new (length: number) => Uint48Array
+
+  const uint8ArrayN = (length: number) => [new Uint8Array(length)]
+  const uint16ArrayN = (length: number) => [new Uint16Array(length)]
+  const uint48ArrayN = (length: number) => [new Uint48Array(length)]
+
+  type Foo<T> = { [K in keyof T]: T[K] }
+  type Bar = Foo<Parameters<typeof getRandomValuesA1>>
+  type Baz = Foo<ReturnType<typeof uint8ArrayN>>
+  type Boo<
+      P extends [...unknown[]],
+      Q extends [...unknown[]]
+    > =
+      { [K in keyof P]: { [L in keyof Q]: Extract<P[K], Q[L]> }[0] }
+  type Far = Boo<Parameters<typeof getRandomValuesA1>, ReturnType<typeof uint8ArrayN>>
+  type Faz = Boo<Parameters<typeof getRandomValuesA1>, ReturnType<typeof uint48ArrayN>>
+```
+
+To summarize, `Far` and `Faz` are examples of usages of `Boo`, where `Boo` is some sort of "combinator" of tuples, where we map `Extract<A, B>` but at a sort of higher level, lifted over tuples so we create a new tuple where each element is `Extract<A, B>` and `A` is each element of the first tuple and `B` is each element of the second tuple.
+
+It seems our goal right now is to abstract the previously made function so that we can pipe functions of various arities without needing to specify said arity.
+We also want to be able to generalize as best we can the above but for functions where the return type is dependent on some derivation of the parameter types. For instance, `getRandomValues` is roughly `T => T`, but perhaps we want to work with functions like
+- `A, B => B`
+- `A, B => A`
+- `A, B => A & B`
+- `A, B => A | B`
+- `A, B => { a: A, b: B }`
+- `A, B, C => ...`,
+- `A, B, C, D => ...`
+- etc.
+
+right now we're focused on the idea of this tuple combinator or lifting types over tuples.
+for instance, if we do that with Extract, then we get an interesting result, basically telling us if a tuple of parameter types is a subtype of another tuple of parameter types (which means we can apply some function taking the second to the first, or conversely determine that some function cannot be applied to the second given the first).
+if we play with other type expressions besides Extract, we could get all sorts of wild things, and we're not sure if this is "explored" territory
+
+one of the very fascinating features is how mapped types interact with tuples if written in a *very* specific way, such that the mapping produces a mapped tuple.
+
+one of the issues right now is that if we want to map operations across tuples, in order to use the above feature with two tuples, the two tuples must have the same keys, one could also say they need to be the same length.
+but to make a generic *thing* that can do this, the tuple lengths should not be known or written out, otherwise we'll need a *thing* for each combination of two tuple lengths, which is not really ideal
+
+for instance, this
+
+```ts
+type Boo<
+    P extends [...unknown[]],
+    Q extends [...unknown[]]
+  > =
+    { [K in keyof P]: [P[K], Q[K]] }
+```
+
+has an error, since `K` isn't necessarily a key of `Q`, indexing `Q` with `K` is an error, but if we do `K in keyof P & keyof Q`, the tuple mapping feature breaks since it isn't specifically `K in keyof T`, and the result is no longer a tuple, but a very messy object
+
+we can't assert that `K` is a key of `Q` here either. ah, conditionals make this simple, no?
+
+```ts
+type Boo<
+    P extends [...unknown[]],
+    Q extends [...unknown[]]
+  > =
+    { [K in keyof P]: Extract<P[K], K extends keyof Q ? Q[K] : never> }
+```
+
+we wonder if it's possible to lift a function into something like a recursive composition, where we need a special function to lower the recursive composition
+
+then we basically abstract a large part of higher order functions
+
+```ts
+interface IFaz0<A extends unknown[] = []> {
+  <const B>(b: B): IFaz0<[...A, B]>
+  a: A
+}
+
+declare const faz0: IFaz0
+
+const faz3 = faz0(0) // IFaz0<[0]>
+const faz4 = faz3(1) // IFaz0<[0, 1]>
+const faz5 = faz4(2) // IFaz0<[0, 1, 2]>
+```
+
+fascinating
+
+one thing we want to tackle is functionalization/simplification of instance creation given a class
