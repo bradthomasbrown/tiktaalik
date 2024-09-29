@@ -6332,3 +6332,79 @@ const faz5 = faz4(2) // IFaz0<[0, 1, 2]>
 fascinating
 
 one thing we want to tackle is functionalization/simplification of instance creation given a class
+
+```ts
+/**
+ * Extracts a type from T if the key K is keyof T, otherwise never.
+ */
+type Get<K, T> =
+  K extends keyof T
+    ? T[K] 
+    : never
+
+/**
+ * Creates a tuple type based on T's structure but with types from U.
+ */
+type MergedTuple<T extends unknown[], U> =
+  [...{ [K in keyof T]: Get<K, U> }]
+
+// there's something really weird about this type.
+// since T extends unknown[],
+// it should certainly extend unknown.
+// in fact, unknown is a top level type,
+// and the falsy branch should never be reached.
+// but it is being reached, or somehow
+// otherwise influences the evaluation.
+// which means that the type of T initially coming into Baz is
+// "exotic"
+/**
+ * Conditionally applies MergedTuple or returns the original type.
+ * Note: The behavior of this type is complex and not fully understood.
+ */
+type ExoticMerge<T extends unknown[], U> =
+  T extends unknown
+    ? MergedTuple<T, U>
+    : T
+
+// type Test0 = any extends unknown ? true : false // true
+// type Test1 = unknown extends unknown ? true : false // true
+// type Test2 = object extends unknown ? true : false // true
+// type Test3 = void extends unknown ? true : false // true
+// type Test4 = undefined extends unknown ? true : false // true
+// type Test5 = null extends unknown ? true : false // true
+// type Test6 = never extends unknown ? true : false // true
+// type Test7 = string extends unknown ? true : false // true
+// # ??? extends unknown ? true : false // false # what is ???
+
+/**
+ * Applies a function with preserved parameter names and type checking.
+ * This variant returns a type that is the same as the first parameter of the function.
+ * [A]pply [P]arameters [R]eturn type of [P]arameter [0]
+ */
+const aprp0:
+  <
+    const P extends MergedTuple<P, Q>,
+    Q extends P,
+  >(
+    f: (...p: P) => P[0],
+    ...q: ExoticMerge<P, Q>
+  ) =>
+  ReturnType<typeof f> =
+    (f, ...p) => Reflect.apply(f, undefined, p)
+
+// an example function that returns the type of its first parameter, but may take other parameters
+const idA2:
+  <const X extends number>(x: X, f: () => void) => X =
+    (x, f) => (f(), x)
+
+// testing
+// note the type hint when inputting parameters has two parameters with the same name. interesting.
+const aprp0_idA2 = aprp0(idA2, 5, () => console.log("test")) // aprp0(f: (x: 5, f: () => void) => 5, x: 5, f: () => void): 5
+// @ts-expect-error Argument of type 'void' is not assignable to parameter of type '() => void'
+const _aprp0_idA2_Bad0 = aprp0(idA2, 3, console.log("test")) // aprp0(f: (p_0: 3, p_1: void) => 3, q_0: 3, q_1: void): 3
+// @ts-expect-error Argument of type 'string' is not assignable to parameter of type 'number'
+const _aprp0_idA2_Bad1 = aprp0(idA2, "3", () => console.log("test")) // aprp0(f: (p_0: "3", p_1: () => void) => "3", q_0: "3", q_1: () => void): "3"
+
+// logging
+console.log({ aprp0_idA2 })
+```
