@@ -6408,3 +6408,5 @@ const _aprp0_idA2_Bad1 = aprp0(idA2, "3", () => console.log("test")) // aprp0(f:
 // logging
 console.log({ aprp0_idA2 })
 ```
+
+we want a function that takes a function and a target, then returns the function bound to the target
