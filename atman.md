@@ -6447,3 +6447,34 @@ interesting thought, instead of "derive new value, set value in map, return valu
 what if we "derive new value, return value (set value in map)"?
 
 we can do that with disposables, which are oddly not well documented but seem to definitely exist
+
+current way composing c2rflap works is goofy
+rflap takes `f t as => v`,
+c2'ing it now it's `f t => as => v`,
+but because `as` is an array-like, and because c2'ing it causes it to be a taken as a rest,
+we get this weird interaction where if we try to pass an array it gets spread,
+so we have to double tuple a value to pass it through
+
+we also don't like this:
+`v => m.setRet(p, compose(c2rflap(v, t), vTup2))`
+and would rather try to shuffle it so that it was more like
+`v => m.setRet(p, ??0(c2rflap, vTup2)(v, t))`
+since that would let us do the first function externally, so we could
+`v => m.setRet(p, ??1(v, t))`
+then perhaps we could try our hand at
+`v => ??2(m, p, v, t)`
+if we could then shuffle that or get to this from the one before that
+`v => ??3(m, p, t)(v)`
+then we could simplify the whole thing to
+`??3(m, p, t)`
+
+if we step back, then we'd have
+`(m, t, p, r) => m.get(p) || cfIf(rflget(t, p, r), isFn, ???3(m, p, t), id)`
+it would probably be reaching too far to shuffle B into
+`???4(t, p, r)`
+but it would be nice to end up with
+`(m, t, p, r) => m.get(p) || ??4(m, t, p, r)
+that looks more intuitively like "get value from map or X", which could be compressed into
+`??5(m, t, p, r, ??4)`
+or if this was part of the map
+`??6(t, p, r, ??4)`
