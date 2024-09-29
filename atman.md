@@ -6438,3 +6438,12 @@ mapSet("foo", "bar", setBound)
 
 console.log(map) // Map(1) { "foo" => "bar" }
 ```
+
+"get value from map or X"
+"get value from map or derive new value, set value in map, return value"
+"conditionally, ..."
+
+interesting thought, instead of "derive new value, set value in map, return value"
+what if we "derive new value, return value (set value in map)"?
+
+we can do that with disposables, which are oddly not well documented but seem to definitely exist
