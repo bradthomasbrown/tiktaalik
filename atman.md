@@ -6478,3 +6478,8 @@ that looks more intuitively like "get value from map or X", which could be compr
 `??5(m, t, p, r, ??4)`
 or if this was part of the map
 `??6(t, p, r, ??4)`
+
+https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence
+call with current continuation javascript generators
+https://en.wikipedia.org/wiki/Continuation-passing_style
+https://en.wikipedia.org/wiki/Abstract_machine
