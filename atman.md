@@ -6410,3 +6410,31 @@ console.log({ aprp0_idA2 })
 ```
 
 we want a function that takes a function and a target, then returns the function bound to the target
+
+interesting pattern, another case of deconstructing a method from an object and it breaking. however, this one seems a bit central to building the the thing used to solve that problem, so fixing this here may be weird or not possible
+
+```ts
+const map = new Map()
+const { set } = map
+set("foo", "bar") // breaks
+```
+
+what the fuck
+
+```ts
+interface IMap {
+  set: <K, V>(key: K, value: V, set: IMap["set"]) => Map<K, V>
+}
+
+const map = new Map()
+const { set } = map
+const setBound = set.bind(map)
+
+const mapSet:
+  IMap["set"] =
+    (k, v, s) => s(k, v, s)
+
+mapSet("foo", "bar", setBound)
+
+console.log(map) // Map(1) { "foo" => "bar" }
+```
