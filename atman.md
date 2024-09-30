@@ -6518,3 +6518,5 @@ if using "any" has the same effect, then we should consider if it's reasonable t
 but if it isn't the same as using "any", then we think it's an important piece of knowledge in a category of other pieces of knowledge representing "things one can do in typescript that aren't exactly the way you're intended to use it which may be very useful"
 
 our `Exotic` trick should be explored more and formalized into this category
+
+https://superuser.com/a/1451740
