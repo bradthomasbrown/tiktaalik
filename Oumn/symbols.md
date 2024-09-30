@@ -21,6 +21,8 @@ const f = (...rest) => rest
 - **Name** Rightwards Arrow
 - **Unicode** U+2192
 - **Description** Represents function application or mapping in type expressions. Separates the input types from the output type in function signatures.
+- **Notes**
+	1. Can also be referred to as shorthand for the type `(Ω: *∀ᐊ… → Ω)`
 - **Examples**
 	1. TypeScript identity function:
 ```ts
@@ -90,6 +92,16 @@ class Ђ {
   (a: bigint) => bigint
 ```
 
+## 𝔹
+- **Name** Mathematical Double-Struck Capital B
+- **Unicode** U+1D539
+- **Description** The set of booleans.
+
+## 𝕊
+- **Name** Mathematical Double-Struck Capital S
+- **Unicode** U+1D54A
+- **Description** The set of strings
+
 ## ᐊ
 - **Name** Canadian Syllabics A
 - **Unicode** U+140A
@@ -113,11 +125,33 @@ class Ђ {
 - **Examples**
 	1.  TypeScript's `unknown` type.
 
-## ⊏
-- **Name** Square Image Of
-- **Unicode** U+228F
+## *
+- **Name** Asterisk
+- **Unicode** U+2A
 - **Description** Array modifier
 
-## □
+## ◊
+- **Name** Lozenge
+- **Unicode** U+25CA
+- **Description** Immutability modifier
 
-`⊏□`
+## 𝄽
+- **Name** Musical Symbol Quarter Rest
+- **Unicode** U+1D13D
+- **Description** Uninitialized, default, fallback, or "at rest"
+- **Examples**
+	1. JavaScript's `undefined` value
+
+## ∅
+- **Name** Empty Set
+- **Unicode** U+2205
+- **Examples**
+	1. JavaScript's `null` value
+
+## ⊥
+- **Name** Up Tack
+- **Unicode** U+22A5
+- **Examples**
+- **Description** Always false, absurd
+- **Examples**
+	1. TypeScript's `never` value
