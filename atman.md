@@ -6483,3 +6483,38 @@ https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence
 call with current continuation javascript generators
 https://en.wikipedia.org/wiki/Continuation-passing_style
 https://en.wikipedia.org/wiki/Abstract_machine
+
+we want to formalize our TypeScript knowledge, including "tricks"
+
+For instance, the below:
+```ts
+const compose:
+  <
+    F extends <
+      P extends [...Parameters<F>]
+    >(...p: P) => ReturnType<F>,
+    G extends <
+      P extends [...Parameters<G>]
+    >(...p: P) => Parameters<F>
+  >(f: F, g: G) =>
+  (...args: Parameters<G>) =>
+  ReturnType<F> =
+    (f, g) =>
+    (...args) =>
+    f(...g(...args))
+```
+
+we define `f` as `F`, which is something very weird that isn't very intuitive, but we believe it means "any function" without saying "any function"
+we're not sure if this is just bypassing something like `(...args: any) => any` though,
+since we're not saying the args can be `any`, we're saying "the args are what the args are".
+normally, you get circular reference errors trying to define it as such, but the above pattern seems to circumvent circular reference errors.
+
+we don't know if it's doing that in a sound or unsound way.
+we've been dealing a lot with "how to circumvent circular reference errors" and it seems we're able to achieve things otherwise impossible by doing so,
+
+but is that really any different from being a clever way to allow "any"?
+if using "any" has the same effect, then we should consider if it's reasonable to just allow the use of "any". clearly i have found it useful in a way that cannot otherwise be expressed.
+
+but if it isn't the same as using "any", then we think it's an important piece of knowledge in a category of other pieces of knowledge representing "things one can do in typescript that aren't exactly the way you're intended to use it which may be very useful"
+
+our `Exotic` trick should be explored more and formalized into this category
