@@ -45,3 +45,7 @@ print("world")
 https://en.wikipedia.org/wiki/Microcode
 https://en.wikipedia.org/wiki/Abstract_machine
 `Dependent Types: Languages like Idris and Agda explore very expressive type systems.`
+
+2. TS syntax blocks, TS type blocks, new syntax blocks, new type blocks (or inspired from Coq/Idris/Agda or straight type theory). A framework around blocks. Deno is an engine. Deno uses the TypeScript compiler. We'd need a compiler that could work with blocks. One could logically organize blocks how they saw fit. One could share blocks or logically organized blocks. One could take shared blocks or logically organized blocks and straightforwardly add, remove, or modify. These blocks wouldn't be limited to TS or type theory. We may even want computation blocks, such that we can emulate a Turing machine, finite state machine, classic modern computer (abstract machine?), or even more exotic computers like cellular automata. There's also language servers. We'd need one that works with blocks. These should be as reusable as possible, such that blocks given to the compiler and the language server may be the same, or perhaps subblocks could be derived from larger blocks and delivered to each. We need to then figure out how to make a compiler.
+3. extend starting with blocks from assembly. this should necessarily not be problematic because all languages end up there.
+https://www.nasm.us/
