@@ -6520,3 +6520,82 @@ but if it isn't the same as using "any", then we think it's an important piece o
 our `Exotic` trick should be explored more and formalized into this category
 
 https://superuser.com/a/1451740
+
+if you give a function a `this` type, then `this` inside the function is that type, so you can access it and get meaningful information out of it
+
+HOWEVER,
+it it required that when you call that function, the `this` type is correct
+
+function binding *should* then do something that we think is inexpressible:
+it should produce a function of the same type except no longer requiring the `this` type to be correct in order to call.
+
+right now, that would look like we take a function signature and wipe away the `this` type from it (same as setting it to `any`)
+
+if we don't set the `this` value of a function, it's `any`.
+it's also considered "bad" by Deno to alias `this`
+
+Currently `getRandomValues` from the built-in `crypto` object has no specified `this` value, but it should, because it uses `this` (if you extract the method from the object into its own variable and call it, you get an `Illegal Invocation Error`)
+
+This indicates that we may want to consider that all foreign code is possibly poorly-typed.
+
+`Reflect.apply` and `Reflect.get` have bad signatures that cause inputs and/or results to be `any`, damaging type safety.
+
+it's impossible to wipe away the `this` value from a function without destroying it's generic parameters
+
+Even then, wiping away the `this` value is bad, since if it's `any` one may think they can bind anything to the function, when really they should be restricted to binding values assignable to the `this` value.
+
+it's like functions should have an `internal this` and and `external this`, where `internal this` is the type of `this` in the function and binding values must be assignable to `internal this`, but `external this` dictates what `this` needs to used to call the function.
+
+so binding should then wipe `external this`, but we shouldn't be allowed to bind values not assignable to `internal this`, and even if we wipe `external this`, we don't lose that information.
+
+so doing this:
+
+```ts
+const { getRandomValues } = crypto
+```
+
+results in a type with no `this`, which is incorrect, it should have an `internal this: Crypto` and an `external this: Crypto`.
+then this:
+
+```ts
+const boundGetRandomValues = getRandomValues.bind(crypto)
+```
+
+should result in a type with an `internal this: Crypto` and an `external this: any/unknown`
+
+because of this, we can't even "fix" the typing of `getRandomValues`, short of creating some scheme, system, or complex workaround that we figure may result in needing to wrap *every* function
+
+the solutions then seem to be:
+1. treat every single foreign function that we didn't write, even built-in ones, as unsafe. we must wrap any foreign function we want to use in an indirection function (like `const getRandomValues: signatureOfGetRandomValues = (...args) => crypto.getRandomValues(...args)`) (highly restrictive)
+2. never use `.bind`, `Reflect.get`, `Reflect.apply`, or `this` (highly restrictive)
+3. alternatively, create some scheme or system where we may basically wrap all functions, function application, binding, and `this` usage in "things" like some interface with members (probably private, readonly, phantom types `__internalThis`, `__externalThis`) (convoluted, affects performance and complexity)
+4. alternatively, fork TS and Deno and implement the concept (not simple, now what we use isn't easily accessible to others)
+
+this means that our desire to write code as functions in the form `y = f(x)` (with no member accesses) is impossible for as long as the above issues exist and for as long as we use any foreign code using `this`
+
+consider if we just do this
+
+```ts
+const getRandomValues:
+  <T extends TypedIntArray>(array: T) => T =
+    (...a) => crypto.getRandomValues(...a)
+```
+
+we now no longer have to do the "lazy binding proxy" thing with the maps and `Reflect.apply`, etc. although, the point of that was to do the above but automatically for every method on a given object on an "as-needed" basis
+
+you cannot write a function that takes a (function which has a type parameter) as a parameter
+is that true?
+that's insane
+
+we think we have to make our own actual language
+typescript doesn't allow for basic functional (abstract) programming and is absolutely littered with chasms one falls into while trying to do things
+haskell and derivatives (purescript) require a compiler, whereas Deno is a runtime engine that does compilation in real time and in the background, making development extremely smooth (and conversely development in haskell and derivatives feels extremely rough in comparison)
+
+neither seems to natively, intuitively allow one to debug, handle errors, and get metrics
+typescript debugging is extremely bizarre compared to the nice and intuitive `gdb` (haven't used it much but it seems like it's handled via google chrome (???) or the IDE. why can't i just do it on the command line?)
+there's no easy, straightforward, and intuitive way to get metrics when developing in typescript with Deno.
+one may run into type recursion depth or instantiation limit errors without knowing the recursion depth, the instantiation count, the limits of either, or where specifically those errors occurred (insane)
+there appears to be no debugging at all for typescript's type system. if you come across a vague error (surprisingly common), you can't step through anything to get a better intuition for what happened
+
+seemingly nothing provides good performance metrics. ideally, we could have some switch or option where we can run code and drill down and see all sorts of things, like memory usage, cpu time spent, real time spent, per code, block, or line if necessary
+
