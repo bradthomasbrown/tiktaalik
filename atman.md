@@ -6599,3 +6599,47 @@ there appears to be no debugging at all for typescript's type system. if you com
 
 seemingly nothing provides good performance metrics. ideally, we could have some switch or option where we can run code and drill down and see all sorts of things, like memory usage, cpu time spent, real time spent, per code, block, or line if necessary
 
+we want a new machine
+"we want to run a program that prints 'hello world'"
+
+so we want a machine with zero inputs and "hello world" output
+math is the foundation
+we need to define this in math
+machine code / assembly is another foundation
+we need to define this with respect to at least our machine
+
+I'm going to have a lot of questions. First, I have the `nasmdoc.pdf`, and I searched `global` to figure out what that was. A search brought me to page 90, subsection 7.7. From context and from what I've read, I figured that it was a "directive", but the way I'm viewing the PDF right now (Edge) doesn't allow me to easily determine the name of the section 7 that subsection 7.7 is in.
+
+There's a table of contents available, but it is not numbered.
+
+First question:
+
+I created the terms "subsection" and "section". But upon further searching, I found that the manual refers to what I referred to as "section" as "Chapter".
+
+In order to be precise and general, and if I want to make something similar myself, there should be some way for me to fully understand how the documentation is structured, which appears missing.
+
+To expand on that, the first time one encounters the word `Chapter`​ is in the table of contents on page 3, where it is used to label `Chapter 1: Introduction`.
+
+My interpretation then is that `Chapter` is not a formally defined term, where we'd prefer it to be one.
+
+I have the notion that this could be defined ontologically, perhaps a specialized ontology for writing documentation or a more generalized ontology currently based on "machines" in the abstract (which I have begun, but it's messy and unprofessional in my opinion).
+
+I'll also want some system such that I can view and explore this PDF or some derivation of this PDF in a way more intuitive for myself.
+
+Right now, I'm thinking about disassembling it into Obsidian, which allows for things like tags and internal linking, and hover hints for some internal links when holding ctrl and hovering over internal links.
+
+Eventually, I would not be surprised if I made my own notating software.
+
+A new immediate want/concern/need comes up.
+- We need a term for that, where we are doing something and another thing "comes up".
+I have Protege installed for creating an ontology.
+A new immediate foo comes up.
+- Protege is spelled with certain accents over the `e`s. We don't know what to call those and we don't know how to type those.
+A new immediate foo comes up.
+- There is a [section on how to type characters with accents on Windows]([Keyboard shortcuts to add language accent marks in Word and Outlook - Microsoft Support](https://support.microsoft.com/en-us/office/keyboard-shortcuts-to-add-language-accent-marks-in-word-and-outlook-3801b103-6a8d-42a5-b8ba-fdc3774cfc76#:~:text=For%20keyboard%20shortcuts%20in%20which%20you%20press%20one%20key)), however it appears that they don't specify exactly what the accents are or what their names are, and furthermore it may only apply to some software. For instance, `ctrl + ' + e` doesn't type what we want, it in fact switches us between editing and reading mode in Obsidian.
+	- Side thought: could one train themselves to be focused and directed in their thinking in situations where time is distorted, such that they might have "more time" to think? We think about lucid dreaming and psychadelic "trips", and how sometimes it "feels like a long time" despite it not being so. If one could train themselves to have focused and directed thinking in these situations, perhaps one who wants to solve a problem or think about something who has trained themselves could deliberately enter a "distorted time situation" so that they could have "more time" to think than would otherwise be possible.
+A new immediate foo comes up.
+- We have programs that we want to use, but they are strangely hard to find and access. If I search the names of these programs, they don't appear. In general, I need to navigate to the programs. Why? How do we make that better?
+- Protege is one. gnucash is one. The reader app that has our IPA text is one. I have no idea right now where any of these are or how to quickly use/get to them.
+A new immediate foo comes up.
+- The changing backgrounds and chosen backgrounds are distracting and visually abrasive. We also want to see if we can get a darker Windows theme. The task bar is quite bright.
