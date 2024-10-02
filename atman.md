@@ -6715,3 +6715,17 @@ Copy
 https://datatracker.ietf.org/doc/html/rfc2234#section-3.2
 https://hott.github.io/book/hott-online-15-ge428abf.pdf
 https://github.com/Microsoft/TypeScript/blob/730f18955dc17068be33691f0fb0e0285ebbf9f5/doc/spec.md
+https://ncatlab.org/nlab/show/HomePage
+
+I guess I want to approach it practically. I want to be able to do something in TypeScript using HoTT as a foundation that someone not using HoTT wouldn't be able to do within TypeScript.
+
+I believe that since TypeScript is Turing complete, it should probably be possible to do so (I say probably because there are some current computation limits strictly encoded into TypeScript, like recursion depth limits and type instantiation count, but I've been able to do odd things regardless of that already, and I know nothing.)
+
+There are two things that I've wanted to do but not been able to, and we may need to be clever in order to be able to do those things.
+
+1. Type checking that a `bigint` is in a range, where that range may be very large.
+    
+2. Composing functions with type parameters (I believe this would fall under dependent function types).
+    
+
+One of the first things I'll want is to be able to actually do _something_ in TypeScript that I can map to the HoTT text. Basically a "hello world" of HoTT in TypeScript. It need not be practical.
