@@ -6713,3 +6713,5 @@ Copy
 `const listener = (arg0, arg1, ...fns) => { effect(arg0) fns.map(fn => fn.apply(derive(arg1, ...fns))) }`
 
 https://datatracker.ietf.org/doc/html/rfc2234#section-3.2
+https://hott.github.io/book/hott-online-15-ge428abf.pdf
+https://github.com/Microsoft/TypeScript/blob/730f18955dc17068be33691f0fb0e0285ebbf9f5/doc/spec.md
