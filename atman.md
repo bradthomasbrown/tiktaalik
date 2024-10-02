@@ -6641,5 +6641,75 @@ A new immediate foo comes up.
 A new immediate foo comes up.
 - We have programs that we want to use, but they are strangely hard to find and access. If I search the names of these programs, they don't appear. In general, I need to navigate to the programs. Why? How do we make that better?
 - Protege is one. gnucash is one. The reader app that has our IPA text is one. I have no idea right now where any of these are or how to quickly use/get to them.
-A new immediate foo comes up.
+(Foo resolved) A new immediate foo comes up.
 - The changing backgrounds and chosen backgrounds are distracting and visually abrasive. We also want to see if we can get a darker Windows theme. The task bar is quite bright.
+
+- side thought: razer keyboard colors distracting. we tried to install razer chroma so we could change this, although we got the razer synapse installer (confusing). in the installer, we picked chroma as an app to install. we used this to change our color settings successfully. however, this somehow fucked with the way my mouse behaved (scroll wheel tilt to scroll was reversed and sensitivity drastically reduced). you can't change this in chroma. so i had to go back to the installer to install synapse. i figured since chroma was already installed, i could leave it unchecked. this seemed to uninstall chroma, so that the devices lighting schemes reverted. lmao. also that behavior change was seemingly permanent and there's no way to go back, [one must work around it now](https://www.reddit.com/r/razer/comments/uqabz8/instant_regret_installing_razer_synapse_after_a/)
+
+Latin Small Letter E with Acute
+é
+we'll just use the hex numpad we suppose
+Protégé
+
+Need to use a different browser if I want to type unicode, since Chrome forces `alt e` to open a menu, so any code point starting with `alt + e` is impossible to type. 
+Brave lets you disable those, so we'll use brave we guess.
+
+renaming entities in Protégé is broken. you get the popup to enter a new name, you enter a new name, you press `OK`, and it appears you are now selecting an entity that doesn't exist. nothing is highlighted in the class hierarchy to the left, the window to the right literally says "Nothing Selected". the old entity is still there, with the old name
+
+we'll probably want to do things our own way then.
+call it a Foo
+
+the concept of `foo` that we have right now isn't one that exists.
+that is bizarre
+
+I find that extremely strange that there's not a term for that. Are there not any concepts, explanations, or terms in philosophy relating to consciousness for this?
+
+I have a notion that it describes a variant of an extremely fundamental aspect of being. For example, it could be a variant of a "response to a stimuli".
+
+Hm, I want you to amend that definition a bit. The immediacy can be variable.
+
+I have a notion that it's as if I had an infinite bulletin board, a `foo` is what I may put on the bulletin board for later. A `foo` could be some TODO, a thing we must do now or later. A `foo` could be some interesting new thought that we want to keep in mind. A `foo` could be some thing we find undesirable in some system or language that we may want to improve. A `foo` could be some thing we find desirable that we want more of. A `foo` may or may not be relevant, to whatever `foo`s immediately came before it.
+
+I have a notion that a thought is a `foo`, but a `foo` might not necessarily be a thought. For example, if I touch something extremely hot, I will reflexively pull away, and I think that's a reaction to some `foo`​. In that case, it could be any external stimuli, but in the case of thoughts and experiences and desires, it seems it could also be any internal stimuli.
+
+I wonder, what exactly is `stimuli`​ or `stimulus`​, and is that perhaps what we refer to by `foo`​?
+
+I find it very interesting that you said input, processing, and output. Actually, not just interesting, but a bit like I'm staring at something incomprehensible, such that I feel some strong emotions that I'm not sure how to describe. Perhaps it makes me `shiver`? It makes my hair stand on end? It gives me goosebumps?
+
+I have recently been deconstructing a lot of concepts abstractly into something that I refer to as `machines`, which I think is very similar to the concept of `abstract machines`​. I'm sure there's an equivalent out there in some field, but my idea is that a `machine` takes input and produces output.
+
+I think `functions` in programming are machines. They take input and produce output. I think `computers` are machines. They take input and produce output. They do so by way of being amalgamations of more precise machines. For instance, a computer can add two numbers. Addition can be thought of as a machine that takes two numbers as input and produces a number as output. A computer can add, so it amalgamates this machine with many others. The Ethereum Virtual Machine is like a computer, but more restricted. In the `machine` view, it becomes easier to define what it is, and an important concept: it's `capabilities`, which are really just a `set` of other machines it combines. I think `computer programs` are machines. They take input and produce output. I think `smart contracts` are just simplified `computer programs`​, and are thus machines. I think the low level machine code of the Ethereum Virtual Machine, `opcodes`​, are just machines themselves. Each one takes input and produces output. Thus, a `smart contract`​ is just a machine consisting of some arrangement of `opcode`​ machines that (presumably) gives it some positive tradeoff (we have a notion of a complex `tradeoff space`​ as well, which can be used to conceptually explore new machines by way of simply altering tradeoffs).
+
+If a `stimulus` is an input, and `thoughts or actions` are an output, then people or organisms are machines. However, it's not as simple because perhaps `thoughts` themselves can be `stimuli`, producing further thoughts or actions.
+
+Cellular automata are particularly interesting machines that I haven't learned much about yet.
+
+Then what is a `foo`? Perhaps if I am a `machine`, then a `foo` is an element of the `input` domain. It was specifically said `immediate foo`​ several times in the notes.
+
+Thought experiment: I am processing so as to create an output. We imagine that we start off here, without considering that an input is involved at all. An `immediate foo` is a new input that **must** be processed that arises during the prior processing. It's a bit like a function call in a program, and the context switching I must do is like a stack frame.
+
+I feel like there's something to untangle here.
+
+A `foo` is a lot like an input, but it's not exactly an input. `A new immediate foo comes up` is more expressing a `foo` as an entire process that must be done.
+
+We have the notion that machine may be "at rest", and a `foo` is something that "may be handled". In JS, we may refer to that as an `event`​. An `event listener` is a function / machine that processes events as they arise. So an `event` is an input, but we don't want to call it an input. In JS at least, you typically wouldn't call an `event listener` function directly with the `event` as an argument / input, you'd `emit` an event that a listener is listening to, and it would handle it in some way. It's also possible to emit an event where no listener is listening, and one could view it as "handled" but by nothing.
+
+I may conjecture an amendment to a previous notion: I am a machine at rest. An `immediate foo` or `event` arises and I must process it. This is a new and interesting thought, as events are indirectly passed to listener functions. We conjecture that an event listener must necessarily be an effectful machine that produces no output but has some effect.
+
+An `immediate foo` is a high-priority `event`. It is intuitive to imagine an event listener that can produce events during processing, capturing the concept of our recursive `foo`s. But an event listener and events are really just sugar on top to hide that what's happening is what it is: function calls. They are a certain variety of function calls.
+
+If my understanding is correct, we can model this. We create a space in memory representing an array of functions. We could say that our state has some function array (or list or vector or generator, generally some structure of functions). We create a function that accepts input, which then calls each function in the structure, possibly the input of each call being derived in part by the input to the "parent" function.
+
+It's an interesting thing. Could it be described as dynamic function composition, where the ultimately composed function (if it does halt) is only determinable by running it and seeing what happens? We wonder the similarity of this and trap-door functions and cellular automata.
+  
+I'm interested in exploring a new notion. Perhaps a structure of functions isn't entirely necessary, or perhaps it is and what we're about to do with the idea combines the idea of a "structure of functions" and "partially applied functions".
+
+Instead of imagining "some array" of functions, we could instead imagine that the functions are being input to the listener function as arguments. Perhaps the argument is structured, but the new idea is that the "structure of functions" is not something that necessarily exists in some concrete space, or rather, it may but in the same area function arguments exist.
+
+In pseudo-JS terms:
+
+Copy
+
+`const listener = (arg0, arg1, ...fns) => { effect(arg0) fns.map(fn => fn.apply(derive(arg1, ...fns))) }`
+
+https://datatracker.ietf.org/doc/html/rfc2234#section-3.2
