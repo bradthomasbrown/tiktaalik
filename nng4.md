@@ -629,3 +629,15 @@ const hf = h(f) // inference fails despite the initial signature being the exact
 
 const ifg = i(f, g) //  inference works
 ```
+
+we can define an interface in typescript, then do some things, then redefine the interface and it will merge definitions.
+if we define things "in between", then we can use those definitions in the interface redefinition, allowing the interface to be a sort of "accumulative context".
+
+Specifically, it seems that a second generic function is what breaks TypeScript's context and inference. If we change the second thing in `h` from a generic function to a nongeneric function, inference suddenly works
+
+Actually, it's a bit more strange. If we have a generic function as a parameter, then that returns another function whose parameter is a generic function, then typescript breaks.
+
+if we put a nullary function in between, typescript doesn't break, but the first generic gets deconstructed, so instead of `generic extends constraint` the generic is replaced by the constraint. so if `<X extends 0 | 1>(x: X)`, doing that becomes `(x: 0 | 1)`
+
+typescript is very poorly designed
+
