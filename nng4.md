@@ -319,3 +319,39 @@ $c_s$ is the "next step", and in this case, if we substitute $d2[0,\text{double}
 
 YRZUC yrzuc has possibly become a sort of stand-in exclamation or acknowledgment sound, like midwesterners saying "ope" (instinctive reaction noise). In our case, it original referred to an event or input to the human machine, but now that we are declaring it as those inputs arise, it has become a sort of "instinctive reaction noise" (but textual).
 
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=39
+>For example, we can form the function type $A \to B$ when $A$ is a type and when $B$ is a type. We can form the dependent function type $\prod_{(x:A)}B(x)$ when $A$ is a type and $B(x)$ is a type for $x:A$.
+
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=40
+>.   As an example, we can derive the **projection** functions$$
+\begin{align}
+  \text{pr}_{1}:A\times B \to A \\
+  \text{pr}_{2}:A\times B \to B
+\end{align}
+$$with the defining equations$$
+\begin{align}
+  \text{pr}_{1}((a,b)) &:\equiv a \\
+  \text{pr}_{2}((a,b)) &:\equiv b.
+\end{align}
+$$
+
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=41
+>.   We leave it as a simple exercise to show that the recursor can be derived from the projections and vice versa.
+
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=37
+>In type theory we often use a more general version of function types, called a $\prod$**-type** or **dependent function type**. The elements of a $\prod$-type are functions whose codomain type can vary depending on the element of the domain to which the function is applied, called **dependent functions**. The name "$\prod$-type" is used because this type can also be regarded as the cartesian product over a given type.
+>.   Given a type $A : \mathcal{U}$ and a family $B : A \to \mathcal{U}$, we may construct the type of dependent functions $\prod_{(x:A)}B(x):\mathcal{U}$. There are many alternative notations for this type, such as$$
+\begin{array}
+  \textstyle\prod_{(x:A)}B(x)
+  & \displaystyle\prod_{(x:A)}B(x)
+  & \prod(x:A),\ B(x).
+\end{array}
+$$If $B$ is a constant family, then the dependent product type is the ordinary function type:$$
+\textstyle\prod_{(x:A)}B \equiv (A \to B).
+$$
+
+https://hott.github.io/book/hott-online-15-ge428abf.pdf
+>.   To model a collection of types varying over a given type $A$, we use functions $B : A \to \mathcal{U}$ whose codomain is a universe. These functions are called **families of types** (or sometimes *dependent types*); they correspond to families of sets as used in set theory.
+>.   An example of a type family is the family of finite sets $\text{Fin} : \mathbb{N} \to \mathcal{U}$, where $\text{Fin}(n)$ is a type with exactly $n$ elements. (We cannot *define* the family $\text{Fin}$ yet $-$ indeed, we have not even introduced its domain $\mathbb{N}$ yet $-$ but we will be able to soon.) We may denote the elements of $\text{Fin}(n)$ by $0_n,1_n,...,(n-1)_n$, with subscripts to emphasize that the elements of $\text{Fin}(n)$ are different from those of $\text{Fin}(m)$ if $n$ is different from $m$, and all are different from the ordinary natural numbers.
+>.   A more trivial (but very important) example of a type family is the **constant** type family at a type $B:\mathcal{U}$, which is of course the constant function $(\lambda(x:A).B):A\to \mathcal{U}$.
+
