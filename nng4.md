@@ -641,3 +641,81 @@ if we put a nullary function in between, typescript doesn't break, but the first
 
 typescript is very poorly designed
 
+actually, we despise and are a bit disgusted with typescript now
+
+if we try to write a language that will have strong typing but we want to start extremely low in order to build a good foundation (assembly), then we necessarily won't have types in the beginning, because assembly doesn't have types.
+
+getting anywhere significant may take an extremely long amount of time, especially if we want to do network things, so perhaps its best if we understand that we will start without types and then allow ourselves to use anything instead of assembly, although we do want to eventually break everything down into assembly.
+
+we have a notion that we don't want to use anything with a type system, because that may just confuse and distract us.
+
+https://sourceware.org/binutils/docs/as/
+
+the assembler is built in. neat.
+we assembled a blank file, the result contains quite a few bytes and wouldn't run without adding execution permissions
+
+YRZUC-notion a small utility program that splits the contents of an assembled file so that we can parse through it for information, moreso than hexdump. for instance, the ability to see something like the index of each byte mapped to each byte, and/or each byte mapped to some instruction (if possible, some bytes may just be data).
+
+`hexdump -v` shows the entire thing
+https://medium.com/@MrJamesFisher/understanding-the-elf-4bd60daac571
+>The first 64 bytes of the ELF file are the ‘ELF header’. We can view just the ELF header by asking hexdump to just print the first 64 bytes
+
+YRZUC-presume ELF must have documentation
+
+https://www.sco.com/developers/gabi/latest/contents.html
+
+https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_mono/ld.html
+
+objdump -i
+
+we'll look at the assembled file, then the linked file (which is nothing, so that's easy)
+http://osr507doc.xinuos.com/en/topics/ELF_elf_ident.html
+
+```
+   #define EI_NIDENT	16
+   
+
+   typedef struct {
+   	unsigned char	e_ident[EI_NIDENT];
+   	Elf32_Half	e_type;
+   	Elf32_Half	e_machine;
+   	Elf32_Word	e_version;
+   	Elf32_Addr	e_entry;
+   	Elf32_Off	e_phoff;
+   	Elf32_Off	e_shoff;
+   	Elf32_Word	e_flags;
+   	Elf32_Half	e_ehsize;
+   	Elf32_Half	e_phentsize;
+   	Elf32_Half	e_phnum;
+   	Elf32_Half	e_shentsize;
+   	Elf32_Half	e_shnum;
+   	Elf32_Half	e_shstrndx;
+   } Elf32_Ehdr;
+```
+
+so the elf header is 16 unsigned characters, then we have a lot of other stuff
+
+https://www.cs.cmu.edu/~410/update/proj4/410kern/elf/elf32.h
+word u32
+lword u64
+sword i32
+off u32
+half u16
+addr u32
+hashelt word
+
+in hexdump, we get chunks of two bytes, rows of 8 chunks (16 bytes for a row)
+each chunk is a u16 or an elf half, two chunks a u32
+
+e_ident is then the first row
+
+https://www.sco.com/developers/gabi/latest/ch4.eheader.html
+our machine is a `3e`, or:
+`EM_X86_64 | 62 | AMD x86-64 architecture`
+
+hexdump -c ./foo.o (or -C)
+
+`hexdump -e '"%07.7_Ax_L[cyan]\n"'
+
+https://www.amd.com/content/dam/amd/en/documents/processor-tech-docs/programmer-references/24592.pdf#page=70
+>3.2.1 Fundamental Data Types
