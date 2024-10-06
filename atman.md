@@ -6877,3 +6877,52 @@ The rule then should be "a variable can be created as long as it is distinct and
 
 This would allow us to create `/foo/baz` and `/boo/baz` such that we have some context like `foo:/,boo:/,baz:foo,baz:boo` in a way that's consistent with how we want to logically group things and (we conjecture) that's consistent with the intended premise of HoTT despite us having changed a fundamental rule and now viewing things in a different perspective (type and avatars).
 
+we find the merging of algebraic structures fascinating
+HoTT seems to do it by just having "rules" for things and then applying them, and perhaps there's something more there, like formalizing that the "rules" are actually descriptions of potentially amalgamated mathematical structures (and specifically how they are amalgamated).
+
+Perhaps then we want our own theory, and we'll want to use that theory to then create another of our own theory. The first will describe how one can "construct" and "describe" and "define" amalgamated mathematical structures with "relations" between various structures, the second will describe something similar in spirit to HoTT but will start extremely simple and be tailored to our needs. For instance, we'll be able to "scope" things such that we can have two separate things in two different "scopes" that have the same name, understanding that implicitly (or explicitly but we're allowed to elaborate away) the "identifiers" of those things are their names prefixed with whatever "scope" they inhabit.
+
+We'll also need to get to the point in the HoTT book where they discuss "paths" because we may want or need that in order to construct our organization scheme.
+
+The first theory should be able to theoretical derive HoTT, the second will be my "flavor" of something inspired by HoTT.
+
+Perhaps also our "flavor" will be more grounded to what a modern machine can do. For instance, we may even want to do away with the notion of a "space" (which we interpret as a sphere with infinite radius (is there merit in that interpretation? is that novel?) and instead align closer to a structural notion that is finite and perhaps of another dimension. For instance, memory (at least in the specification for the processor of the machine I'm currently using) is a flat structure with finite indicies.
+
+I then may want to create an amalgamated structure for my machine, but start with or consider that one component is going to be a finite structure (for memory).
+
+So I won't (initially) have some ∞-groupoid structure (which won't initially help me if I start trying to "implement" the theory from a low machine level since that is not something the machine natively understands).
+
+This resolves our YRZUC for wanting to correct or point out an inconsistency in HoTT, since we now believe we've gone past HoTT.
+
+The first new thing we want is the more general system we think we found. One of the first things we'll need to decide is "should we use LaTeX or should we find a way to write things such that we don't need it?".
+
+We strongly think we should find a way to not need it. It's quite complex and even when I write it here all I'm really doing is writing a restricted set of Unicode which is then rendered as some sort of LaTeX.
+
+It seems *goofy* then to write in LaTeX since it necessarily just makes things much more complicated. At least, we should *initially* not write in LaTeX, but perhaps later when we've advanced enough, we may take it on.
+
+We also find HoTT's notation for rules *distasteful*, since they really are just "if then" constructs which have been done in computation and logic many times and they regardless went and devised their own completely different notation (which, using fraction bars is impossible for me to type on my keyboard without some LaTeX rendering engine).
+
+We also want to more explicitly allow, use, and encourage the concepts of taking "conclusions" which we have found ourselves having and then deriving from them their "hypotheses", a derivation that uses a rule in reverse, which we have already found useful.
+
+Perhaps we also want to use our idea of using unicode symbols not found on our keyboard as the symbols with significant theoretical meaning, since we'd then be free to type whatever possible without conflicting with the theory.
+
+So for me, I seem to only be able to immediately access unicode codes x20 - x7e
+
+quite a short range in the grand scheme of everything
+we will want to try to avoid symbols that can be easily misinterpreted as the ones we can immediately access (like `é` is extremely similar to `e`, so perhaps we don't want to use that), and *maybe* we want to give consideration to symbols which could be immediately accessbile and commonly used by others, like `¡` potentially being immediately accessible or common to others.
+
+Armenian (x530-x58f) seems to be the first significant block that appears quite distinct, although there are some potentially conflictable symbols.
+
+We're also going to make sure the symbols we use don't drastically alter how typing works, like hebrew or arabic seem to switch me to a right-to-left mode, and some other symbols have more esoteric behaviors.
+
+Devanagari seems to be very distinct, although it *could* be an issue that the symbols appear similar to one another, but if we restrict ourselves to requiring that the symbols that we pick be distinct from one another as well we may find it difficult or impossible to find a nice "block" of symbols to use.
+
+Bengali is interesting.
+
+Unified canadian is very interesting.
+
+Miscellaneous and Supplemental Mathematical symbols is of course useful.
+
+There's also CJK if we want to make blocks of related symbols, as it appears that's something inherent to that set of symbols (some similar shapes with small changes can cause a large amount of symbols). Hangul Syllables similarly.
+
+https://cratecode.com/info/gas
