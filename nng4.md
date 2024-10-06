@@ -719,3 +719,89 @@ hexdump -c ./foo.o (or -C)
 
 https://www.amd.com/content/dam/amd/en/documents/processor-tech-docs/programmer-references/24592.pdf#page=70
 >3.2.1 Fundamental Data Types
+
+YRZUC so we write in "assembly", then `as` takes that as input and outputs something that `ld` takes as input which then outputs something that linux can execute. convoluted for a minimal program, probably really useful for a non-minimal program
+
+https://www.amd.com/en/search/documentation/hub.html#q=AMD64%20Architecture%20Programmer%E2%80%99s%20Manual%20Volume&sortCriteria=%40amd_release_date%20descending
+
+https://www.amd.com/content/dam/amd/en/documents/processor-tech-docs/programmer-references/40332.pdf
+
+it appears that an empty program is ELF-valid and executes
+
+```javascript
+const overlay = document.createElement("div");
+
+const css = `
+    position: fixed;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    mix-blend-mode: difference;
+    z-index: 1;
+    opacity: 90%;
+`
+overlay.setAttribute("style", css);
+
+document.body.appendChild(overlay);
+```
+
+can put this in the console when viewing a pdf in a browser to make it pseudo dark-mode
+
+YRZUC! is a byte a type of dependent function or type consisting of a smaller more primitive type `bit`? traditionally, if we have two bits, say `01`, then the value of the second bit doesn't "depend" on the other. but let's say we write that as $\sum_01$ and allow us to consider that $1$ may not depend on $0$.
+
+YRZUC we might want a term for backwards processing of HoTT rules.
+A rule is a bit like `if I then T` or possibly thought of as $I\to T$.
+The backwards equivalent is more like `since T then I`, or possibly thought of as $T\to I$ or more like $I\leftarrow T$.
+
+By $I\leftarrow T$ on $\scriptsize\sum\text{-FORM}$ where $T :\equiv \sum_01$,$$
+\begin{align}
+  I_0&:\equiv\Gamma\vdash A:\mathcal{U}_i \\
+  I_1&:\equiv\Gamma,0:A\vdash1:\mathcal{U}_i.
+\end{align}
+$$Now, we've seen something like that before in the HoTT book, haven't we?
+
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=47
+>The type of booleans $\textbf{2}:\mathcal{U}$ is intended to have exactly two elements $0_2,1_2:\textbf{2}$. It is clear that we could construct this type out of coproduct and unit types as $\textbf{1} + \textbf{1}$. However, since it is used frequently, we give the explicit rules here. Indeed, we are going to observe that we can also go the other way and derive binary coproducts from $\sum$-types and $\textbf{2}$.
+
+Actually, that may be a bit "too derived". In our back-derived hypotheses $I_0$ and $I_1$, let's look at $I_1$. We see $0:A$. That's just the empty type $\textbf{0}$, which we can form from any well-formed context via $\textbf{0}\text{-}\scriptsize\text{FORM}$.
+We can then just say that $A:\equiv\mathcal{U}_{i-1}$. (or that our previous $\mathcal{U}_i$ is now $\mathcal{U}_{i+1}$ and $A:\equiv\mathcal{U}_i$.
+We can also see $1:\mathcal{U}_i$, which is exactly the conclusion of $\textbf{1}\text{-}\scriptsize\text{FORM}$, which we can also use assuming any well-formed context.
+Since $\text{ctx}\text{-}\scriptsize\text{EMP}$, we then consider that with the above, our assumption of $\sum_01$ can be backwards derived to require a single common ancestor hypothesis of "nothing", which we presume means that our assumption is valid under HoTT.
+I wonder if any of that makes sense, it seems like a very peculiar way to do things.
+
+We wonder then if we could define a byte as a sort of chained cartesian product of 8 bits as something valid in HoTT. (perhaps not chaining 8 bits but rather accumulating cartesian products of types where each "inner type" represents a 1-bit extensions of the previous type).
+
+YRZUC there appears to be an inconsistency in the HoTT book.
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=444
+states that in $\text{ctx}\text{-}\scriptsize\text{EXT}$ the variable $x_n$ must be distinct from the variables $x_1,...,x_{n+1}$, which allows for doing things like $\mathcal{U}_0:\mathcal{U}_1,\mathcal{U}_1:\mathcal{U}_0$, but a footnote in
+https://hott.github.io/book/hott-online-15-ge428abf.pdf#page=441
+states that "new" variables must not appear in $\Gamma$. This is more general and would allow one to not do things like the above.
+
+\<YRZUC>
+we hypothesized earlier that we might be flipping between "states": one "abstract/quantum" and one "concrete/classical".
+
+These are bastardizations of the terms but we think they're sufficient for our own understanding.
+
+In the "abstract/quantum" state, we understand things in an "abstract/quantum" way, such that concrete things are put into "superposition".
+
+One way to think of this from a concrete perspective is to imagine that those concrete things are rapidly switching to some sibling.
+
+So if we had "colors" as a concept, the classical understanding might be something like `red, blue, yellow, green, etc.`, but the quantum understanding might be a superposition.
+
+An attempt to understand this classically would be to imagine a word that at one moment may be `red`, but the next may be `blue`, or any other color word.
+
+Practically, it would be like looking at something that you know is a word, and you know is a color word, but you can never really "pin down" which one. It's why we think of it as `abstract`, because now it's an abstraction of all color words. 
+
+We occasionally sometimes feel "blind", in a way that we think some people would associate with "brain fog". Perhaps this isn't blindness or brain fog, but us having switched from some classical perspective to some more abstract perspective. 
+
+We call it "blind" because I may be looking at some text and I can see there are clearly words, but it's almost troubling or difficult to actually read the words, as if I was some sort of "blind".
+But we can see that there are word. We can see that there are headings, paragraphs, and structures. We can see the more abstract shape of things.
+Perhaps we aren't experiencing "blindness" or "brain fog", but rather we've unexpectedly switched into a more abstract state.
+
+Perhaps one can do things in this state that otherwise aren't possible in the classical state.
+\</YRZUC>
+
+

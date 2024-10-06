@@ -6729,3 +6729,151 @@ There are two things that I've wanted to do but not been able to, and we may nee
     
 
 One of the first things I'll want is to be able to actually do _something_ in TypeScript that I can map to the HoTT text. Basically a "hello world" of HoTT in TypeScript. It need not be practical.
+
+YRZUC some compilation of all of the things I'm using / need and why. "dependencies" for what I'm doing.
+Also maybe where various things get installed. It is always baffling how scattered installations get and how incapable Windows is of finding things (through search at least). If one stops paying attention for a moment, it becomes very difficult to find things.
+
+For example, we think we found an inconsistency (significant) in the HoTT book. In their repo, they state that the version displayed on the website may not be the latest. If we find an error, we should compile the repo (tex files) and check (presume also check the open/closed issues).
+
+YRZUC (past) How do we compile the book? How do we work with .tex files? Do we want to do this on Windows or on Linux? We installed something called `MiKTeX` recommended by `LaTeX`'s official (presumed) website. We tried installing the other recommended thing but it failed to install. `MiKTeX` was a huge installation and the path it installed to was bizarre. There are also what appears to be one hundred binaries and `.dll` files in one of the `bin` folders. Is that all necessary? We thought to install `SpaceSniffer` again, since it is a nice utility.
+
+YRZUC a plugin for obsidian that allows one to render arbitrarily with some language, like JavaScript. The extension for LaTeX allows rendering of afore, but some extension allowing rendering of any kind could be quite powerful. We wonder what Obsidian is, exactly, since it renders markdown and we know the LaTeX extension has JS "snippets" in it. How can we make a program that renders like a webpage ourselves? We explored things in that conceptual space before, namely Tauri apps, but didn't get very far.
+
+YRZUC we have quite a lot of YRZUC!. We need to do something with them because they have arisen in such a way that processing them is or appears to be troublesome. Imagine an event handler that takes time to process events and can receive many kinds of events. It is receiving lots of events, faster than it can process. We imagine some sort of stack or queue structure for events. We are approaching what we imagine is a limit in that stack or queue, where things become undefined or go wrong when we add more. An YRZUC stack overflow in the human machine, perhaps? 
+
+YRZUCs
+1. (big DZHV goals) larger DZHV goals
+	1. contract factory w/ contract feature marketplace 
+	2. decentralized bridge via Y-theory application
+2. (small DZHV goals) smaller DZHV goals
+	1. (simple bridge) centralized simple mint-and-burn bridge
+		- no permission calculations just hardcoded permissible addresses
+		- pilotable by 1
+		- scalable via k8-like
+		- interface(s)
+		- modular
+		- extensible (can add chain relations)
+		- at least semi-auto-self-funding
+		- chain reorg taint detection
+		- possible auto quarantining of reorging chains
+		- potential volume limits to mititgate chain reorg taint
+	2. (trading game) "trading game" replacement for rebasing
+		- actors declare their position, which is their balance at point of declaration
+		- their position becomes their points, they earn and can claim from a reward pool for the game
+		- taxes on some contract interactions fuel reward pools
+		- actors can actually declare any position. thus, an actor may inflate their balance, declare, then deflate to earn more than they would otherwise wish to "risk" (where risk is holding dzhv). but another actor may declare their position and immediately lower their rewards. since rewards are proportional to points, declaring a "dishonest" actor's position will increase the rewards of one's own position
+	3. (dusting, other games) other game mechanics from TNGL, like dusting
+	4. (absorb TNGL) bring TNGL holders into the fold. TNGL can then be regarded as formally archived and all token holders can be considered as "unified" into DZHV
+	5. (help goofs) find out who sent assets to DZHV address and send it back (perhaps make it impossible for that to happen again, if possible)
+3. (small DZHV YRZUC recursion) YRZUCs arising from smaller DZHV goals
+	1. (simple simple bridge) we may want to make a simpler "simple bridge" at first which does work
+	2. (own web3 library) to make the "simple bridge" we recognize that web3 is tainted by "there can only be one" standards put forth by Ethereum. we think at first this was unintentional (lacking foresight to see other chains, although there may be information in the standard at an early enough point in time to show they had that foresight) but currently intentional (Ethereum harms EVM interoperability via their standards). these standards are used by *everything* in the web3/EVM sphere, notably by library `ethers.io`. the impact is that their library is bad for cross/multi-chain use as switching chains bricks one's browser when implemented intuitively. [this was recognized by the creator of the library but the response was/is unsatisfactory](https://github.com/ethers-io/ethers.js/issues/2842). the creator of the library gives an example of "[how to work around this](https://docs.ethers.org/v5/concepts/best-practices/#best-practices--network-changes)" and in that example you can see the issue as they refer to an example of chain switching as between Görli and Mainnet (both Ethereum chains, there can only be one, etc.), but explicitly state that "standard users should likely never change their networks unless tricked". The library is also not natively in TypeScript (which now we wonder if that matters, we'll get to that later).
+		- TL:DR of this YRZUC: In order to build the bridge, we should make our own library
+		- While making our own library we identified some more YRZUCs
+			1. (better overload handling) overloads in TypeScript and in Solidity and in every Web3 library are all very messed up
+			2. (contract module generator) a "properly typed" contract module should exist prior to being used, so that the TypeScript language server doesn't need to "compute" the types of a contract while the developer is interacting with it, otherwise the language server may be slow and choppy. good DX indicates we must compile "contract modules", or we need some contract module generator that takes in an ABI and outputs a full module
+			3. (Taleurei) We found geth unpleasant to work with, and found that we could theoretically build our own minimal execution client natively in JS/TS and it should be much nicer to use and much faster to use. There is an "official" TS execution client, but it's made by Ethereum so we don't trust it. We could extend our client so that it can act as an EVM node or many EVM nodes, and perhaps even be its own EVM-like but superior to the EVM, allowing things like network communication.
+			4. (strongly typed web3 library) we had a minimal pipeline that got to the point of having a chain with a token and a uniswap v3 liquidity position with our token and a native, but we were hand writing the transaction cdata, which got very messy once we reached a function that took the cdata of 3 functions as well as functions that took arrays of structs. we needed an abi encoder for our library. we wanted to make our own, "to spec", but we started bumping into lots of TypeScript issues and specifically we desired now that we could have a type error thrown if trying to input some number into a function expecting a "uint8" that "didn't fit". for instance, 256 as an input to something expecting a uint8 should throw a type error, because 256 doesn't fit in a uint8. One has to do horrible things in TypeScript for this to work, but then when it comes to things like uintX up to uint256 this just seems infeasible or impossible, and manipulating the type system is a waste.
+			5. (find or create strongly typed language, prefer create) similar to the above, we recognize that for one person to efficiently build such complex programs requires necessarily a way of thinking and programming that is quite abstract. we learned some functional programming and quickly realized that TypeScript is a joke language that cannot be used for anything beyond very simple programming (rather it can be used, but the type system that it adds to javascript is a very, very primitive and simple and inflexible type system, and TypeScript isn't serious about making it strong, but rather catering to the whims of popularity and slapping bandaids on the system to appease the masses). Thus, if we want the previous YRZUC, we must find a better typed language or create our own, and right now we seem to greatly prefer creating our own, although we understand that's difficult.
+				1. (new language from HoTT & machine code) To that end, we wondered "what makes something strongly typed", and we began to learn about type theory. it seems that a recent and great milestone is homotopy type theory. we want a language whose type system is founded on homotopy type theory. we also understood that for a language to be best founded on homotopy type theory, we should avoid "high level languages". in fact, we should go as low as we possibly can. we think currently that custom building a machine based on HoTT is a bit too far (although in the long run, maybe it isn't), so the lowest we can go is machine code. getting machine code is mostly done through assembling and linking an assembly program. do we go straight to machine code, or do we do assembly? we want to try our hand at a "hello world" in machine code/assembly. assembly in Windows is messy and there's little community for it. it appears cleaner in Linux, but Linux is tangled with ELF formats (thus is also messy).
+					1. (Windows ASM, ELF, NASM vs `as`, custom OS in the cloud) What is ELF, how do we interpret it, can we just write in machine code in a way that's ELF-friendly? Should we make our own OS? We'd need a local machine. Or we could perhaps find something on linux that simulates a virtual OS, make our own OS, run it in that, and have the linux machine be in the cloud for a "custom OS in the cloud". the idea is that if we do this, we don't need to bother with Windows or ELF, we can just make our own minimal VM (perhaps more minimally than trying to make it "for" Windows or Linux, we can abstract that away in our own OS). Containers?
+					2. (contribute to HoTT book / resolve inconsistency / determine if inconsistency is or remains) We found an inconsistency in the HoTT book that we think should be resolved. We need to compile the book. We're trying to figure out how to do that, and this is spawning more YRZUCs
+						1. do we compile it in windows or linux?
+						2. do we need to compile it, or could some program view it without compilation? (view each .tex)
+						3. there are multiple programs to handle .tex, which one to use? one of them failed to install, we'll try to use the other, although we may want to know why one failed. this is on windows, so perhaps we should just use linux
+						4. one of them installed, but installed what appears to be 100+ binaries and 100+ DLLs. is that really necessary? should we try linux and find something lightweight, compile and send the PDF to our windows machine for viewing?
+							1. With all of that extra stuff installed, we realize what we are trying to do involves many dependencies and programs, which are currently scattered all across Windows and linux, each with their own dependencies and programs. We want to untangle it all and become organized. We also realize that our YRZUC has become a tree of doom, which is why we wrote it out, because we could "feel" that with them in our mind that we were approaching some sort of YRZUC stack overflow and we were soon to become lost or forget things. In the snake-door theory, we have entered a few too many doors, perhaps, and have or are soon to forget what we initially saw on the horizon. perhaps functional programming and composition appraoches can alieve the tree or pyramid of doom, even for YRZUCs.
+
+we presume then that we want to break out of `atman`
+`tiktaalik` is also quite unorganized
+
+YRZUC there's a solution. we feel we are close, but not looking at it, and not sure how we should change where we are looking in order to see it. we briefly saw "sections", one for each YRZUC, where a section is a structure that can contain dependencies. it's similar to what we wanted for blocks for machine code programming, where a block contains data and is linked to other blocks, and the links are roughly arbitrary. A block may even link to itself. Blocks may contain other blocks and data.
+
+```
+a OP0
+b OP1
+c OP2
+d JC b
+e OP3
+f J z
+```
+
+the above could be considered a block containing lines `a` to `f`
+it is connected via line `f` to the block that starts at `z`
+it is also connected via line `d` to the block that starts at `b`
+there must be a block containing lines `b` to `d`
+this block is connected via line `d` to the block that starts at `b`, which is itself
+this block is also connected via line `d` to the block that starts with `e`, in a sense, since every line can be considered a block that is connected with the next line
+
+there's a pattern there that we haven't explicitly dealt with before. it's like logical groupings, and it's like language structures
+it's arbitrarily nested logical groupings, where a classic "program" is the "top" level logical grouping with no siblings (relative to its contents, which makes that sort of a tautology (if we're using that term correctly)).
+
+we wanted to use ontologies to model things, but we think it's a bit tricky and unpleasant that one cannot reuse the same name in an ontology (at least, in Protégé, since entities are named and then related, we can't make two entities with the same name and related to two different things, it wouldn't make sense)
+
+when we tried to model things in a file structure, we can definitely name two entities the same thing, as each file in a folder can be thought of as the name of a thing prefixed by the name of the parent folder, which is its name prefixed by its parent folder, and so on until we reach the root of the filesystem
+
+but filesystems don't neatly allow for things to exist that contain information and links to other things, because filesystems are trees and what we want is a graph.
+
+actually, an ontology is a graph, so what we need is probably some combination structure. do we need a novel structure?
+when we were minimally implementing graph based structuring, like ontologies we declared things with names and then declared their relations, such that two things with the same name doesn't make sense or would introduce undefined behavior.
+
+but we want to retain the recursive prefixing that is more concise that is represented by filesystem trees.
+
+git is tree based, isn't it? or is it graph-based? or both? is what we want even possible? we think git is tree based, as the relations between things are of a small fixed set specific for trees (parent, child)
+
+HoTT as the basis of our structure? accumulating "universes" (types) of types, types are spaces that contain points (although points are types, so really everything is a type and "universe" is just confusing terminology that makes some types distinct without there seeming to be a consistent reason to do so).
+
+"Types in a universe" can be thought to be prefixed with the "universe".
+However, every type in a universe is in the next universe, so we can no longer "logically group" things the way we thought before, can we?
+In a tree:
+
+```
+/
+- foo
+- - bar
+- - baz
+- boo
+- - bar
+- - far
+```
+
+giving us:
+1. `/`
+2. `/foo`
+3. `/boo`
+4. `/foo/bar`
+5. `/foo/baz`
+6. `/boo/bar`
+7. `/boo/far`
+
+but by "being in `/boo`" we can just say `bar` and it's sort of implied that we mean `/boo/bar` since we're not "in the scope that contains" `/foo/bar` and thus `bar` is not ambiguous.
+
+In HoTT, let's try that.
+`foo:/,boo:/,bar:foo,baz:foo,bar:boo,far:boo`
+
+that's not valid, as `bar` is not a distinct variable when we `ctx-EXT` it "into" `boo`.
+in fact, if `/` is `U2`, then `foo` is `U1` and `boo` must be `U0` (excluding the others), then necessarily `boo` is a part of `foo`, which isn't what we wanted to express
+
+Unless there's something about the HoTT text that we had misunderstood greatly. Such as: `not every type inhabited is a universe, but only what is declared as a universe is a universe`.
+
+This is a bit odd, as it conflicts heavily with `there is one basic notion: types` *in a sense*. We had thought that because of that, everything was basically equal, but that's not the case. We think about that funny image where it's `God` is `Jesus` and `God` is `The Holy Spirit` but `Jesus` is not `The Holy Spirit`, which now may not be very funny at all if HoTT in the book is structured the same way, which is a bit of mind blender.
+
+In this interpretation, a Universe is an "avatar" of a type, so it is a type, but something like a "type" (which goes into a universe) is an "avatar" of a type (the one basic notion), so it is a type, but it isn't a Universe.
+
+Which would mean that the HoTT book's use of terms is very puzzling.
+U-INTRO introduces universes, which are types. 0-FORM introduces the type 0 as a point of some universe. Type 0 is a type, which is a type, but it isn't a universe, so there's a "second kind of type" and a "first kind of type". If that's an accurate interpretation, then the HoTT book indeed uses a very puzzling and perhaps "poor" use of words. Likewise, variables need not be types (the non-one basic notion kind), although they are necessarily types (the one basic notion kind). So they are types (the one basic notion kind), but they aren't a "universe" or a "type" (the non-one-basic notion kind). They are an "avatar" of a type (the one basic notion kind).
+
+You can see very quickly why now I think the HoTT book has a poor choice of words.
+
+So perhaps our earlier attempt to explain logical grouping within HoTT is inaccurate, because we had conflated `/`, `/foo`, and `/boo` to be Universes, necessarily meaning that one of the three is the "bottom" universe that doesn't contain the others, one of the three is the "top" universe that does contain the others, and one of the three is some "intermediate" universe that contains one other, per the U-CUMUL rule.
+
+But if only `/` is a "Universe" (an avatar of type), then `/foo` and `/boo` are free to not contain one another but still exist within `/`.
+
+And if `/foo` and `/boo` are both a "type" (an avatar of type), then they are not universes, but they may include "variables" (an avatar of type).
+
+However, now we think that the `ctx-EXT` isn't just inconsistent, it's also plain wrong in either interpretation. A "variable" (an avatar of type) should be allowed to be created even if it's not distinct from the existing "variables" and even if it's not "new" (does not appear in $\Gamma$ or $A$) (these are the two inconsistent interpretations of `ctx-EXT` in the HoTT book).
+
+The rule then should be "a variable can be created as long as it is distinct and new *only with respect to the type (avatar of type) it is created within*".
+
+This would allow us to create `/foo/baz` and `/boo/baz` such that we have some context like `foo:/,boo:/,baz:foo,baz:boo` in a way that's consistent with how we want to logically group things and (we conjecture) that's consistent with the intended premise of HoTT despite us having changed a fundamental rule and now viewing things in a different perspective (type and avatars).
+
