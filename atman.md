@@ -6926,3 +6926,36 @@ Miscellaneous and Supplemental Mathematical symbols is of course useful.
 There's also CJK if we want to make blocks of related symbols, as it appears that's something inherent to that set of symbols (some similar shapes with small changes can cause a large amount of symbols). Hangul Syllables similarly.
 
 https://cratecode.com/info/gas
+
+modelling HoTT "hypotheses"/"conclusion" rules in a machine
+is basically if-then
+
+in a machine, that's just a conditional jump, isn't it?
+there appears to be a complete documentation breakdown at the assembly level (even before assembling and linking)
+
+in order to write to `/stdout` to get a minimal `hello world` program, one needs to access `write`, which is a kernel-level function
+
+nearly all documentation then shows using interrupts with an interrupt code signalling we want the kernel to take over
+
+we have to put the arguments to the kernel-level function in registers, in a way that (to me, an outsider) is comically convoluted
+1. the identifier for which kernel-level function to use goes in AX
+2. argument 0 goes in DI
+3. argument 1 goes in SI
+4. argument 2 to goes in DX
+5. argument 3 goes in r10
+6. argument 4 goes in r8
+7. argument 5 goes in r9
+other registers get mangled by the response
+(mind you, the "order" of registers is AX, BX, CX, DX, SI, DI, BP, SP, 8, 9, ..., 15)
+
+where did we find this information? widespread searching leading to a stackoverflow reply:
+https://stackoverflow.com/questions/2535989/what-are-the-calling-conventions-for-unix-linux-system-calls-and-user-space-f
+(although specifically the reply states that the way it's used is buried in source code on the machine, AKA not *really* documented. technically yes, it is documented in source code comments, but if one has to read *the entire source code* in order to make a "hello world" program work i think it's safe to say it's extremely poorly documented)
+
+we want to note that we are specificalyl thinking about documentation from the perspective of "official sources". for instance, if i'm doing this on debian, debian.org should have something easily navigable to on their own site detailing how to write an assembly hello world for at least a few of the common architectures, where we'd imagine amd64 would be one of, if not, the most common (today)
+
+To detail how poor things seem to be, there was documentation *in 2003* and it was deleted, and we found a mailing list where someone expressed confusion on how to actually do things *21 years ago*
+
+https://lists.debian.org/debian-amd64/2003/09/msg00003.html
+
+we presume the "documentational bit rot" only worsened since then
