@@ -7080,3 +7080,7 @@ and a type system is something that would be somewhere in there before running (
 YRZUC an assembly program that loops with a wait in the loop. something would be the trigger that ends the wait (we could wait some time, or wait for something local, or try to wait for something remote). we want to be able to "see" it working.
 
 could that be the basis of a "debuggable" version of a program, we just slap "waits" in between every operation?
+
+YRZUC taking a body of work with many pieces that we may not know we want to use, then "finding" a task that uses each piece or combinations of pieces, like learning music by playing individual notes then combining pairs of notes, combining pairs into triples, or (melodic or harmonic, etc.)
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/virt/kvm/api.rst1
