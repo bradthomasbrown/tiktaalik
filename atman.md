@@ -7042,3 +7042,41 @@ Segmentation fault
 
 it's a start
 
+right now we're thinking about 
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/crypto/ecdsa.c
+private key generation
+
+and also about our vision of some sort of interface that lets me modularly see and work with assembly in an extremely flexible way, like graphics (or some fancy console setup) combined with gdb
+
+and also strong typing, rules and conditional branching as mathematical structures (or rather mathematical structures or math in general are just code)
+
+and "functional assembly" or "aspect oriented assembly", where we may write something "in assembly" but in pieces, and the pieces are arranged into a program. the pieces would be easily digestible
+
+and also our own assembler
+
+that "point" that one paper made about wanting to separate type checking and runtime evaluation is interesting. we have been accidentally bumping into that concept before but never really addressing it:
+typescript type checks by constantly running the typescript compiler (or type checker) against code as one types the code, giving the developer a sense of "real time type checking"
+
+but if we wanted to "type" assembly, there's no type checker for us to run. if we wanted the same sort of developer experience ("real time checking"), it would have to be runtime evaluation, i.e. we continuously assemble, link, and run, then provide feedback to the user while they are typing assembly.
+*then* we may want to try and add types on top of that somehow, but really we must necessarily conflate the type system and runtime evaluation, shouldn't we?
+and if we shouldn't, and there is merit to "separating" the running into running and type checking, what if we just abstractly view that as "one degree of separation". what would "two degrees of separation" be? some sort of higher-kinded type checking? or possibly we could think of "type checking" as some sort of higher-kinded runtime evaluation?
+
+when we wanted "type checking for inputs to some function expecting a uint256" in typescript, we were thinking about some horrible nightmare that could actually do the computation for any number in that range and determine if it was valid
+but nobody would ever type a number in that range, would they?
+when we used it, we were manipulating numbers like token minting and transferring, and any number we input in that regard was always something definitely more "workable", like 10n ** 9n * 10n ** 18n. There's only 4 relatively very small numbers there.
+so perhaps we could devise a similar "tolerably inaccurate" system to check which just checks that specific "setup" of a u256.
+
+we think that the "continuous" assembly execution should be something perhaps more "fancy" (eventually) than "assemble, link, run, repeat". 
+https://www.amd.com/content/dam/amd/en/documents/processor-tech-docs/programmer-references/40332.pdf#page=1508
+`MONITORX`
+>Establishes a linear address range of memory for hardware to monitor and puts the processor in the monitor event pending state. When in the monitor event pending state, the monitoring hardware detects stores to the specified linear address range and causes the processor to exit the monitor event pending state. The MWAIT and MWAITX instructions use the state of the monitor hardware.
+
+actually, assembling, linking, and running are all three different things that can be done continuously
+we *could* continuously assemble to catch errors that would prevent assembling,
+we *could* continuously link to catch errors that would prevent linking,
+we *could* continuously run to catch errors that would prevent running
+and a type system is something that would be somewhere in there before running (perhaps during as well to be really abstract) that catches certain kinds of errors that would perhaps not "prevent" running but would "prevent" failures in the type system
+
+YRZUC an assembly program that loops with a wait in the loop. something would be the trigger that ends the wait (we could wait some time, or wait for something local, or try to wait for something remote). we want to be able to "see" it working.
+
+could that be the basis of a "debuggable" version of a program, we just slap "waits" in between every operation?
