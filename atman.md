@@ -6972,3 +6972,73 @@ YRZUC create or find documentation on the structure of at least this particular 
 Or...
 perhaps an LLM could document it?
 We now really want our own LLM
+
+linux is 100% completely centralized and hinging on a single person
+
+what the fuck
+
+also the kernel code is convoluted as hell, swapping between c calls but written in some monster form of assembly with a million macros.
+
+YRZUC-vision something like gdb but more graphical and more able to capture a wider amount of information at a time. modular, extensible.
+i should be able to configure something such that i can see every register, flag, the instruction i'm on, optionally the structions before and after, and i want to be able to step backwards and forwards and see the changes.
+
+holy fuck, we're finding some info:
+(syscall args)
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/include/asm/syscall.h
+(syscall ids)
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/entry/syscalls/syscall_64.tbl
+
+(Kernel-based Virtual Machine driver for Linux) (interesting)
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/kvm/x86.c
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/entry/common.c
+`do_syscall_x64`
+`regs->ax = x64_sys_call(regs, unr);`
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/include/asm/syscall.h
+`extern long x64_sys_call(const struct pt_regs *, unsigned int nr);`
+
+every time a kernel developer writes `extern`, a child's dream dies
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/entry/syscall_64.c
+`long x64_sys_call(const struct pt_regs *regs, unsigned int nr)`
+`default: return __x64_sys_ni_syscall(regs);`
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/x86/include/asm/syscall_wrapper.h
+`extern long __x64_sys_ni_syscall(const struct pt_regs *regs);`
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/linux/syscalls.h
+`asmlinkage long sys_write(unsigned int fd, const char __user *buf, size_t count);`
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/fs/read_write.c
+`ssize_t ret = -EBADF;`
+
+good lord, we found it.
+if we make our own OS, don't code golf the kernel code.
+or at least, if you do, document it well and/or have ungolf'd kernel code
+
+when we ran the syscall, quite a few things changed
+1. rax went from 1 to -14 # we were using AT&T syntax to get the address of the string in intel syntax mode, which didn't work. we were loading the string contents into the register
+2. rcx went from 0 to 4198440 # this is `rip`
+3. r11 went from 0 to 770 # EFLAGS? (see /arch/x86/entry/common.c in the kernel, `SYSRET requires RCX == RIP and R11 == EFLAGS`)
+
+```
+.intel_syntax noprefix
+.globl _start
+_start:
+  MOV RAX, 1                        # x86_64 syscall id,    1 - sys_write
+  MOV RDI, 1                        # x86_64 syscall arg0,  (fd) 1 - file descriptor stdout
+  MOV RSI, OFFSET FLAT:helloworld   # x86_64 syscall arg1,  (*buf) "hello world\n" address
+  MOV RDX, 13                       # x86_64 syscall arg2,  (count) 13 - bytes to write
+  SYSCALL
+
+helloworld:
+  .string "hello world\n"
+----------------------------------
+root@dev-debian-docker:~/Oumn# ./foo
+hello world
+Segmentation fault
+```
+
+it's a start
+
