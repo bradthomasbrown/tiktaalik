@@ -6952,10 +6952,23 @@ where did we find this information? widespread searching leading to a stackoverf
 https://stackoverflow.com/questions/2535989/what-are-the-calling-conventions-for-unix-linux-system-calls-and-user-space-f
 (although specifically the reply states that the way it's used is buried in source code on the machine, AKA not *really* documented. technically yes, it is documented in source code comments, but if one has to read *the entire source code* in order to make a "hello world" program work i think it's safe to say it's extremely poorly documented)
 
-we want to note that we are specificalyl thinking about documentation from the perspective of "official sources". for instance, if i'm doing this on debian, debian.org should have something easily navigable to on their own site detailing how to write an assembly hello world for at least a few of the common architectures, where we'd imagine amd64 would be one of, if not, the most common (today)
+we want to note that we are specifically thinking about documentation from the perspective of "official sources". for instance, if i'm doing this on debian, debian.org should have something easily navigable to on their own site detailing how to write an assembly hello world for at least a few of the common architectures, where we'd imagine amd64 would be one of, if not, the most common (today)
 
 To detail how poor things seem to be, there was documentation *in 2003* and it was deleted, and we found a mailing list where someone expressed confusion on how to actually do things *21 years ago*
 
 https://lists.debian.org/debian-amd64/2003/09/msg00003.html
 
 we presume the "documentational bit rot" only worsened since then
+
+when we ran the syscall, quite a few things changed
+1. rax went from 1 to -14
+2. rcx went from 0 to 4198440
+3. r11 went from 0 to 770
+
+we think we might find our "documentation" in `/usr/include/x86_64-linux-gnu`
+
+YRZUC create or find documentation on the structure of at least this particular release of debian?
+
+Or...
+perhaps an LLM could document it?
+We now really want our own LLM
