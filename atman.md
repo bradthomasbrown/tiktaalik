@@ -7204,3 +7204,8 @@ we are under the impression that logic cannot or has difficulty with expressing 
 ```
 
 Let's start on the KVM stuff
+
+we have a handle
+now what
+>A KVM_CREATE_VM ioctl on this
+handle will create a VM file descriptor
