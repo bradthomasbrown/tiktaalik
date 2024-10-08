@@ -7084,3 +7084,119 @@ could that be the basis of a "debuggable" version of a program, we just slap "wa
 YRZUC taking a body of work with many pieces that we may not know we want to use, then "finding" a task that uses each piece or combinations of pieces, like learning music by playing individual notes then combining pairs of notes, combining pairs into triples, or (melodic or harmonic, etc.)
 
 https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/virt/kvm/api.rst1
+
+YRZUC we wanted "dependencies" for what we have been working on, but we may be able to make that more granular. for instance, I had just cleared out a bunch of open applications and had the notion that i could reframe that to "i am switching my dependencies to some more specific task". so the notion isn't that we have "dependencies" for what we have been working on, but we can modularize the contexts of what we've been working on in a way similar to what we've done with other concepts.
+
+we do want to try and tackle a previous idea:
+- in a filesystem structure, we cannot concisely and intuitively represent machine code control flow
+- we previously imagined that instead of "files" and "folders", there should be "blocks", and blocks are linked to other blocks, potentially even themselves
+- we've recently imagined that each line is a "block" linked to the next
+- we've also recently identified a similarity in how what we've thought of as "blocks" are just arbitrarirly chosen logical groupings of lines
+- we now realize we shouldn't call them "lines", they should just be what they are: instructions
+- we were previously arbitrarily grouping them according to jumps, but we could group them for any other reason or combination of reasons
+	- one instruction that can be jumped to, many non jumping instructions, then a jumping instruction can be seen as some specific kind of group (with an "in" and an "out" that isn't the same as the implicit "jumps" of standard program counter increment) of instructions
+	- but we also have instructions like SYSCALL or INT, which can also be thought of as "in" or "out" (does this capture side effects or a wide net of side effects?)
+	- we have a notion that a logical grouping can be made for any combination (or perhaps permuation) of operations or for any combination (or permutation) of operations and combinations (or permuations) of operations. like how in an english sentence, letters can be broken into syllables, syllables could be prefixes, suffixes, onset, nucleus, coda, then words, categories of words, such as colors, or more abstract, nouns, adjectives, verbs, then prepositions, subject, object, conjunctions, sentences, etc.
+	- except here there's a potentially novel notion: if i have a string of characters "abc", that's as it is, but if those are operations then `b` might be a specific character representing something like `SYSCALL` where there's this "implicit abstract departure or control relinquishing" before we hit `c`. Like if somehow an english string "abc" meant "a", then "b", then if we have context we can take a guess that something happens, otherwise we just generally know that something might happen, then "c"
+	- syntax tells us what symbols are valid, grammar groups symbols into higher structures that we can assign meaning. but instructions have inherent meaning, and any permutation of them necessarily means some meaning specific to that permutation.
+	- "classic languages" "tame" "randomness" by assigning meaning to "arbitrary" logical groupings of symbols
+	- instructions or "machine language" inherently already has assigned meaning to every symbol, but if we view those symbols as "random" then "machine langauges" "tame" "randomness" by assigning meaning to "arbitrary" logical groupings of symbols
+	- no, classic language symbols also have inherent meaning, it's just sometimes not the most intuitive. to me, at least `B` is the letter B, it's a consonant, it makes a certain sound or can make certain sounds, it appears in certain positions and has ceratin uses, there's a "mouth shape" for it and IPA designations for it no doubt. it's also a language
+	- but classic languages don't really have an "instruction/symbol" that implicitly indicates "delegated" meaning, does it? if a symbol/instruction like `B` has meaning, then a symbol/instruction like `SYSCALL` is like a "higher-symbol", it has meaning, but it's meaning is dynamic. it implicitly "delegates" meaning to other symbols which we may not immediately know or even with context may not fully know.
+	- in classic language, we cannot combine arbitrary symbols and they then have meaning as a permutation
+	- but in machine language, we think we can combine arbitrary symbols and they then have meaning. perhaps we can do so in a classic language as well, it's just not as intuitive?
+	- even if we permute two machine langauge symbols in such a way that guarantees they are incompatible (can't have meaning), that could cause some error or interrupt which ultimately just transfers control flow (which is something that could have meaning, meaning those two "incompatible" symbols do have meaning, if we understand them as a possibly convoluted means of control flow)
+
+some more strong notions
+
+- instructions are not the inherent symbol. we have
+	- opcode A, consumes next byte as operand and does something
+	- opcode B, does something
+	- opcode C, moves control backwards one byte
+- `ABC` then means "opcode A with operand B (as a literal value), then opcode C, then opcode B (as an instruction)"
+- so instructions/opcodes are bytes, and bytes can have context that changes their meaning. like the letter `t` in `motion`, `cat`, or `tsunami`
+
+every opcode is a conditional control flow instruction.
+when we go through the manual, all or nearly all instructions have one or more possible errors. what happens when an error is encountered? we presume a control flow change. so whereas some
+- "jump conditional" looks at some value in some register then conditionally jumps
+- "add" equally looks at some values in some registers then conditionally jumps (where do we go when we get an error?)
+
+we may not know the state of the machine at times, or it may be difficult or impossible to intuit
+when we do a SYSCALL, we know that if there's an error then register AX may be set to some error code. additionally, other registers are updated. without context and quite a bit of knowledge, we may simply say "we don't know the state of the system after this instruction" or a milder "we don't know at least some of the state of the system after this instruction", since the code doesn't specify what changes
+
+in fact, we think this is true on a deeper level applied to ALL instructions.
+"add". we can intuit what it does (from the programmer reference at least), when it will error (it's conditional branching conditions), what registers it will update and how they will update them, *or we presume we can intuit this*
+without fully understanding the hardware and firmware, the code itself doesn't exactly describe what "add" does, such that we cannot immediately be sure, given the state of the machine and the "add" instruction, what will happen. we can intuit it, and be correct "apparently all the time", but unless we map out exactly what's happening at every level, then we don't really know. even if we understood at a physical level, there could be some phreak quantum phenomenon that suddenly kicks everything back into "we can't know for certain"-land, which then brings us to a concept we've seen elsewhere:
+
+we're *tolerably* certain what the next state of the machine is given the "add" instruction and the current state of the machine.
+we don't need to know the quantum level of things for certain, we can just be "tolerably" certain that some stray cosmic gamma particle isn't going flip a bit unexpectedly and make "add" behave unexpectedly, since the probability is "low enough" (or rather the perceived probability).
+we don't need to fully comprehend the hardware or firmware of the machine for certain, we can just be "tolerably" certain that the "add" instruction and given some machine state will produce the next machine state we intuit
+
+much like how in cryptocurrency and cryptographic systems in general, one "could" presumably find some private key that produces a public key collision with a private key i hold. in fact, it's certainly possible. but it's "tolerably" unlikely, so i'm at least okay with tying up something significant to my presumption of the unlikeliness.
+
+(side note, we wonder if register values can be updated in unexpected ways besides the defined unexpected ways. for instance, SYSCALL may mangle AX, but is it possible for some process A to have, from its perspective, a register be mangled by some process B, perhaps running on another core? or are the registers virtualized and abstracted such that that "tolerably" shouldn't/couldn't happen?)
+
+this has a fascinating implication:
+we presumed that there were at least two classes of machine: symbolic and neuro
+symbolic machines are what one expects, modern computers, programs, parsers, compilers, functions, etc.
+neuro machines are things like LLMs or feature detectors.
+
+perhaps there's not that much of a difference, or the distinction of classes blurs when we take the above into account.
+if we train some AI to predict, given a byte and a machine state, the next machine state (or at least that, or given some part of a machine state and predicting the next part of machine state), then we conjecture that we could train an AI that can "learn" how a machine works without either us or the AI knowing how the machine works at all, perhaps by just randomly taking observations of machine state and "the current byte" (which we wonder if we can just collapse into the notion of "the machine state"), allowing the machine to proceed to the next state, then using that as our "training data"
+
+we think that an AI should then be able to very quickly and convincingly determine the "extreme likeliness" with which some register changes given the ADD function based on the contents of the machine state (or perhaps parts of the machine state)
+perhaps another AI could be trained simply on the "higher" notion of not "what and how" the machine state changes, but just "what", so some AI could see that given an "add" instruction, (particularly maybe `04`) then AX will change, but we don't need to know how (in fact, that should change AL, which is only the low 8 bits of AX (which itself is the low 16 bits of EAX, which again is the low 32 bits of RAX)).
+so perhaps it could be trained on which bits in which registers could change.
+
+then, maybe it would be beneficial for a separate AI to be given "which bits in which register(s) will change and what bits in what register(s) are related, here's the input that caused us to think that", such that the separate AI could then predict "how the bits will change".
+
+we wonder about a notion inside of that previous one:
+the input of an AI and the output of an AI as the inputs to another AI. that's odd. we don't think we've seen that before. we presume it's been done, but we usually just see "many inputs, many interlinking nodes, one or more outputs"
+perhaps that is just what the "layers" or "depth" of a neuro-based setup are, since one input may go to two neurons, one may "process" it and one may "conserve" it, then the outputs of those could be fed into a single neuron, which is then our "we get the input of an original neuron and the output of some other neuron given that original input as inputs" 
+
+another strong notion:
+
+"functional machine programming"
+if every "instruction" is really just a byte, then if we created a system that was a "minimal machine code programming environment" where we could just plug in bytes and have them processed (without thinking about ELF, etc.), then we might do something interesting:
+
+`04` adds `imm8` `ib` to `AL`, per the AMD manual I'm looking at.
+we could "modularize" that into two things:
+`04`
+then some `ib` like `00` or `01`  or perhaps even some minimal little program that somehow takes an input and produces a byte, we'll call it `zz`
+
+`04` and `zz` exist completely separately.
+`04` can be thought of as either `add ib:imm8 to AL` or as the literal `04` or `0b100`
+`zz` likewise can be thought of as either `map input to byte` or as the literal `zz` (imagine whatever that may be in binary)
+
+then imagine some secondary system that can "compose" `04` and `zz` as two separate things into our first system which can run arbitrary bytes as machine code
+
+then we have a more complex program `add 'mapped input to byte':imm8 to AL` that was never explicitly written out like `04??` (where `??` is presumably the code of `zz`)
+
+all we did was "compose two bytes", like composing two functions
+
+if a program is bytes in memory, can that program edit that memory which contains its bytes?
+supposedly, if the memory where the program bytes are *isn't* readonly, which the gnu assembler forces
+
+so, we're going to either need to do something in KVM or we're going to need to decode ELF so that we write what we want without (or with as few as possible,) intermediaries like `as` and `ld`
+
+Claude unintentionally told us a joke in a programming language: `((void(*)())mem)();`
+
+so, we're back to wanting a KVM then, since we probably don't want a self-modifying executable in an environment that isn't as isolated as we can get
+this is the code i'll delete for now ("we were going to syscall, but now we're not going to do anything"):
+
+```
+.intel_syntax noprefix
+.globl _start
+.section .text,"wx"
+_start:
+  MOV BYTE PTR [foo], 0x90
+foo:
+  SYSCALL
+```
+
+we think we accidentally touched on something more profound, in line with our "computation is the foundation" and that math and logic are just derivations of computation:
+we are under the impression that logic cannot or has difficulty with expressing "temporal" things like the statement generalizing the above: `we will, if, otherwise` which is captured extremely neatly by the code (if we did away with all the assembler and linker and ELF sugar, the machine code to express this might just be around 4 bytes, an extremely, impressively concise way to express an otherwise complex "temporal conditional expression")
+
+```
+- State-Dependent Types: This could lead to a type system where the types themselves are dependent on the program's state, which is a step beyond even dependent types in functional programming.
+```
