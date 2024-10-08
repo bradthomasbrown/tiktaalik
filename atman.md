@@ -7199,4 +7199,8 @@ we are under the impression that logic cannot or has difficulty with expressing 
 
 ```
 - State-Dependent Types: This could lead to a type system where the types themselves are dependent on the program's state, which is a step beyond even dependent types in functional programming.
+- Probability in Types
+- State Machine Representation
 ```
+
+Let's start on the KVM stuff
