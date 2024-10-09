@@ -7209,3 +7209,11 @@ we have a handle
 now what
 >A KVM_CREATE_VM ioctl on this
 handle will create a VM file descriptor
+
+huh
+windows arrangements
+is that not a thing?
+presets for window arrangements?
+it'd be extremely useful, but i've never heard of that
+specifically, window arrangments that treat browser "apps" (anything in a browser) as fundamentally equal as bare machine apps
+very specifically, if i have a hurricane scale chart image loaded in a browser tab and a knots-to-mph converter app in another browser tab, the idea then is to have some system/feature/utility that allows me to save a "preset" of two browser windows open with those things in a certain configuration on my display, such that i can load that preset easily and straightforwardly
