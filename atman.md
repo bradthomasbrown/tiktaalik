@@ -7339,3 +7339,271 @@ comically, it seems we must serve the file to ourselves then fetch it, even thou
 (we can just create a response object, but that seems arbitrary)
 
 i honestly have no idea what i'm dealing with. there was also this massive 55 KB `a.out.js` file made and i'm getting the impression that it contains what's needed in order to run the `.wasm` file, since there's this weird deal with an "import object"
+
+conjecture: comments are a primitive type system
+
+we've never really dug into V8, ECMAScript, or the HTML specs, despite using them constantly
+we now wonder if one of the things we might want to do is creating a browser
+we wonder if that's a choice because chrome uses the V8 engine which implements ECMAScript, so if we want to modify anything there and actually use it, then we'd need our own browser.
+we can extend that to:
+- if we want to modify ECMAScript for ourselves, we can just do that. it's an implementation, we literally copy the words and then change them, no computation nor need to make sense needed
+- if we want to modify the V8 engine we'll clone it and modify it (it's c++)
+- if we want to use the modified V8 engine like how chrome uses V8, we'd need our own browser
+- if we wanted to modify c++, then... well then what? it appears to be like ECMAScript, as their website's Get Started! section tells you to first fuck off and go find a compiler. so like ECMAScript, we could... well it doesn't seem to be neatly on the website and in a repo like ECMAScript. it actually turns out that they sell the standard, and it's $250. l m a o, that's something we don't want to touch with a ten foot pole
+
+https://stackoverflow.com/questions/2734884/why-does-iso-iec-charge-for-the-c-and-c-standards-instead-of-providing-them-fo
+>I am wondering what the rationale is behind this... is it not detrimental to both the C and C++ programming languages that the authoritative specification for these languages is not made freely available and searchable online?
+>>I have an answer to your question, but it's $99.
+
+lmfao, good to see that 14 years ago some people agreed
+
+>“Anyone who wants to pay for membership in their national body is able to come join the fun.”  
+ Yeah… OK, so maybe the next standard will be “freely available”, but only if you’re white? :|
+
+hahaha. ok, so c++ is a joke language, which unfortunately makes everything built on top of c++ "things whose foundations include a joke", so perhaps we should probably avoid those things
+this is unfortunate because, among those things are:
+- V8, therefore Chrome
+- the solidity compiler
+
+bootstrapping:
+rust is written in rust. well, how does that makes sense?
+it was "initially" written a long time ago in another language
+
+our reasoning is
+write program A in language Ll, compiler Lc compiles A to machine code.
+write program B in language Ll, compiler Lc compiles B to machine code, *however* program B is a compiler Mc0 for some language Ml0
+now we can write program C in language Ml0 and use compiler Mc0 to compile C to machine code.
+if we want to update the language/compiler, we can do so by repeating the same steps
+
+i seem to strongly want to "reverse bootstrap" then, specifically within linux, since there's ELF and linking and assembling and I was last wanting to create some program with assembly, ELF, and linking that could make it so that i could write programs without assembling, ELF, and linking or any combination thereof (preferably straight machine code)
+
+if we can do that, then we can start to "forward bootstrap" (i really do hate that term though) some new language built with an absolute foundation in machine code and no intermediate funk (besides firmware and hardware)
+
+we think we can shape something important and significant from these bits:
+- comments are a primitive type system
+- type systems may just be "higher-kinded" computation
+- computation as a fundamental foundation
+
+we have a desire for an environment where we can issue bytecode one at a time and view how it alters a machine state. i want to see all the registers and flags and memory (or at least some "available subset"), then "issue" a single byte and see how that alters things
+then, i want to be able to "back up", or issue another byte to "go forward"
+perhaps we could "save the state" and go back to it at any time or load it as the intial, then perhaps we could "save some bytes" which could be seen as a program to be run
+perhaps we could run X of these bytes rather than all, or perhaps we could modify or adjust bytes, or perhaps we could run starting at some byte other than the first, all of which are just byte manipulation
+
+with that "view", a person may see or find things that otherwise might be missed, perhaps optimizations or tricks
+
+perhaps we have two machines: one like the above, and one that immediately processes a byte as it is selected, before it is issued
+
+with the two machines, and some more advanced view, we could see "what issuing a byte would do" without actually issuing it, relative to the first machine, using the second.
+
+perhaps then, with two machines, one could see "the state now", then select a program or string of bytes and "see the state then" as if it were issued in the same way
+
+perhaps also it need not be assumed that some initial state is always "The Initial State". bit odd to describe that, but basically if we create such a system, there must be some initial state, and if that's consistently the "initial initial state" then we could call that "The Initial State" whereas a program might want or require in whole or in part some particular "initial state" (akin to a partially applied function, or perhaps exactly a partially applied function, or perhaps a partially applied function is that concept: "some initial state")
+
+https://en.wikipedia.org/wiki/GNU/Linux_naming_controversy
+christ, "linux" is basically everything i despise, richard stallman was correct all along even if an ass (and man do i start to see some resemblances to how i think to how he writes)
+all the "pro linux" arguments resort to "but it's more popular" which is explicitly what i dislike about nearly all existing projects; that they focus on popular demand and popularity instead of some more base and substantial foundation
+"linus sucks"
+
+someone says stallman is an "e-communist" who believes "digital ownership doesn't exist"
+we're not sure of the accuracy of that, but given our start in cryptocurrency development we certainly don't think that applies to ourselves
+
+my main disagreement with stallman would probably arise from the fact that i now attribute GCC, GDB, and GAS to him, and i really don't like those. i like machine code, and the ubiquity of those programs obstructs and obfuscates what i believe is the true foundation of computation and possibly mathematics
+
+my main agreement then is probably my concept: 'the "hello world" question', or the HWQ (careful there, buddy). If one descends down the "low-level" path and tries to get a minimal program out of the lower level until they no longer can, then the linux kernel with "firmware blobs" (i haven't seen these, i'm curious about that) necessarily means that the linux kernel is not computationally well-founded, since these blobs be definition cannot be broken down further towards machine code; there's a "jump" to machine code. so both stallman and i would agree the blobs are a problem, for two seemingly-different reasons that perhaps might be more the same than otherwise thought
+- stallman - blobs aren't free
+- me - blobs are computationally well-founded / one cannot straightforwardly determine the nature of the blobs / blobs aren't free
+
+for any given cloud provider, we could always just try to "best emulate" our concepts in whatever we have at our disposal
+we could very easily start to incrementally simulate what can be done in x86_64 in something like "JavaScript"
+
+a new vision:
+some sort of hosting provider for all sorts of custom machinery, where implementations on the back-end are as low-level as possible, such that someone could say "i want to write in machine code for some processor", and the provider would be able to offer a service to satisfy that
+but it'd be a terrible business because nobody wants to do that (perhaps a campaign to educate could remedy, but we're pessimisstic on that)
+
+why do we want something in the cloud?
+reliability, or more that i have been told they are reliable and i know a machine where i live is subject to the power or internet going out
+
+hmm, some new concepts:
+renting as small office spaces as one could find which have internet connectivity
+
+>https://www.crexi.com/lease/properties/798042/florida-jax-office-suites
+>High-speed internet to keep your business running smoothly
+>ALL utilities included - no hidden costs, no surprises!
+
+i almost wonder if i could find more such arrangements and strike some sort of deal like
+"hey i have a machine that i want to run here but i don't really plan on sticking around apart from setup"
+
+the tricky part then, though, is that if say a hurricane strikes jax and knocks out power all around, then there's not much recourse. even if i found some place that let me set up a generator, if the ISPs and cell towers go out then GG. but it would also be phsyically infeasible to have two such situations far enough apart that we have some minimal disaster mitigation, right?
+
+for instance, say i put a machine somewhere in GA, (not thinking about how a storm could easily hit both), getting to that machine now takes a large amount of time. if it went down suddenly, i'd be in quite a pickle: i'd need to drop what i'm doing and beeline there. even if there was some fictional perfect service where i could put a small machine and a maintenance team was on standby if anything went wonky, that'd be much more expensive because i'd have to pay at least in part for a maintenance team on standby
+(we wonder if one company were to have some large warehouse where idealistically every "slot" was occupied by independent "machine slot renters" with their own machines then the cost of the maintenance team split amongst the renters could be low enough to be tolerable or a low barrier)
+
+we could have a cloud "version" of whatever the machine does which is a slower, emulated version of what the machine does.
+
+we also want to fall back a bit now and realize that a recurring concept could be used to potentially end the cycle i find myself in right now:
+- minimally do things in every available way and compare how each goes
+where now minimally doesn't mean "machine code" (computation) but minimally in terms of productivity like "what minimally do i need to do to productively do X"
+
+what a freeing concept
+
+what if we had to build the bridge by hand?
+token holders would emit an event in some way indicating they wanted to bridge
+some fictional setup involves a printer which prints out chain events (or even just total chain data)
+i literally sit at the printer and read each event
+if i come across an event corresponding to a user wanting to bridge, then i move from the printer to the next station
+(we think we're on to something here - we're now thinking like a machine)
+what do i do next?
+i'd probably do a quick check to see if the bridge request is reasonable — a user isn't requesting to bridge more tokens than they hold
+(for now, we'll assume some peculiar things for simplicity)
+we also check to see if the user has approved me to spend their tokens. if they haven't i can't transfer them out from their balance (which i must do, otherwise if i mint tokens on the other chain they'll get free tokens. no can do).
+
+- input chain data, output events
+- input chain events, output relevant events
+- sanity checks
+	- user isn't bridging more than they have
+	- user has approved me to bridge the amount they want to bridge
+
+we burn their tokens. we must do this before minting or even starting to mint or the user might unapprove me to spend their tokens (or just move their tokens somewhere else) and might get free tokens
+
+once i am satisfied that their tokens are burnt (this is an interesting take now),
+i'll mint the same amount of tokens on whichever chain they specified they wanted to "move" to
+
+for goofy completion sake, i email the user once i am satisfied their tokens are minted (which almost certainly should be something the user specifies)
+
+now, we can work on the other issues:
+- when we burn their tokens, we spend money on a transaction and on gas
+- when we mint their tokens, we spend money on a transaction and on gas
+(we're starting to see things more clearly from this machine perspective)
+
+we need that money to come from somewhere, don't we?
+let's say initially we use what we have and whatever we make from liquidity
+a user could just bridge back and forth forever until i run out of money, assuming no new exchanges are made
+
+we could mint tokens and exchange them to effectively pull from the liquidity pool (or simplify with some mechanism that lets me pull from the liquidity pool and mitigate inflation, which necessarily would decrease the value of all tokens. not great.)
+
+well, that's not ideal
+so we must tax during the bridge
+more generally, we want to guarantee some income stream that can satisfy the operational costs
+the only way to guarantee that, in a vacuum, would be taxing the bridge
+we could offset that tax with other income streams, *optionally*, but at the heart of things, we must consider a tax during the bridge (if other income streams can comfortably, fully offset the bridge tax, we could "remove" the tax (remove in quotes because we'll systematically consider there is still a tax, it's just 0%))
+
+here's the kicker, the operational costs fluctuate with time, and the operations take time
+so the user must pay some amount in tax that they don't know ahead of time *in a perfect system*
+
+our operational costs manifest as native token expenditures.
+even if we have some initial wallet value, those operational costs will eat at that value.
+so if we tax the bridge, we're taxing tokens which we must convert to native coins at some point (when we run low on native coins as the bridge or simply to meet some target balance)
+
+that conversion is also an operational cost, so the costs get a little bit tangled here
+an absolute worst case ceiling end would be if we considered that we wanted to immediately reach some target native coin balance after every single transaction, or perhaps, using smart contracts, at the same time as every transaction
+it's an interesting approach
+
+hm. there's a fundamental little thing there that we don't think generally exists or that we've thought of yet:
+given tokens and "some transaction", exchange enough of the tokens for native assets which are sent to my wallet that would pay exactly for *this* transaction and send the unspent tokens somewhere, where *this* transaction includes "some transaction"
+
+this would be a really solid system (if it worked correctly), we think. it would allow me to do the bridge transactions in such a way that i have now abstracted away the entire concept of operational costs (although we have offset that to some new issue:)
+
+what if not enough tokens are given to pay for the transactions?
+if our exchange transaction is something like exchange tokens for exact native assets, then the transaction should fail. in fact, perhaps even gas estimation should fail, such that we never even send the failing transaction (which would waste gas)
+
+but what do we do with this now "in limbo" transaction that cannot be processed?
+also, we consider the tokens spent in the exchange versus the total amount of tokens. certainly, if the tokens spent is 100% of the total, no bridge user would want that to happen, it must be a mistake. surely, if the tokens spent is 90% of the total, nearly all bridge users would want that to happen. so on and so forth, there's a threshold that's unique to each bridge (not even the bridge user, but each bridge transaction that the user initiates. even then, the user may change their mind so the exact tolerable threshold is completely variable with time)
+
+this is where we were before, but from a different direction:
+if some user doesn't want to pay a fee, it could also be thought that the user *receives* tokens during the bridge: a negative tax
+how could this be done? if some user specifies some threshold and when we execute the bridge operations we end up not hitting the threshold, we could just keep the excess tokens and force the threshold to be hit. when that happens, we have excess tokens. these excess tokens could be used to pay negative taxes if people specified a negative tax.
+
+we imagine that the excess tokens would be always spent immediately as people rush to use them when they're available, which could be messy and even if we handled it correctly those who weren't "first" would end up with limbo'd bridge transactions.
+
+we consider that it should be trivial for there to be an option where users specify some tolerable delay for their bridge to start being processed. (note, not tolerable delay for the whole process, since the chains are outside of my control, such "tolerable delay for the whole process" is not reasonable/feasible/possible).
+
+what would that do? if two users specified some delay at roughly the same time (and assuming we can handle and work with those two users' requests before their delay is up), then we can bundle the two transactions, saving quite a bit on operation costs on a per bridge transaction basis.
+
+we're also thinking about limbo'd transactions again. say we do force thresholds to be met and use excesses to pay off limbo'd transactions.
+what then, stops a user from specifying some insane negative tax, thus every future excess is allocated for them?
+the most intuitive thought is that it doesn't make sense to specify some arbitrary negative tax and for that to be processed as "usual", the concept of the negative tax is more or less a way to approach the concept of how a transaction could be done where the bridge user loses no tokens. the user wouldn't specify a negative tax that happens to make it all work out, that's something we'd need to do ad hoc.
+although again, what stops a user from submitting endless requests to bridge tokens with no loss, thus infinitely consuming the threshold excesses?
+well, the usual solution to preventing endless requests is a fee/priority system. although here, it initially seems ironic to implement that, given that the issue is that the users in question don't want to pay a fee at all.
+
+nothing stops a user from doing that.
+but perhaps, with the tolerable initiation delay mechanism, we could "resolve" or mitigate that by removing that as an option:
+
+users can't specify 100% tokens at the destination chain, rather they're given an estimate and are allowed to state their tolerances (so they can specify 100%, but we think with what comes next it'll be a NOOP).
+if the user sees that the estimate is outside of their tolerances, they can increase their initial delay. this won't change the estimate, but basically the user can now opt for a "window" where if their tolerance isn't met, it's not an automatic rejection of the transaction. the system may check repeatedly if the user's tolerance can be satisfied within the window, and if so, processing will begin. likewise, we can bundle things while we're "within-window", which can increase the chance of a tolerance (or tolerances) being met
+
+and we won't "shuffle" anything in the batches (like drawing threshold excesses form one tx in the batch to fulfill another), so that the only savings arise purely from the savings in operational costs
+(which can theoretically go as high as possible given as much time as possible)
+this seems ideal
+
+and what of (bad) reorgs?
+we think it's not right to blindly assume some tolerable confirmation levels for ourselves for burns
+bridge volume limit from one particular chain is the only real way to ensure that if there's a reorg issue, then the value that gets heemed in the reorg is at least limited
+
+we don't want to base a "finality" or "confirmation count" on real numbers from historical data, since it's unpredictable (polygon 100+ chain reorg last year)
+if we hypothetically gave poly a $1k equiv value per day limit, we could say that's a $0.0116 equiv value per second limit. poly blocks now are 2.6s per block, so a 150 block reorg is 390s, or a max of a $4.52 loss in liquidity (via inflation from duplicated tokens) over that 390s.
+That's definitely something that we could react to before significant damage was done to any liquidity pools, possible by quarantining the chain until we were confident such issues were unlikely to occur again. if we have $50k in equiv native value in the ETH liquidity pool, then for some mega poly reorg to drain ETH, the volume limit from poly would have to be hit 100% of the time, targeted only towards ETH, for 4,310,000 blocks, or 11.2 million seconds (130 days or just over 4 months)
+
+one way to think of it is that every second we do instant bridging we accumulate "potential debt" which may completely randomly become "realized debt", and this debt can potentially directly hit liquidity pools
+
+necessarily, to "pay off the debt" such that it doesn't accumulate, we'd have to tax at 100%, since the volume *is* the potential debt.
+
+actually, even if the debt was 100% of the bridged value, then we realized 100% of a liquidity pool, it would at worst dilute the tokens in the pool by 100%, which wouldn't put the value of the tokens at zero, but it would halve the value, due to AMM curving (or potentially other weird effects due to V3, but as long as there's some open V3 position then the value will fall but not hit zero, unless infinite tokens are duplicated, which is impossible. the most that can be duplicated would be the supply of the chain).
+that last point seems interesting.
+if poly only has $5k equiv value on it, then the cap of damage is a $5k equiv dilution on some other chain
+weird concept:
+limits on chain supply. we move to some obscure chain, we cap the tokens on that chain then we cap the damage that chain can cause. if it does max damage, then we can react and quarantine before it can do so again (not really, the volume limit is the only thing that lets us react, the chain cap seems to hard limit what damage can be done)
+part of me has before and does now, wonder if the value of an instant bridge could possibly "offset" the "operational cost" of reorg inflation
+if we make DZHV rebaseable, then we can retroactively deflate any inflation with a negative rebase. however, that has the extremely negative consequence of DHZV basically guaranteed being a depreciating asset for long term holding, as every reorg will cause depreciation and reorgs are somewhat of a certainty.
+but... is it possible that the increased activity and attractiveness of an instant bridge draws enough increase in value and enough fees that all parties find the depreciation *tolerable*?
+we also have to consider that if we can react, then the damage done is capped per block of a destination chain.
+we presume some absolute worst case scenario: we expand to an obscure chain, the chain is controlled by a malicious actor with full control of the chain. their chain is also potentially infinitely fast.
+they rapidly reorg and issue bridge requests.
+we're also infinitely fast, and see each bridge request and burn instantly and confirm, sending mints to, say ETH
+we'd then be sending infinite transactions to ETH minting tokens, up to the supply of the offending chain.
+ah, a volume limit there would help immensely.
+with a volume limit, we would not be sending infinite transactions, only transactions up to the volume limit
+a new interesting thought:
+thresholds for tolerance on triggering quarantine, so we have some *tolerable* inflation from reorgs, but if one particular reorg is detected and its magnitude is above a threshold, we trigger the quarantine.
+a new bizarre thought:
+mining mints tokens and awards them to miners.
+what if we viewed this chain reorg inflation as mining?
+the volume limit of the bridge would then be our maximum issuance rate to miners.
+this is very strange.
+to mimic bitcoin, we could have volume limits that decrease exponentially over time
+this is extremely strange,
+since now it's like we "tend to total chain isolation" but never actually do so
+this is almost wild enough to be its own token. we don't want to "inflict" this on DZHV holders because it sounds potentially very risky for those currently holding, as we could produce inflation and perhaps no demand, devaluing everyone's holdings
+but with a volume limit, at least each holder has some time to react before their holdings devalue past some threshold, it's not like they'll devalue 90% in a day unless we play extremely fast and lose with the volume limits and then also encounter worst case scenarios.
+but then, wouldn't we be *encouraging* chain reorganization as a way to produce value?
+new idea that made me jump a bit:
+"ought"
+
+https://bitcoin.org/bitcoin.pdf#page=4
+>If a greedy attacker is able to assemble more CPU power than all the honest nodes, he would have to choose between using it to defraud people by stealing back his payments, or using it to generate new coins. He ought to find it more profitable to play by the rules, such rules that favour him with more new coins than everyone else combined, than to undermine the system and the validity of his own wealth.
+
+If a greedy chain operator is able to manipulate his chain to commit reorgs in contrast to honest chain operators, he would have to choose between using that position to defraud people by diluting the liquidity pool in exchange for assets, defrauding those who holds tokens, or using it to generate new tokens. He ought to find it more profitable to play by the rules, such rules that favor him with more new coins than everyone else combined, than to undermine the system and the validity of his own wealth.
+
+Is that valid?! That has massive, MASSIVE, ***MASSIVE*** implications.
+if that's valid then chain reorganization isn't even a problem, nor is it a "contagion" (for bridges) as vitalik put it. in fact, we could flip the script and say mining is a "contagion" or any form of coin or token issuance is a "contagion" in the exact same way.
+
+if mining or other issuance is valid, then so are chain reorganizations. am i taking crazy pills right now?
+
+Here's the thing, assembling CPU power is an accumulating *thing* that's difficult. More CPU power = more investment = more difficult.
+
+Being in a position to enact arbitrary chain reorganizations isn't difficult at all, really (it doesn't require work).
+
+***what if proof of work must be submitted in order to bridge tokens, with more work required for more tokens?***
+
+then we "capture" the chain reorg "problem" completely. although now we wonder why not cut out the middle man and just make the token minable, and instead of bridging to a chain, one just mines on a chain? well that's not going to be fast or reliable anymore
+
+Satoshi's point now doesnt' make sense within only that context
+
+>https://bitcoin.org/bitcoin.pdf#page=3
+>The proof-of-work also solves the problem of determining representation in majority decision making. If the majority were based on one-IP-address-one-vote, it could be subverted by anyone able to allocate many IPs.
+
+in our situation, it's more like we have a bad mining protocol where *it could be subverted by anyone able to* (in this case) chain reorg arbitrarily.
+
+So now we view chain reorg bridge contagion equivalent to a bad proof of work mining protocol. The volume limit would only just be a bandaid, metaphorically then it would be capping the work a BTC miner can produce. (in our case, if we auto-expanded to every valid chain, then the metaphor would be some capped PoIP BTC miner allocating IPs to mint "outside the cap" where one with arbitrary reorg control would equivalently create new chains to mint "outside the cap". the way it's set conceptually "now" is as if we had capped PoIP BTC mining and we authoritatively allowed or denied miners from the network)
+
+then the only real solutions from here are requiring work to bridge (presumably equivalent to the work just being mining on another chain where we don't burn at all) or whatever the PoS equivalent is (they have "slashing" if someone does something wrong, so it'd be like anyone wanting to bridge puts up collateral to me and if they reorg i delete their collateral)
+
