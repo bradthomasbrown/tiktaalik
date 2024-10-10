@@ -7217,3 +7217,125 @@ presets for window arrangements?
 it'd be extremely useful, but i've never heard of that
 specifically, window arrangments that treat browser "apps" (anything in a browser) as fundamentally equal as bare machine apps
 very specifically, if i have a hurricane scale chart image loaded in a browser tab and a knots-to-mph converter app in another browser tab, the idea then is to have some system/feature/utility that allows me to save a "preset" of two browser windows open with those things in a certain configuration on my display, such that i can load that preset easily and straightforwardly
+
+>chrome's WASM implementation is based on the V8 JS engine
+>safari supports WASM through its JSCore engine
+
+there's something terribly wrong about the WASM ecosystem
+the best "ecosystem"? runner? we're not even sure, seems to be "wasmer"
+their documentation is substandard frequently even after only trying to use it for minutes
+
+for instance, installation is with a curl get'd bash script (no checksum or any security or source or explanation as to what it does, just "hey grab this random bash script from the internet and execute on your machine, LOL")
+
+the next section of the docs is for the "CLI". the first thing it says is how to "run a package". it says where packages are published.
+it then gives an example of running what appears to be some "python" package. is this an "official" package? is it by the python people? what does it do? where's it's source?
+when we run it, presumably it downloads the package.
+where is it downloading it from?
+how?
+how are things secured?
+is there something like a `lockfile` where we can restrict the hash of a downloaded package?
+if it does download packages, where does it download them to?
+
+it doesn't say ANY of this
+just "here run this arbitrary code". what the hell
+i had to actually google "where are wasmer packages stored", which led me to something not in the docs, but on their main website as a "help guide" page that said
+
+>Installing a package creates a local package directory called `wasmer_packages` where all packages are installed
+
+just above that, it says "here's how to use the install command" and very clearly shows that a run command is being used, not an install command
+
+there is also no `wasmer_packages` directory on my machine after running the "install" command
+we know it's not really a typo because immediately after "install command" comes usage of the "run" command, which is the same command as their "install" command, which is very strange and indicative of something like either incompetence or a wildly poor grasp of the english langauge and standard documentation etiquette
+
+there appears to be a `.wasmer` folder made under my user, which has a `cache` folder, which contains a whole bunch of stuff l ike `checkouts, compiled/engine-cranelift-v7, queries`. i have no idea what these are or even how to find out what these are, as they aren't mentioned in the documentation.
+
+in fact, if you look up `checkouts` in their docs page, there are zero results
+
+why would i use this? it's another instance of "have fun parsing through our presumably rapidly changely source code with probably equally poor comment documentation in order to figure anything out"
+
+where i might just find it better to create my own version of this from scratch so i don't have to untangle all the peculiar decisions they may have made. they also, like deno, have some "edge" service which immediately starts to paint things in a very ugly light, since coupling rapid, frantic, uncoordinated development with what is obviously an attempt to generate revenue now gives the stark appearance of a "cash-grab" going on
+
+we wonder then, why did the WASI page recommend this, why is it the most popular thing here
+actually we're not even sure if the WASI page recommended this, because their page equally has no practically functional or useable information, all just vague theory and notions and nothing concrete.
+
+and thus, another rabbit hole
+
+fascinatingly, there appears to be little focus or resources on what WASM is actually is, and instead a whole lot of "here's how to convert what you're probably working on to WASM"
+well what is WASM?
+supposedly chrome and safari can "run wasm code". where do they say that? how do they implement that? how can i run some "minimal wasm program" via chrome?
+
+https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format
+>To enable WebAssembly to be read and edited by humans, there is a textual representation of the Wasm binary format
+
+okay, so there's a binary format (ignoring the text one because it's just another layer of abstraction)
+
+https://webassembly.github.io/spec/core/binary/index.html
+there we go, now we're talking
+
+![[Pasted image 20241010084133.png]]
+
+...
+*sigh*
+
+we get it now, don't we? it's a fad, basically all of math, type systems, and theory are a fad and not founded in practical computations.
+"HoTT!, Type Systems!, Dependent Types!, Homotopy!, LaTeX!, Judgments!"
+*two soyboys pointing*
+"oh, let's be *cool* and *esoteric* and represent a basic-ass if-then construct as a fraction with the if-part on top and the then-part on the bottom, how `advanced`, how *complex*, how **sophisticated** are we?"
+
+here's the most basic and fundamental question, which no doubt will remain unanswerable in a concise way, indicating that the very system is not well-founded (that may be a signifcantly more important proposition than i think i have ever made):
+"how do i run a minimal example" (the "hello world" question)
+
+new conjecture:
+if this question, basically also read as "how do i practically use this?", is not FRONT AND CENTER (and safe, no "run this bash script and install shit from a random website no questions asked"), then whatever follows is not well-founded, necessarily because all things in this regard are derived from computations, and the question at hand is "how can i compute using this system"
+
+if it's not FRONT AND CENTER and SAFE how one may compute using a system, then it's not a well-founded system, because it necessarily HAS to have abstracted and derived far from computation, where we propose that since computation is THE SOURCE of truth, then you have strayed from the truth.
+
+case in point: they have a "getting started" section on their main page (https://webassembly.org/getting-started/developers-guide/), with links styled as "i want to" then a summary of what one may want to do, then a link presumably to an explanation
+the first section there deals 100% in "how to i compile into this format"
+we don't want that, we want to know and write in the format, since it's a computational format and being able to write in that means we understand computations better and thus can make better programs (things that compute)
+
+the next section is "how do i use the compiled WASM". perhaps this is more useful, presumably if something takes bytes (if that's what WASM is), then we can make a minimal example from the "how to use", then go backwards and start messing with the bytes, but that's already quite not-ideal
+the first link is "from JavaScript code"
+this immediately externally links us (with no warning). great.
+the external link explains "we used to do it this one way, but now we're going to do it this other way (the first sounding more fundamental and the second sounding much more abstracted and complex"). great.
+the example then goes on to show how to "load a wasm module", with the examples loading such as a string, like `fetch("simple.wasm")`. well, what the hell is "simple.wasm"? we'll never know!
+so we click on one of the links explaining that there's an "older version" (and implicitly stating we shouldn't use it. why? because to hell with understanding how things work!)
+
+we click that, we see `WebAssembly.compile(bufferSource)` where `bufferSource` is a typed array. we finally know how to do that then, we can just try `WebAssembly.compile(new Uint8Array())` and see what happens, as our "hello world" (although we know we will immediately not know how to actually do anything with it, at least it might do *something*)
+
+`"WebAssembly.compile(): Refused to compile or instantiate WebAssembly module because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive: "script-src 'report-sample' 'self' https://www.google-analytics.com/analytics.js https://www.googletagmanager.com/gtag/js assets.codepen.io production-assets.codepen.io https://js.stripe.com 'sha256-EehWlTYp7Bqy57gDeQttaWKp0ukTTEUKGP44h8GVeik=' 'sha256-XNBp89FG76amD8BqrJzyflxOF9PaWPqPqvJfKZPCv7M='""`
+
+right, kind of makes sense we can't run this arbitrarily in the console of web pages. opening a new tab and running it in the console there produces the same error.
+so... how can one run this?
+
+also, what is `compile a WebAssembly.module`? one would presume we are compiling to the binary format, but what then are we compiling from?
+
+we still do not know how to make a minimal computable thing.
+it seems we must compile from C, which again if we use that link from before links us externally with no warning
+then, we are tolled we should "use a tool like Emscripten"... cool. "like" is definitely what we want to see here.
+we now need the "Emscripten" SDK, another external source. it's also just a python script, apparently.
+to do that, we must clone their repo (their instructions), then run an install script (another script we must blindly trust to run).
+note the repo is 2.3 MiB, so we just installed 2.3 MiB where each B is potentially some computation. that's not an insignificant size, so this doesn't really feel "minimal" in any way
+
+the installation script installs a 304391524 *compressed* archive file (that's 300 MB *compressed*, what the *hell* is it that I just installed?) and uncompressing was a significant delay. it was not said what the size was of the uncompressed artifacts, so we can only conjecture that we just installed something that could be a gigabyte or more. oh, and it installs node.js, which is the old project compared to deno (made by the same guy), so it's already old tech
+
+the compilation process of `emcc` was not very fast, so this cannot be used for something like a real time type system implementation in a language server, so we already know that we probably don't want to be using this
+
+we compiled this C code:
+
+```
+#include <stdio.h>
+
+int main() {
+    printf("Hello World\n");
+    return 0;
+}
+```
+
+the result is a 14457 byte wasm file. it would take me an extremely long time or would be impossible for me to then figure out how this particular "hello world" example works (not well founded, our x86_64 assembly hello world example even with ELF and linking annoyingly in the mix was much, much, much smaller, without those it'd be a very digestible number of bytes, a few dozen or less)
+
+we somehow need to take our local file and turn it into a `Response` object in order to use it, so `Deno.readFile` won't work.
+comically, it seems we must serve the file to ourselves then fetch it, even though it's right there, in order to instantiate it with a command that doesn't have giant red warning sign on MDN
+(we can just create a response object, but that seems arbitrary)
+
+i honestly have no idea what i'm dealing with. there was also this massive 55 KB `a.out.js` file made and i'm getting the impression that it contains what's needed in order to run the `.wasm` file, since there's this weird deal with an "import object"
