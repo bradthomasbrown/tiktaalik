@@ -7712,3 +7712,42 @@ With that, then initial distribution could be decided the usual way, since we ha
 With that, then there's an incentive structure. Perhaps then, with the recursion levels being more difficult, there's lots of incentive to solve conflicts if we regard higher difficulty with greater rewards. We'd basically be increasing the incentive each time we descend a recursion level, and it's fun and exciting to think that in some particular instance the chain participants might see some rare deep recursion where there's now a tense *battle* to obtain what could be a massive reward to solve the conflict. There might even be systems put in place by participants where nodes "take sides" if the conflicting blocks "belong to one of the same team". I find that very fun and amusing to think about, and it's also within protocol and incentivizes stability, so it's not just fun and amusing, but also possibly a viable system, which increases greatly the enjoyment one may get designing such a system.
 
 point 4. is then tricky, since I don't even know how current chains do that. for instance, i get the impression that Ethereum just unilaterally decides what changes occur, especially since the DAO hack rollback occurred. if Ethereum was "governed" then there wouldn't have been a total chain fork that resulted from that, but since Ethereum seems to have assumed a dictatorial role (ironic for a blockchain), this caused a fracture and split of the chain. if that's a correct assessment, then I'm not sure where to start with a governance model. in general, I am very suspicious of any governance models, since they inherently "give up control" to others, and I am extraordinarily stubborn and distrusting. My usual viewpoint is "if someone creates a better way to do things, then they are free to make their own system and people are free to follow them", even if the system being left is my own. In that case, that means I have failed to provide a superior system and I deserve to be abandoned.
+
+we suspect that none of the idea makes sense:
+nodes cannot instantly know when a conflict has happened, so they will freely keep mining blocks, and if anyone queries that node the node would (should?) respond with what the node thinks is the state of the chain
+then, perhaps a *conflict wave* reaches that node and suddenly we're not sure what the state of the chain is until resolution
+if that node doesn't win the resolution, then they'll have to change some of their state, and whoever queried it is going to see what they would see exactly in a "chain reorganization". you couldn't even determine things if you knew EVERY node and queried all of them, since a new node may "join in" and potentially immediately fire off a conflict wave and win the resolution process
+
+new idea:
+if chain reorganizations cause inflation and/or devaluing of the token, then perhaps we could just weigh the value introduced by including a new chain against the devaluing introduced by including a new chain. if at any point (or some threshold) any chain has devalued "excessively" relative to the value introduced, then we could quarantine that chain
+
+new idea:
+we weigh the "value of effect" of a worst case reorganization with respect to the chain being reorganized against the "value of effect" to our token system, where "value of effect" is the magnitude of value change caused by a chain reorganization.
+part of the idea is "if the worst reorganization causes $1M of value to be shuffled around for $1k of our token to be diluted (or something vaguely in line with that notion), then perhaps it could be seen as 'tolerably unlikely' for such a worst case reorganization to happen (since if it did, those who reorganized have caused far bigger problems than just my token system and face potentially far larger repercussions than just me quarantining their chain)"
+
+what about limbo'd transfers?
+perhaps we start by telling the user that if their transfer gets limbo'd (and why it could get limbo'd) they will receive *some* tokens after their given deadline is reached that not necessarily is the tokens they put in (where the difference is the operational cost of returning their tokens).
+So if you only send 10 tokens but it would cost the equivalent of 100 operationally in order to return them in the event of a limbo, and you specify bridge parameters that (or otherwise the system encounters such parameters that) cause a limbo, you just won't see your tokens be returned, since the operational cost is too great to do so. Naturally, there should be massive fucking red warning and an "ARE YOU SURE YOU WANT DO THIS? HERE'S WHY YOU SHOULD NOT DO THIS:" warning requiring them to explicity confirm that's what they want to do (with an option to disable that in the future with an even more massive, even more red warning basically saying "YOU ARE GIVING THIS SYSTEM PERMISSION TO ACT WITH YOUR FUNDS ARBITRARILY, SUCH THAT YOU HAVE GIVEN UP CONTROL OF YOUR FUNDS WITH ONLY THE HOPE THAT YOU MAY SEE THEM OR A PORTION OF THEM AGAIN".
+
+seems straightforward.
+
+Oh, I just thought of something: The operational cost of returning limbo'd tokens *can* decrease if other tokens get limbo'd as well, since the cost of returning those tokens is much lower when we bundle the transactions that return those tokens, so perhaps it's not a "loss" but rather a "you may see them again, we're just not sure when since it depends on this happening to other people" (although in that case, either gas prices surged massively and unexpectedly causing the limbo or the value of the tokens is so insignificant it begs the question "is it really that important you see such a low value of tokens return?" (i imagine limbo'ing due to low value would mean someone tried to bridge something like $0.25 worth of tokens)).
+
+Since EVM transaction costs have a fixed part, every extra return basically divides the cost of the fixed part by the number of returns.
+
+Additionally, we could even implement some sort of "merkle tree" retrieval system so that instead of sending these tokens directly back, we can create a "one-time claim merkle tree" setup where we provide tree construction publicly and add some hash to the contract, such that users can derive proofs (assisted by the UI) and prove they should be able to mint/reclaim some tokens according to the tree (and enforced to only be able to do so once, for that tree).
+
+Doing this means that I wouldn't have the operational cost of updating each limbo return balance's storage slot, i'd just have a single storage slot to update: the merkle root. Doing this means that each additional limbo return divides the total transaction cost, so potentially even tiny fractions of value can be returned within operational costs (unless someone specifies they want to see 100% of the tokens sent, which definitionally cannot happen unless operational costs are zero).
+
+I think then, with that idea, theoretically, as long as someone specifies they tolerate anything less than 100% (even 99.999%) in terms of tokens/value received or returned by the bridge, then we can be *fairly* (not *totally*) confident they will *eventually* see tokens received or returned within their tolerance limits
+
+back to the machine perspective, where did we start?
+at a printer that printed chain information
+
+ECMAScript/V8
+we think 
+
+```
+I'd like to interject for a moment. What you are referring to as JavaScript is in fact ECMAScript/V8, or as I've recently taken to calling it, ECMAScript plus V8.
+```
+
