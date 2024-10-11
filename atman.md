@@ -7607,3 +7607,108 @@ So now we view chain reorg bridge contagion equivalent to a bad proof of work mi
 
 then the only real solutions from here are requiring work to bridge (presumably equivalent to the work just being mining on another chain where we don't burn at all) or whatever the PoS equivalent is (they have "slashing" if someone does something wrong, so it'd be like anyone wanting to bridge puts up collateral to me and if they reorg i delete their collateral)
 
+the mining bridge, or proof of work asset reallocation
+we think we now end up at the latter idea:
+the Y theory
+token is minable, people "burn" tokens (by putting them in a reward pool for it to be mined on the chain where the burn occurs)
+people can declare that they want X on some other chain. if these are the same tokens on some other chain, then miners on the other chain can mine the token, giving a small portion to the one who burnt, until their desire is satisfied
+
+the miner won't give 100%, or else they have no incentive to mine
+the miner won't give 0%, or else nobody will burn and thus they'll end up with nothing to mine
+the burner won't request 100%, or else miners won't mine since they get nothing
+the burner won't request 0%, because that would be insane
+
+Y theory says "start messing with the percentages and see what happens"
+
+doesn't it end up being a pyramid scheme though, if the percent's *aren't* 100%? since B on X burns 100 tokens, and C on Y burns 100 tokens, then if B wants 100 tokens on Y and C wants 100 tokens on X it cannot happen as the miners will get at least some percentage.
+although, now we see it's not a pyramid scheme, because it is understood by the burners that this "loss" or amount of tokens that cannot possibly be fulfilled as the operating cost of the system.
+if we told burners they'll get 100% of tokens every single time, even if not immediately, then it would be a pyramid scheme.
+likewise, if a burner burns 100 tokens on X and wants 100 tokens on Y, then they must understand that their request may (or even should) not ever be fulfilled, since they've left no room for the operating cost. it'd be the same as saying "i want to send this transaction on ETH with 0 gas fee", it'd just be immediately rejected by any miner or node
+
+chocolate popcorn
+what an YRZUC
+we can make chocolate and we have popcorn and yet we haven't made chocolate covered popcorn yet
+
+train of thought just got t-bone'd by a dump truck there (this is a person of interest reference)
+
+there is something that doesn't make sense here though, does it?
+we think it's this:
+- there is a cost to mine tokens on X
+- there is also a cost to exchange native coins for tokens on X
+- it would not make sense to mine the tokens on X if the cost to mine was greater than the cost to exchange
+perhaps this means that, *at first*, the cost to mine should be about the same as the cost to exchange, *then later*, the cost to exchange should be about the same as the cost to mine
+
+a tricky issue here though is that if burners "pick" their slippage, then miners can't really know what the cost of mining is, since they can't know how many tokens they'll get for their work, *if the burners get to choose*
+but *if the miners get to choose*, then the burners will see potentially arbitrary and volatile slippage that they can't control and may be outside of their tolerance
+
+we're having a weird vision that we want to describe as a higher groupoid but applied to proof of work consensus
+
+let's say miners mine tokens on some EVM chain by submitting proof to some smart contract. if the proof must be built on or including the hash of the previous proof (which maybe we don't need, we'll get to that later), then two people submitting valid blocks will result in only one block being valid and the other block essentially being permanently made invalid.
+so where most proof of work chains now or in the past have left the decision "which block is valid" up to mostly random network consensus, now it's delegated to the consensus of another chain.
+we're imagining it's like 10 nodes, 2 submitted valid blocks at the same time, but to an EVM chain, now all the nodes stop what they're doing and watch the EVM chain to see who wins according to the EVM chain rules instead of trying to determine through random network consensus.
+more generally, chain consensus for race blocks becomes deferred to another chain consensus.
+this pattern could potentially repeat indefinitely, and perhaps a chain could implement this "higher chain consensus" by having the nodes stop when a race block is detected and entering a "new chain frame/scope of a higher level" (or lower, or higher/lower depth, the idea is that we've now entered the first step of a potential consensus recursion). in that new chain frame, all nodes must mine the "winner" block of the previous chain frame. if one does so, *convincingly* (no new race blocks are created), then the nodes are at consensus in this frame, then can collapse to having consensus in the base frame.
+if a new race block is created in this frame, we repeat, creating a new temporal chain and going one step further in the chain consensus recursion pattern. eventually, with a proof of work protocol, *someone* is going to come out on top (by way of "getting lucky" and finding a proof unusually early on with whatever constitutes "adequate work to declare a winner"). perhaps the difficulty could increase slightly with each recursion level, where the thought there is:
+"if the difficulty is too low, everyone will immediately mine a block and due to network latency we'll have a ton of race blocks" where the contrasting must be the solution:
+"if the difficulty is higher, then everyone won't immediately mine a block and we conjecture that we increase the likelihood of a one block being mined early on enough to be *the block by consensus* regardless of latency"
+we wonder if there is some existing math that shows that idea, we imagine it would look like the former being a bell curve smushed into being too narrow and too "to-the-left" and the latter would be like we stretch that bell curve out. we superimpose both of these and show some lines for network latency thresholds and we have this idea it's possible to concretely explain *why* this works
+
+Claude
+>To help visualize this concept, I've created a simple diagram using Mermaid:
+
+we're interested in what Mermaid is
+
+  
+I've done a brief rewrite/summary of the idea, let me know if it seems logically consistent, and i've introduced a new concept at the end of the summary that aims to mitigate the "effect wherein the chain 'stops'":
+
+the idea then is what i describe as a "higher chain consensus pattern": when nodes see that there are two conflicting valid blocks, they basically drop everything, then start a new chain which will only ever have one block. this block will determine which of the two conflicting blocks is the valid one that all nodes will use, and nodes must mine the "winner" in this new "frame" or "scope" or "level" or "higher chain", we may again get two nodes producing conflicting blocks, so we then start a new chain where the difficulty of deciding the winner of the "immediately lower chain" is a little higher, which I conjecture (but can't prove right now) that the increased difficulty makes it less likely for two conflicting blocks to be produced the effect is that as soon as any conflict arises, the nodes all start to recursively produce new chains to resolve the conflict until the conflict is settled, then they can all "collapse back" to the original chain with the "winner" of the conflict the result is that the original chain never forks as long as everyone is following the same protocol (hard forks may still happen if the protocol changes), but the chain may "stop" at times (really it hasn't stopped, but is descending into recursion, perhaps the recursion "winner" blocks can also take new transactions so the chain never really "stops", but what the chain is doing now is weird)
+
+  
+This came about when I was thinking about how to build a bridge, although I'll need to untangle how exactly it came about since I write my notes in a "stream of thought" style
+
+I now think this concept might be vastly more important than I've led on, because a major problem with building a bridge between EVM chains is that the chains can undergo reorganizations and there really seems to be no way for a bridge to work if reorganizations can happen, period. One can guess and figure and calculate what they're willing to lose, but one cannot ever be confident that things will work correctly and that there won't be losses from chain reorganizations.
+
+But two chains like we've described don't fork (unless there's a hard protocol fork, but that's an entirely different thing that i don't think is important here, rather should be managed later), and thus a bridge could be built between these chains where the entire concept of "chain reorganization contagion" (where tokens might get duplicated on one chain due to a reorg after some bridge transaction and thus the tokens become "inflated" across all chains) has been basically dealt with.
+
+I wonder now, Did I just "solve" the concept of bridging between two chains? That would have utterly massive implications for what I do next.
+  
+For practical purposes, if I was supposed to be building a bridge between EVM chains, I now have a new problem (or problems): * If I have two of these ∞-layer chains (which is what I'll call them), I conjecture that I can make a bridge between them without "chain reorganization contagion" * If I have one of these ∞-layer chains and an EVM chain (some layer X chain where X is a finite number), then the EVM chain can not be considered to be "free of chain reorganization contagion" * What do I need to do so that I can "interopt" with an EVM chain in such a way that I "free it of its contagion"? I presume I'll need to make some smart contract that basically simulates a ∞-layer chain (which won't be very efficient, but might be the best chance at "freeing it of its contagion").
+
+So for a bridge between two EVM chains, we might then want two smart contracts, one on each chain, simulating a ∞-layer chain, and the bridge would work between the ∞-layers.
+
+HOWEVER, I think it might be impossible (or rather, not "correct" or wholly valid) to "bring tokens down" from the simulated ∞-layer into the main chain, much in the same way that my poor understanding of monads in functional programming make it so values can't really be "brought out" of the monad in a way that's computationally cohesive (going to request that you verify the validity of that since my understanding of monads is quite poor).
+
+Your points have me thinking again, this time I will provide thoughts as a stream, potentially incoherently:
+
+Allow people to move one way. We might then want to disallow movement of tokens on the x-layers to ∞-layers since x-layers have "contagion". We could make it restricted, but in order to make it "right" we think we must disallow this movement entirely. Perhaps though, tokens from ∞-layers can be moved to x-layers. This has weird implications for all of the people who hold my tokens, as the "right" thing for me to do is create a new chain and basically a new token where my holders now can't be assumed to hold anything, since they exchanged assets on a "contaminated" chain. There must be some reasonable and practical solution, but I think the "right" and "perfect" one is that I must consider that myself and everyone else is holding "fake" tokens that cannot be guaranteed to be real. Perhaps I'll base what's "real" on some probabilistic threshold. Somewhat similar to how technically someone "could" randomly determine my private key, but I tolerate using the system because the odds that they will are so astronomically low that, well, I tolerate the odds (and perhaps so does everyone else).
+
+Another major thought: Most chains have some arbitrary difficulty or time restriction on consensus: would this not allow us to do very interesting things in that regard? For instance, from the Bitcoin paper: "To compensate for increasing hardware speed and varying interest in running nodes over time, the proof-of-work difficulty is determined by a moving average targeting an average number of blocks per hour. If they're generated too fast, the difficulty increases." We wouldn't really need to target any average number of blocks per hour or anything that. "If they're generated too fast, the difficulty increases" is fascinatingly the same core concept, except in my case the difficulty isn't within the main chain, it's in successive recursive chains.
+
+So perhaps then, to take things to the absolute extreme: Does the main chain even need a difficulty at all? Do we even need to prove work has been done on the main chain? The work difficulty increasing just increases the likelihood that the infinite recursions that invariably spawn on the main chain will be resolved (we conjecture, with faster difficulty increases leading to fewer recursion levels, we also conjecture), but the main chain can now be thought of to be "difficulty-free" in a sense.
+
+we might be able to remove difficulty and work entirely from the main chain, and we might then only "need" it to resolve conflicts:
+
+the difficulty can then be increased from zero to higher in successive recursive consensus chains, so that we can eventually reach consensus
+
+this has the wild implication that perhaps only work needs to be done to resolve conflicts, and perhaps only the smallest amount of work needed to resolve a conflict is ever done
+
+so for all of the Ethereum "save-the-earth" hippy types, this idea might be a drastically more efficient system, without ever needing to stray from proof of work or into the abomination that is proof of stake
+
+Claude
+>How would initial token distribution work in a system without proof-of-work on the main chain?
+
+That's a hell of a question, actually quite a few good ones:
+1. Initial Distribution: How would initial token distribution work in a system without proof-of-work on the main chain?
+2. Incentive Structure: What would incentivize participants to maintain the network if there's no mining reward on the main chain?
+3. Attack Vectors: How would this system resist various forms of attacks, such as spam transactions or attempted chain reorganizations?
+4. Governance: How would protocol upgrades and changes be implemented in this system?
+
+I'll try to tackle 3. first:
+We might then implement a very minimal proof of work required, where the idea is that this required work should be the absolute minimum needed to prevent *every* block or transaction from entering the recursive consensus phase, or rather some target threshold of "we should try to not enter the recursive consensus phase". This would double as our "Hashcash" implementation, we conjecture. My idea now is that spam transactions would overload nodes, and overloaded nodes would increase latency, and increased latency would lead to the need for the consensus recursion phase to be invoked. So if we have some very minimal work needed that is increased upon frequency of consensus recursion phase invocation, then that might be our spam resistance defence.
+There is an interesting point though, what if one node routinely insists (or is just really slow) on creating conflicts? I imagine metaphorically a child in a classroom routinely interrupting or maybe even the concept of filibustering are similar, if not, the same. Perhaps then, what if we simply allowed nodes to decide who they listen to? If some node is constantly interrupting, a node should feel free to just ignore them, and if some node is constantly interrupting, then they might find that all of the honest nodes in a system will choose to simply ignore them and let them scream into the void all by themselves. In much the same way, miners or validators aren't obligated to include every transaction, they could omit transactions and not be punished. The reason that isn't used maliciously is because just one honest miner or validator can cause their transactions to be included and not censored, but here the situation is reversed somewhat. As each node eventually learns that the interrupter is troublesome, the interrupter will find themselves blacklisted. Perhaps there may even be a protocol for communication amongst nodes where they can communicate that they found some particular node to be behaving suspiciously, such that if one node receives messages from a substantial amount of other nodes (majority or greater), they may be more "on their guard" when dealing with the interrupter, or, by personal preference, they may choose to just proactively block the interrupter.
+
+With that, then initial distribution could be decided the usual way, since we have at least some floor "real value" of proof of work.
+
+With that, then there's an incentive structure. Perhaps then, with the recursion levels being more difficult, there's lots of incentive to solve conflicts if we regard higher difficulty with greater rewards. We'd basically be increasing the incentive each time we descend a recursion level, and it's fun and exciting to think that in some particular instance the chain participants might see some rare deep recursion where there's now a tense *battle* to obtain what could be a massive reward to solve the conflict. There might even be systems put in place by participants where nodes "take sides" if the conflicting blocks "belong to one of the same team". I find that very fun and amusing to think about, and it's also within protocol and incentivizes stability, so it's not just fun and amusing, but also possibly a viable system, which increases greatly the enjoyment one may get designing such a system.
+
+point 4. is then tricky, since I don't even know how current chains do that. for instance, i get the impression that Ethereum just unilaterally decides what changes occur, especially since the DAO hack rollback occurred. if Ethereum was "governed" then there wouldn't have been a total chain fork that resulted from that, but since Ethereum seems to have assumed a dictatorial role (ironic for a blockchain), this caused a fracture and split of the chain. if that's a correct assessment, then I'm not sure where to start with a governance model. in general, I am very suspicious of any governance models, since they inherently "give up control" to others, and I am extraordinarily stubborn and distrusting. My usual viewpoint is "if someone creates a better way to do things, then they are free to make their own system and people are free to follow them", even if the system being left is my own. In that case, that means I have failed to provide a superior system and I deserve to be abandoned.
