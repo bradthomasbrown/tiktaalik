@@ -7751,3 +7751,7 @@ we think
 I'd like to interject for a moment. What you are referring to as JavaScript is in fact ECMAScript/V8, or as I've recently taken to calling it, ECMAScript plus V8.
 ```
 
+https://webidl.spec.whatwg.org/#idl-overloading
+
+null - "i ain't sayin' nothin'"
+undefined - *silence*
