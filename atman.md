@@ -7755,3 +7755,141 @@ https://webidl.spec.whatwg.org/#idl-overloading
 
 null - "i ain't sayin' nothin'"
 undefined - *silence*
+
+what if when a conflict wave hit a node, and presumably "won", the chain changed?
+the idea there is that if a user queries the node for some chain information, then later queries with the same chain information, the information doesn't change ("reorganization")
+but if the chain itself changes when a "reorg" happens (conflict wave overwhelms), like the chain id changes, then the "previous" chain being queried shouldn't change (no "reorg"), but perhaps the node could point out "hey, we're not on that chain anymore, so although I can process things on the old one/answer your query, you might want to reorient yourself to working with this new chain", where it can give the new chain information to the user, perhaps the id as well as the block where the split happened
+
+https://w3c.github.io/webcrypto/#crypto-interface
+
+essentially, if a WebIDL interface has an operation, then instances of that interface in ECMAScript implementations must assume that the operation uses a `this` value that is not "bound" which is equivalent to the instance of the interface.
+for example, interface `Crypto` has operation `getRandomValues`, so we must assume that instance `crypto` of interface `Crypto` has a method `getRandomValues` which uses a `this` value that is not "bound" that is assumed or expected to `crypto`.
+the consequence is that if we destructure the method from the object, the method assumes the value of `this`, but we have changed what `this` will be, causing errors.
+we must then bind methods that we destructure from objects (if those methods are defined as operations of the object which implements a WebIDL interface) in order to "be sure" that the behavior of the method is retained even after destructuring.
+
+we think that w3's specifications (and perhaps WebIDL) then are not well-founded becuase they don't capture this as a behavior. practically, we have something here "out in the wild" (`crypto.getRandomValues`) whose behavior appears to be not explainable by any specification, so from the perspective of one using this *thing* in practice, *all specifications* are not well-founded
+
+https://github.com/denoland/deno/blob/9117a9a43cba86d3112f86b10c5ea77baa2c6007/ext/crypto/00_crypto.js#L5125
+```js
+class Crypto {
+  constructor() {
+    webidl.illegalConstructor();
+  }
+
+  getRandomValues(typedArray) {
+    webidl.assertBranded(this, CryptoPrototype);
+```
+this is the Deno source code that asserts the value/type of `this`
+
+whoever picked `this` as a keyword needs to be slapped, hard, and prevented from ever designing a language again
+go ahead and try looking up or searching "this" in a specification, you'll get 500 results and almost zero of them will be what you're looking for, becuase it's an *extremely* common word
+in fact, we can extrapolate that: `while`, `for`, `if` are all equivalently *terrible* keywords because we can't search for them in a specification. probably most keywords are terrible keywords in this manner, and this supports our notion of designing a language whose keywords are ones not "immediately accessible" to a standard keyboard ("standard" relative to whatever human language the programming language will be made "in the context of"). this allows the standard or specification to use any of the keys on the keyboard within the standard or specification and the programmer to use any of the keys on the keyboard in programming (note, immediately accessible, we "key combos" or "key chords", maybe of length greater than 2 (to account for Shift usage, otherwise definitions get strange between lowercase/uppercase letters and introduction of capslock (which is cruise control for cool)) to be immediately accessible) without the chance of confliction via unintentionally writing a keyword.
+
+Claude:
+```
+- `0 - "I've got nothing for you"`
+- `"" (empty string) - *shrug*`
+- `NaN - "What are you even asking?"`
+- `Infinity - "I could go on forever"`
+```
+
+https://webidl.spec.whatwg.org/#idl-members
+>The constructor steps, getter steps, setter steps, and method steps for the various members defined on an interface or interface mixin have access to a this value, which is an IDL value of the interface type that the member is declared on or that includes the interface mixin the member is declared on.
+
+Perhaps this is where it is defined. We don't like that there is "implicit knowledge" in every interface definition created by this single sentence in the specification. It undermines the value of interface definitions.
+It would be like adding a sentence to the specification in a random page:
+"oh by the way, wherever there is an interface, assume a const member `foo` equal to string `bar`"
+it's much like the way that there are "side rules" in HoTT - "here's how you introduce `variables`, (oh by the way, don't introduce variables that are already in the context)". the rules should always be written formally, we think
+
+or at the very least, implementers could put some assertion whose error message clearly explains what's happening "you didn't include the right `this`, which should be an instance of an implementer of `Crypto`,  which is required due to this sentence in the WebIDL specs"
+whereupon one may see that such an error is evidence that the specification is not well founded, because one would need to put that in EVERY method using a `this` value because the interface doesn't clearly indicate it (we're incorrectly offloading what should be specification into assertion errors in the code)
+
+limbo'd transactions are always something that can be handled later
+
+we want a way to be sure we don't ever resubmit a mint for a single burn, possibly where even if we *do*, it won't be executed/processed
+the most straightforward way to do that is by using the smart contract, but that incurs an additional storage update cost (increased operational cost)
+
+if we're going to not use a smart contract on the chain, we'd at least need some way to determine the integrity of whatever storage option we use. say we store data in a database. what if the database somehow gets corrupted or wiped clean?
+if our application checks to see if something *isn't* in the database before doing something, then it being wiped clean would be always a "go signal".
+we think then that we would need to check to see if something *is* in the database before doing something.
+
+it should be a lot less likely for data to randomly be "added" to a database rather than removed (even if corruption adds random data, the random data is probably not well-formed enough to "fool" our application into thinking everything's normal)
+
+so whereas before we'd create a "burn" in Deno KV when we found a burn event *not* already in the database, we'd want to only create a "burn" in Deno KV if something *was* in the database,
+that way, if the database is cleared and we rescan that event, we won't create a "burn" again
+
+we think though that the only way to do this is to have a copy of the entire blockchain and basically read through it each time, since we are wanting to check whether we have *not* done something
+
+we can't even read the entire blockchain each time, because what if a node lies or omits information? well, if it did then the hashes wouldn't line up, right?
+so say we have burn A and burn B, and some node omits burn A
+we might then think we'd initiate some mint with nonce 0 for burn B, which we don't want to do, we want some mint with nonce 0 for burn A and nonce 1 for burn B
+
+or what if a node falsified burn C, a massive burn. how could we detect it's false so as to not initiate a massive mint, only to find out that burn C was false (with the consequence that now somebody has many, many tokens that they should not have and the tokens have inflated)
+this seems to be another perspective of the reorg problem, except now any node might be falsifying information and one doesn't necessarily need "control of a chain"
+
+that's actually a much more terrifying and plausible attack against any bridge that relies on a single node. or rather, any bridge that relies on any set of peers that can be controlled
+
+>Fraud vector. It's very easy to turn compute into dollars if the compute is free or stolen. Cloud compute is very cost ineffective for something like coin mining, so any actual legitimate miners on any chain are going to just run everything in-house anyway. In the end, that means the people left in that pool predominantly fall into two groups: A) people using stolen credit cards B) accounts that had hacked credentials or leaked API keys running rampant.
+
+interesting explanation on why cloud providers prohibit crypto mining
+summary: if one steals a credit card, they can turn that into real, relatively untraceable money that no government can act upon by using that credit card to pay for cloud machines that mine crypto
+because cloud providers have markup on compute resources, some arguments say that it's never possible to mine crypto at a profit with cloud machines as a cloud user, thus the only people doings so are people doing so fraudulently
+
+>like a gym membership where you get 24/7/365 access, if you somehow manage to stay on the treadmill at 1 MPH for one week straight they're gonna be mad at you because now nobody can use the treadmill
+
+we've suddenly become interested in the possibility of transitioning from the cloud to local, using any assortment of power generators, power containers, and machines we can use
+for instance, could we run the bridge on something as simple as a raspberry pi? if so, is there some existing very large battery we could purchase or battery array we could construct that can power the raspberry if our power grid goes offline? we'd also probably want something like satellite internet, or ability to use cell towers as well as wifi or ethernet (if it's running a bridge, doesn't matter if we have power if we have no connection)
+
+we suppose maybe we don't need rechargeable cells (as an option), we could simply just have an "oh shit" setup of (presumably cheaper) non-rechargeable cells that works if the power goes out for some time (we've seen 6 hours, so we think we'd want 6 hours, although really we just need "enough time to get to somewhere where we can hook back up to a power grid", where 6 hours might actually be overkill)
+
+let's keep that in mind and then start to think about things in a non-cloud way
+
+use the cloud machine as a sort of VPN. if we connect to some chain we expose our IP address, but if we connect so some chain via the cloud machine, we only expose the cloud machine IP address
+
+right now we're thinking:
+"we query an ankr node for the next burn event"
+"it responds with some burn event where X gas was used"
+"we haven't processed it, so we mint"
+"we query again"
+"it responds with the same burn event but where X + 1 gas was used"
+so the hash of the event is entirely different, but the nonce and account are the same
+so we must use the nonce and account, right?
+
+vision, blurry:
+every burn event carries an implicity "amount of damage" if it's reversed, we could also consider the historical frequency of damage being realized
+if we try to compare the "damage" caused with other bridges such that it would seem better to damage other bridges, we'll quickly find ours will be most attractive to damage if we require a lower confirmation, since at any confirmation lower than that of other bridges, the damage to the other bridges is zero and ours may be nonzero.
+we may though be able to play with the fees in order to mitigate the desire of those to cause damage, as well as with the idea of the base chain protocol.
+for instance, in a simple decentralized PoW network, there is a somewhat straightforward cost to reorganizations (barring luck), so if the damage that can be done (and the value that can be extracted, which may be a better way to view things) is less than the protocol cost to do the damage (or extract the value), perhaps the attacker "ought not to attack"
+
+how do we determine if we might double send a mint for some one burn?
+
+if we read all the chain data and we see some burn and no corresponding mint, we should be able to send a new mint, right?
+what if we had just sent a mint and it's not in the chain data?
+then we need to read all of the chain data and refer to some extra-chain data, such as data we keep somewhere detailing what mints have been sent (which is now subject to data integrity concepts)
+OR we could have the smart contract have logic that prevents two mints being processed for some burn (where we provide a hash representing the burn)
+we may want to tag chain and extra-chain data with timestamps using some internally owned timestamping system/service
+we think about that because if we read all the chain data of two chains to try and determine if something hinky is going on, we might find it difficult to determine as there is nothing correlating *time* or in generally sort of *thing* that can be used to correlate the two.
+
+for instance, if we see that some user on chain A has exchanged and now has 100 tokens, then we see a burn event from him for 100 tokens to chain B, we may mint 100 tokens on chain B.
+if we then see a burn event from him for 100 tokens to chain B, we should be able to determine that something is amiss, since we haven't seen him exchange for another 100 tokens or otherwise acquire 100 tokens (we can just look at transfer events here).
+
+even for the first burn request, we should only mint with the understanding that there is some probability that the burn request didn't happen (or more generally that it can be rewritten to have not happened) which should in theory decrease with each new block (or over time)
+
+we almost wonder if every transfer event needs to be revalidated before we even think to start creating the mint for some burn
+
+logical extreme'ing
+if we think before every mint "what are the historical odds that this will cause realized damage" and "how much damage could this cause", we get a concrete number for "potential damage caused"
+logical extreme: 0 damage is always permissible.
+$0.01 of damage per year is absolutely permissible.
+$0.02 of damage per year is absolutely permissible.
+$100k of damage in one day is absolutely not permissible.
+So the amount must lie somewhere in between.
+We wonder what the name is for this mental process
+
+we start to see the pieces, we should start to build them.
+also notable that nethermind is more popular than geth right now (forgot the source, sorry)
+we should start by only targeting two specific chains, and preferably some simpler ones (no consensus client needed), although since this bridge is mostly being made *for* people then we might want to ask those people which two chains they want to bridge across
+
+what are my two favorite chains then?
+probably not ARB - the whole wonky gas thing
+probably not ETH - consensus client bullshit
