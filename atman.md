@@ -7893,3 +7893,138 @@ we should start by only targeting two specific chains, and preferably some simpl
 what are my two favorite chains then?
 probably not ARB - the whole wonky gas thing
 probably not ETH - consensus client bullshit
+
+ETH is by far the winner, so we're going to have to dive in there.
+We need chain information. Specifically, we need something that can get chain information.
+
+see here's a big whopper:
+nethermind doesn't support the chains we use.
+
+we use Ethereum, Arbitrum, Binance Smart Chain, Avalanche, and Base.
+nethermind supports Etheruem, Gnosis, EnergyWeb, and Optimism.
+
+We really do think we might want some sort of peculiar client of our own.
+
+```
+Resources:
+
+1. DevP2P Documentation: [https://github.com/ethereum/devp2p](https://github.com/ethereum/devp2p) This repository contains specifications for the network protocols used in Ethereum.
+   
+2. Ethereum Wire Protocol: [https://github.com/ethereum/devp2p/blob/master/caps/eth.md](https://github.com/ethereum/devp2p/blob/master/caps/eth.md) This document specifies the Ethereum Wire protocol.
+   
+3. RLPx Transport Protocol: [https://github.com/ethereum/devp2p/blob/master/rlpx.md](https://github.com/ethereum/devp2p/blob/master/rlpx.md) Specification for the RLPx transport protocol.
+   
+4. Discovery Protocol: [https://github.com/ethereum/devp2p/blob/master/discv4.md](https://github.com/ethereum/devp2p/blob/master/discv4.md) Details on the node discovery protocol.
+   
+5. Ethereum 2.0 Networking Specification: [https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md) This provides information on the peer-to-peer networking specification for Ethereum 2.0.
+```
+
+I have an odd "mini-theory":
+
+Comments in a program are a primitive type system.
+
+It's not a very "concrete" type system and generally there is no "type checker" that cross references and produces errors based on the contents of comments, but perhaps as a primitive type system, it could be formalized a bit more so that it could be used in a "type checker".
+
+My explanation is that comments explain in a "higher level" the computations that go on (and I have another "mini-theory" that all type systems are just higher level computation systems).
+
+I think the end result of the theories is that no type system can perfectly capture the nature of any computer program, since they are just more general, higher level computer programs of their own, they must generalize some part of the underlying computer program. If they were perfect, then they would simply represent an optimization to the computer program and then would be "the next valid iteration of the computer program at its lowest level".
+
+It's almost as if to say "type systems are never computationally well-founded". That's not to say they aren't helpful, but it's more like there should always be some "exception" to any type system that makes it "imperfect", where if there weren't any exceptions, then the type system could be seen as an optimization of sorts (I say of sorts because there's different tradeoffs that one might want to optimize. Say some type captures computation in a more concise way, but it's not computationally the most "efficient" to do so.)
+
+The results of those mini-theories which I presume are true are that I basically want to avoid any programming language with any sort of type system or type checking, since the result must be that those programming languages are "computationally not well-founded" and perhaps necessarily "computationally incomplete". (the idea is that if a program can only be made if it type checks successfully and that if type checking is never a perfect representation of computation, then some computations can never be type checked and perhaps never be made into programs, even if they are computationally valid).
+
+Another result is that in order to best _fully_ understand a computer program, one must be able to do so without referencing any type system (or even comments). Those can help towards full understanding, but they will never be able to substitute full understanding.
+
+I think that this is part of a deeper theory where computation (which currently boils down to bits on a modern computer, but in the past could be thought of in other ways, like generally just writing things down on paper step by step, following rules) is "the language of understanding", more so than any other system.
+
+We're now open to using any programming language or even creating our own for any part of what we will build.
+
+We want chain information.
+We found ourselves at https://github.com/ethereum/devp2p, basically clicking through everything until we found that https://github.com/ethereum/devp2p/blob/master/discv5 might be where we want to start. We wonder if an AI could have helped us locate this or could otherwise help us determine the structure of the repo, rather than us guessing.
+
+We're not "language agnostic" we're "language antagonistic"
+
+YRZUC tree:
+- devp2p, ethereum, we want chain data, this is how we get chain data at its most raw form
+	- devp2p repo, not intuitive, had to click around to find what i wanted, wonder if AI or LLM -like could have helped with understaning the repo in a way the README was unable to provide
+		- minimal AI or LLM -like, can we make something like this ourselves? we could chunk repos and feed chunks to Claude, but that has a cost, and we want to avoid that
+			- Claude gives an example in Python. We wonder, why python? It is the most popular language. We would need an environment where we can develop in Python. We need more dependencies and a context. We don't like how the filesystem in Windows is organized. We could make a new drive and put things in there as a "fresh" place. We almost think to wipe our machine (saving what should be saved) so we have a nice fresh environment. We wonder, why Windows? Should we get some GNU/Linux distro? Perhaps just GNU? There's also the Chromium distros. A founding spiritual notion says we should try all at once and see which one we end up sticking with, but we're not sure how exactly we'd do that. Why VSCode? Why not use the built-in text editors? Straight `vim` or `emacs`. Why do I do this in Obsidian? We can always break things down like this, seemingly forever, so we need to stop at some point. Our VSCode isn't fresh either, we have all these extensions and settings. We want to know how we got to where we are in VSCode now, perhaps devise something that can be used to get to where we are now from "fresh" and why we did each step. Preferably we have some system where we can optionally wipe segments of it instead of wiping it all the way to nothing.
+				- We wonder if there's a strategy that could have been employed or can be employed: We make a new drive in Windows, and everything we do goes in that new drive. Perhaps we can iteratively clean what's been done in the previous drive? Part of the strategy could include *why* things are added, in a sort of Git-like or code-comment-like manner. We could use a strategy where we use something like SpaceSniffer to target the largest "things" in a sort of "space-focused" strategy, but it would also be prudent to have a strategy where we can remove many small things in or around one spot in a "thing-count" strategy.
+					- We think we need to clean this vault. There's a lot of siblings to `atman` that maybe shouldn't be there. Then again, do we need to question the existence of the vault (and Obsidian)? Create a strategy for adding things? Do we need to start at our idea of how to approach a filesystem-ish? New software?
+
+We wonder if we can chunk out the things within here, a monumental task at nearly 640k characters, into more or less logical organizations.
+`acanthostega` appears to be more or less the "evolution" to `tiktaalik`, so perhaps we take that name and make a new vault?
+
+let's begin then:
+what is `code/deno/llm/mod.md` (we see here an AI or LLM could potentially help with summarizing `things` or researching about `things`, *maybe*).
+it's an YRZUC-want for presumably an ECMAScript/Deno neuro machine minimal.
+- yrzuc - yrzuc, a thing, an input, an *event* to the human machine function
+- want - a want for something presumed new
+- ECMAScript - we want a term for "we don't think we need to explain it further"
+- Deno - ditto
+- machine - our abstract concept of anything that takes inputs, processes them, then produces output (or perhaps one of those, or maybe even none)
+- neuro - the class of machine that AI or LLMs would probably fall under
+a lot of these could point to things that are in other logical groupings. for instance, ECMAScript might be under "specifications" and the grouping under `yrzuc/want` with the same name might point to the one under `specifications` (so we know what it is).
+
+we also see pretty quickly why we want our own approach to a filesystem:
+the folders should be able to contain information. if we click on `yrzuc`, we want to see an explanation of what an `yrzuc` is and we don't necessarily think that should be or needs to be a file under the `yrzuc` folder. perhaps it could be, but is that the most intuitive?
+
+each "thing" may also point to many other "things" in a way that's not precisely intuitive for a filesystem (a graph not necessarily directed).
+
+ultimately, the hardware representation of storage is king though, in much the same way the hardware representation of computation is king.
+
+imagine a square containing squares, perhaps recursively. each square could be thought of as a logical grouping, squares within a square as logical subgroupings of a logical supergroupings.
+we may also have things that aren't squares within a square, and this could be our "data"
+
+so a square could be a folder, which can contain other squares or "not squares", other folders or files
+
+so all we're really presuming is that maybe a certain square within a square should be "data" for the super square. perhaps instead of "squares and not squares", each of some sorts of square (or perhaps all, but this might be impossible due to infinite recursion) has an initial first "within" square whose contents are data that define the square it's within.
+perhaps part of this data or perhaps in the second "within" square we may then define which other squares this one is "linked" to and "how" it is linked.
+
+perhaps partitioning our drive and trying to implement this is a bit "too far" for now and we may want to then just realize that we could just make a file or files to put in a folder that could serve for what we need. We wonder then how we can make sure the files "appear first". For instance, if i make a file under `yrzuc` (in obsidian), it appears *after* the folders under `yrzuc`, which our gut says we don't want. 
+
+we also wonder if we could just make everything flat and link things, but then we run into that issue where we can't have any two different things have the same name (because we don't have "namespaces"). we could then make folders on an *as-needed* basis, though, to provide those namespaces, but then we might want a file within that folder that explains why that folder exists and what it is.
+
+we sorted a bunch of stuff, most of the AI chats have been consumed into a filesystem format of ideas.
+we also have a new disk partition with a new drive D:, which is just something I'll use as a completely fresh "space" to work in. we may then want to employ the whole "everything i put in there should be documented" concept, so we know "why" it ends up being whatever it ends up being for any given point in time, although we know that it could be brought to such extremes that could greatly impede productivity, so there's a balancing act to be done
+
+we want chain data.
+perhaps our entire partition could be dedicated to that endeavor?
+a partition for an entire YRZUC?
+
+https://mdbailey.ece.illinois.edu/publications/imc18_ethereum.pdf
+
+we had a weird idea:
+if we think of every node response representing a burn / bridge transaction as a potential attack by the node, we may be able to, in the future, after we've processed it, incentivize decreasing the accumulated potential damage.
+the way this would work is this:
+if A bridges from chain X to chain Y, chain Y has accrued some "potential damage" as chain X may reorg and thus the tokens A has on chain Y are "unfairily acquired" and represent some inflation or leakage of tokens and A may exchange (sell) these for native coins, extracting value from the system (causing damage).
+But if A is a normal, rational actor and not an attacker and there's no reorganization, then we could pay A any amount up to the potential damage they've generated to do something to mitigate the potential damage generated.
+for instance, if we consider that each block makes it less likely for a reorg to happen, reducing the potential damage if we multiply some probability by the magnitude of the damage (although this does require us to assume that reorgs can't be caused arbitrarily, which we may be able to do for some chains and protocols but perhaps not others), then if A "incurs" $100 of "potential damage", A locking up their tokens in some way that we could destroy them in the event a reorg "regenerates" A's tokens on X would allow us to destroy the unfairly generated tokens and thus mitigate or reverse some of the potential damage. This has a concrete value, and so we could pay up to that concrete value in order to proactively offer payment to mitigate accrued potential damage.
+However, doing this might necessarily require transactions to be submitted by us or by A, and those have operational costs, so the ability for that to happen might be restricted to bridges by A of large values.
+we wonder if there are other ways to incentivize mitigation of damage.
+
+https://medium.com/@coinix/what-are-web3-infrastructure-networks-1239d1f61962
+
+neat
+ankrscan.io
+
+so a vision of combined services: blockchain information access, VPN, API management
+actually, the way this all integrates into a bridgeable token and our vision of a "general contract deployer and marketplace" with upgradeable contracts might be significant
+
+https://defillama.com/hacks
+damn
+
+maybe idris/idris2 is what we want if we want a type system that can support some mildly crazy shit
+
+perhaps maybe we're okay with exposing our IP, in the name of "trimming the fat" we can destroy quite a lot of cost right now if we just go ahead and say fuck it. we wonder thought what could happen, like what do we do if someone straight DDoS's my IP?
+Would my ISP prevent that?
+
+interesting, cluade suggests not to run servers from a residential position, for quite a few convincing reasons
+
+we almost want to nuke the existing droplet and create a new minimal one, but we know that a minimal one gets shrekt by vscode.
+perhaps we shouldn't use vscode then?
+we hadn't really considered that
+
+in order to nuke the existing droplet i'll need to go through it and make sure anything on it that is somewhat important is backed up somewhere, like github
+
+not too bad, we committed and synced all the code changes, now we should be able to nuke the droplet without losing too much

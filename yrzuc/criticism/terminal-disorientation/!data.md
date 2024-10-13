@@ -1,0 +1,3 @@
+There is a pattern in some projects where they may ignore or reject some very early criticism or proposal where down the line it turns out that if they had accepted or embraced that it would have made the project significantly more capable.
+
+It is also a possibility that by ignoring or rejecting early on, a project may make it difficult or even feasibly impossible to later accept or embrace it, as it may be part of a foundation to build the project. After ignoring or rejecting, to embrace or accept it later may require "tearing everything down to the foundation", "patching the foundation", then "building it all back up" which projects may then just see as something not worth doing.

@@ -1,0 +1,5 @@
+Some TypeScript GitHub issues have been locked without being satisfied. We really don't like that. Some issues also appear strange like they have been historically altered or modified (comments perhaps deleted), then locked. This is concerning.
+
+There are also a *lot* of TypeScript issues that have existed for extremely long periods of time that have been unresolved, and/or issues that have been closed as basically "too much work" where those issues would have made TypeScript more flexible and capable. The closing of those issues or lack of progress towards others means that TypeScript probably has permanent incapabilities.
+
+TypeScript is also intentionally not extensible. It is not straightforward to modify or add to the language and the team is explicit about this being intentional. They think "it could cause confusion" if anyone could modify the language or use "plugins" to do so. Ironically, some people then made very susbstandard attempts to make the language extensible, since the official team refused to make it standard. 
